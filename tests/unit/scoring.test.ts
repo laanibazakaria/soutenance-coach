@@ -109,9 +109,20 @@ describe("computeReport — phrases", () => {
     );
   });
 
-  it("phrases courtes → bon", () => {
-    const transcript = "Je commence. Je continue mon exposé. Je conclus rapidement. Merci à tous.";
+  it("phrases de longueur naturelle → bon", () => {
+    const transcript =
+      "Je commence par vous présenter le contexte général de mon travail. " +
+      "Ensuite je détaille les trois missions techniques que j'ai réalisées cet été. " +
+      "Enfin je reviens sur les compétences que ce projet m'a permis de développer.";
     expect(metric(computeReport({ transcript, durationMs: 60_000 }), "phrases").level).toBe("bon");
+  });
+
+  it("discours haché par la transcription (moyenne < 7 mots) → absent, jamais un faux « bon »", () => {
+    // Bug réel de la session n°2 : « Oh, j'ai travaillé. Sur une application. »
+    const transcript = "Oh, j'ai travaillé. Sur une application. L'analyse. Les appels ? Le code.";
+    const m = metric(computeReport({ transcript, durationMs: 60_000 }), "phrases");
+    expect(m.level).toBe("absent");
+    expect(m.summary).toContain("haché");
   });
 
   it("phrases interminables → alerte, avec le compte des phrases trop longues", () => {
@@ -185,6 +196,33 @@ describe("computeReport — session réelle du 21 août (77 mots, 1 min 13)", ()
   it("le rapport est déterministe : deux calculs identiques → résultats identiques", () => {
     const again = computeReport({ transcript: SESSION_REELLE, durationMs: 73_000 });
     expect(again).toEqual(report);
+  });
+});
+
+describe("computeReport — session réelle n°2 (discours préparé, transcription hachée)", () => {
+  /** Transcription brute de la session réelle n°2 : discours structuré et sans
+   *  béquille, mais haché par la reconnaissance vocale. */
+  const SESSION_REELLE_2 = `Bonjour, je vais vous présenter 3 points principaux. Premièrement mon mon stage chez propolis. Oh, j'ai travaillé. Sur une application de coaching commercial basée sur l'intelligence artificielle. Deuxièmement ? Émission technique. Que j'ai réalisé. L'analyse. Les appels ? Il a détection de tendance longitudinale. Troisièmement. Ce que j'ai appris est comment ? Je l'applique aujourd'hui. Dans mes projets personnels ? Pour conclure. Sauvetage. De comprendre. Système IA. Repose sur la rigoureux. Code déterministe. Pas sur le modèle de langage seul.`;
+  const report = computeReport({ transcript: SESSION_REELLE_2, durationMs: 96_000 });
+
+  it("aucune béquille — le discours préparé est réellement propre", () => {
+    const m = metric(report, "bequilles");
+    expect(m.level).toBe("bon");
+    expect(m.value).toBe(0);
+  });
+
+  it("phrases → absent : le hachage de la transcription ne donne pas un faux « bon »", () => {
+    expect(metric(report, "phrases").level).toBe("absent");
+  });
+
+  it("le « pour conclure » suivi de plusieurs phrases est bien capté (fenêtre élargie) → structure bonne", () => {
+    const m = metric(report, "structure");
+    expect(m.level).toBe("bon");
+    expect(m.details[1]).toContain("pour conclure");
+  });
+
+  it("débit lent détecté (75 mots en 1 min 36)", () => {
+    expect(metric(report, "debit").level).toBe("alerte");
   });
 });
 

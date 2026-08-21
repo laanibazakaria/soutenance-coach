@@ -24,7 +24,8 @@ export const SEUILS = {
   motsMinimumStructure: 60,
   debit: { bonMin: 110, bonMax: 160, attentionMin: 90, attentionMax: 185 },
   bequillesPour100: { bon: 2, attention: 5 },
-  phrases: { moyenneBonne: 22, moyenneAttention: 30 },
+  phrases: { moyenneHachee: 7, moyenneBonne: 22, moyenneAttention: 30 },
+  conclusionFenetre: { ratio: 0.35, motsMinimum: 30 },
 } as const;
 
 const INTRO_MARKERS: ReadonlyArray<[label: string, re: RegExp]> = [
@@ -132,6 +133,19 @@ function phrasesMetric(transcript: string): MetricResult {
   }
   const lengths = sentences.map((s) => tokenize(s).length).filter((n) => n > 0);
   const mean = Math.round(lengths.reduce((a, b) => a + b, 0) / lengths.length);
+  // Bug découvert en session réelle n°2 : la reconnaissance vocale hache
+  // parfois le discours en fragments de 3-4 mots. Personne ne parle ainsi —
+  // une moyenne aussi basse trahit le bruit de transcription, pas le style
+  // de l'orateur. On s'abstient plutôt que de féliciter à tort.
+  if (mean < SEUILS.phrases.moyenneHachee) {
+    return {
+      ...base,
+      level: "absent",
+      summary:
+        "La transcription a haché ton discours en fragments trop courts pour juger la longueur réelle de tes phrases — métrique non calculée plutôt que faussée.",
+      details: [],
+    };
+  }
   const tooLong = lengths.filter((n) => n > 30).length;
   const level =
     mean <= SEUILS.phrases.moyenneBonne
@@ -164,7 +178,13 @@ function structureMetric(transcript: string, wordCount: number): MetricResult {
   }
   const words = tokenize(transcript);
   const introText = words.slice(0, 150).join(" ");
-  const conclusionText = words.slice(Math.max(0, Math.floor(words.length * 0.75))).join(" ");
+  // Fenêtre de conclusion élargie après la session réelle n°2 : un
+  // « pour conclure » suivi de quelques phrases tombait hors des 25 % finaux.
+  const fenetre = Math.max(
+    SEUILS.conclusionFenetre.motsMinimum,
+    Math.ceil(words.length * SEUILS.conclusionFenetre.ratio),
+  );
+  const conclusionText = words.slice(Math.max(0, words.length - fenetre)).join(" ");
 
   const introFound = INTRO_MARKERS.filter(([, re]) => re.test(introText)).map(([label]) => label);
   const conclusionFound = CONCLUSION_MARKERS.filter(([, re]) => re.test(conclusionText)).map(

@@ -115,3 +115,27 @@ h1 { font-size: 1.7rem; margin-bottom: 6px; }
 .metric-summary { font-size: 0.88rem; color: var(--txt); }
 .metric-details { margin: 8px 0 0 18px; font-size: 0.84rem; color: var(--muted); }
 .report-note { margin-top: 14px; font-size: 0.78rem; color: var(--muted); font-style: italic; text-align: center; }
+
+/* ── tendances ── */
+.trends { margin-bottom: 30px; }
+.trends-title { font-size: 1.15rem; margin-bottom: 14px; }
+.trends-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.trend { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+.trend-progression { border-left: 3px solid var(--ok); }
+.trend-stagnation { border-left: 3px solid var(--gold); }
+.trend-regression { border-left: 3px solid var(--danger); }
+.trend-absent { border-left: 3px solid var(--muted); opacity: 0.7; }
+.trend-head { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
+.trend-icon { font-size: 1.5rem; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--bg2); }
+.trend-label { font-weight: 600; font-size: 0.95rem; }
+.trend-direction { font-size: 0.78rem; color: var(--muted); }
+.trend-direction-progression { color: var(--ok); }
+.trend-direction-regression { color: var(--danger); }
+.trend-insight { font-size: 0.88rem; }
+.teaser { text-align: center; color: var(--muted); font-size: 0.92rem; }
+.list-title { font-size: 1.1rem; margin: 26px 0 12px; }
+.chips { display: flex; gap: 6px; margin: 6px 0; flex-wrap: wrap; }
+.chip { font-size: 0.72rem; font-weight: 600; padding: 1px 9px; border-radius: 99px; border: 1px solid var(--line); }
+.chip-bon { color: var(--ok); border-color: rgba(52, 211, 153, 0.4); }
+.chip-attention { color: var(--gold); border-color: rgba(212, 175, 55, 0.4); }
+.chip-alerte { color: var(--danger); border-color: rgba(248, 113, 113, 0.4); }

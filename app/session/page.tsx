@@ -80,8 +80,12 @@ export default function SessionPage() {
     };
 
     rec.onerror = (ev) => {
-      // "no-speech" et "aborted" sont des événements normaux, pas des erreurs.
-      if (ev.error !== "no-speech" && ev.error !== "aborted") {
+      // Événements normaux du cycle de vie, pas des erreurs à montrer :
+      // - "no-speech" / "aborted" : silences et arrêts volontaires ;
+      // - "network" : micro-coupure du service de reconnaissance de Chrome,
+      //   observée en conditions réelles — onend suit et on redémarre seul,
+      //   sans perte du texte déjà finalisé.
+      if (ev.error !== "no-speech" && ev.error !== "aborted" && ev.error !== "network") {
         setError(`Reconnaissance vocale : ${ev.error}`);
       }
     };

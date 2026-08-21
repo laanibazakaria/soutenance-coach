@@ -226,6 +226,34 @@ describe("computeReport — session réelle n°2 (discours préparé, transcript
   });
 });
 
+describe("computeReport — session réelle n°3 (le produit se présente lui-même)", () => {
+  /** Transcription brute de la session réelle n°3 : « Pour conclure » prononcé,
+   *  mais transcrit « Conclure ? » — le marqueur exact le ratait. */
+  const SESSION_REELLE_3 = `Bonjour. Pouvez-vous présenter ? Mon projet, soutenance, coach. En 3 points. Premièrement, le problème. Les étudiants s'entraînent. Aura sans aucune retour objectif. Ton mémoire, douleur, progression. Deuxièmement ? Une application ? Je pense que votre discours. Mesure votre débit. Détecte vos vos mots, buckles. Vos mots béquil ? Ils se souviennent. Donc, Troisièmement. La philosophie technique. Chaque score est calculé par du code déterministe. Et test. Le modèle de langage ne décide jamais d'un chiffre. Conclure ? Ce projet m'a permis de construire ce que j'avais proposé en stage, mais jamais codé. Une vraie analyse longitudinale de la progression. Hum, c'est fini.`;
+  const report = computeReport({ transcript: SESSION_REELLE_3, durationMs: 122_000 });
+
+  it("« Conclure ? » (pour conclure amputé par la transcription) est capté par le marqueur de repli", () => {
+    const m = metric(report, "structure");
+    expect(m.level).toBe("bon");
+    expect(m.details[1]).toContain("conclure");
+  });
+
+  it("« c'est fini » est reconnu comme fin marquée", () => {
+    expect(metric(report, "structure").details[1]).toContain("fini");
+  });
+
+  it("l'intro est reconnue malgré « je vais vous présenter » transcrit « Pouvez-vous présenter »", () => {
+    // Grâce à « en 3 points » et « premièrement ».
+    expect(metric(report, "structure").details[0]).toContain("premièrement");
+  });
+
+  it("phrases → absent (hachage), béquilles contenues, débit lent", () => {
+    expect(metric(report, "phrases").level).toBe("absent");
+    expect(metric(report, "bequilles").level).toBe("bon");
+    expect(metric(report, "debit").level).toBe("alerte");
+  });
+});
+
 describe("SEUILS — les constantes restent critiquables", () => {
   it("les seuils sont exportés et cohérents", () => {
     expect(SEUILS.debit.bonMin).toBeLessThan(SEUILS.debit.bonMax);

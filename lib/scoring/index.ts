@@ -43,6 +43,12 @@ const CONCLUSION_MARKERS: ReadonlyArray<[label: string, re: RegExp]> = [
   ["« pour terminer »", /pour (terminer|finir)/iu],
   ["« merci de votre attention »", /merci (de votre attention|pour votre attention)/iu],
   ["« je vous remercie »", /je vous remercie/iu],
+  // Replis robustes au bruit de transcription — session réelle n°3 : un
+  // « Pour conclure » prononcé est arrivé transcrit « Conclure ? », et le
+  // marqueur exact le ratait. Dans la fenêtre de conclusion, le mot seul
+  // est un signal suffisant.
+  ["« conclure/conclusion »", /\bconclu(re|sion|ons)\b/iu],
+  ["fin marquée (« c'est fini »)", /\b(c'est|j'ai|j'en ai) fini\b/iu],
 ];
 
 /** Calcule le rapport complet d'une session. Fonction pure, jamais d'exception. */

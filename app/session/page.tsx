@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveSession, countWords } from "@/lib/storage";
+import { computeReport } from "@/lib/scoring";
+import ScoreReportView from "@/app/components/ScoreReportView";
 
 type Phase = "idle" | "recording" | "stopped";
 
@@ -189,6 +191,12 @@ export default function SessionPage() {
           </>
         )}
       </div>
+
+      {phase === "stopped" && finalText.trim() !== "" && (
+        <ScoreReportView
+          report={computeReport({ transcript: finalText.trim(), durationMs: elapsedMs })}
+        />
+      )}
 
       <div className="transcript" aria-live="polite">
         {finalText === "" && interimText === "" ? (

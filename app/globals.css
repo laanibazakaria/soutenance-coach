@@ -93,3 +93,25 @@ h1 { font-size: 1.7rem; margin-bottom: 6px; }
 
 .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+
+/* ── rapport de session ── */
+.report { text-align: left; margin: 28px 0 8px; }
+.report-title { font-size: 1.15rem; margin-bottom: 14px; }
+.report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.metric { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+.metric-bon { border-left: 3px solid var(--ok); }
+.metric-attention { border-left: 3px solid var(--gold); }
+.metric-alerte { border-left: 3px solid var(--danger); }
+.metric-absent { border-left: 3px solid var(--muted); opacity: 0.75; }
+.metric-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.metric-label { font-weight: 600; font-size: 0.95rem; }
+.badge { font-size: 0.72rem; font-weight: 700; padding: 2px 10px; border-radius: 99px; white-space: nowrap; }
+.badge-bon { background: rgba(52, 211, 153, 0.15); color: var(--ok); }
+.badge-attention { background: rgba(212, 175, 55, 0.15); color: var(--gold); }
+.badge-alerte { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+.badge-absent { background: rgba(169, 159, 194, 0.15); color: var(--muted); }
+.metric-value { font-size: 1.7rem; font-weight: 700; margin-bottom: 6px; }
+.metric-unit { font-size: 0.8rem; font-weight: 400; color: var(--muted); }
+.metric-summary { font-size: 0.88rem; color: var(--txt); }
+.metric-details { margin: 8px 0 0 18px; font-size: 0.84rem; color: var(--muted); }
+.report-note { margin-top: 14px; font-size: 0.78rem; color: var(--muted); font-style: italic; text-align: center; }

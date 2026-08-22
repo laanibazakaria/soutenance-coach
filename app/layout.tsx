@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,7 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr">
       <body>
         <header className="topbar">
-          <a href="/" className="brand">
+          <Link href="/" className="brand">
             <svg width="22" height="22" viewBox="0 0 150 150" aria-hidden="true">
               <g transform="translate(75,75)">
                 <path
@@ -25,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </g>
             </svg>
             SoutenanceCoach
-          </a>
+          </Link>
           <span className="privacy-note">100 % local — rien ne quitte ton navigateur</span>
         </header>
         <main className="content">{children}</main>

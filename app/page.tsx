@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { listSessions, removeSession, exportSessions, importSessions } from "@/lib/storage";
 import { computeReport } from "@/lib/scoring";
 import { buildTrendReport, SEUILS_TENDANCES } from "@/lib/trends";
@@ -107,9 +108,9 @@ export default function HomePage() {
             <h1>Tes sessions</h1>
             <p className="subtitle">Enregistre-toi, relis-toi, progresse.</p>
           </div>
-          <a href="/session" className="btn primary">
+          <Link href="/session" className="btn primary">
             🎤 Nouvelle session
-          </a>
+          </Link>
         </div>
       )}
 
@@ -163,9 +164,9 @@ export default function HomePage() {
             </li>
           </ol>
 
-          <a href="/session" className="btn primary big">
+          <Link href="/session" className="btn primary big">
             🎤 Lancer ma première session
-          </a>
+          </Link>
 
           <div className="reassure">
             <p>

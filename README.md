@@ -9,9 +9,7 @@ d'une session à l'autre.
 Aucune installation, aucun compte. Ouvre le lien dans Chrome ou Edge, autorise le micro,
 et parle. *(Tes enregistrements restent sur ton appareil.)*
 
-> Version complète, avec pitch, questions de jury et simulation d'entretien par IA :
-> **soutenance-coach.vercel.app**. Une copie statique sans IA reste servie sur
-> [GitHub Pages](https://laanibazakaria.github.io/soutenance-coach/).
+> Hébergée sur Vercel. Chaque déploiement passe par la CI (types, 180 tests, build).
 
 > Construit en août 2026 par [Zakaria Laaniba](https://laanibazakaria.github.io), élève-ingénieur
 > en IA à l'ENSIAS, après un stage passé à fiabiliser une application d'IA en production.

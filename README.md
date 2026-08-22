@@ -4,6 +4,11 @@
 obtiens une évaluation objective de ton élocution — et surtout, un suivi de ta progression
 d'une session à l'autre.
 
+### 👉 [Utiliser l'application](https://laanibazakaria.github.io/soutenance-coach/)
+
+Aucune installation, aucun compte. Ouvre le lien dans Chrome ou Edge, autorise le micro,
+et parle. *(Tes enregistrements restent sur ton appareil.)*
+
 > Construit en août 2026 par [Zakaria Laaniba](https://laanibazakaria.github.io), élève-ingénieur
 > en IA à l'ENSIAS, après un stage passé à fiabiliser une application d'IA en production.
 > J'ai préparé ma propre soutenance avec.

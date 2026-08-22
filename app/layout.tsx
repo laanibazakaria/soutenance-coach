@@ -1,36 +1,36 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "SoutenanceCoach — le coach d'oral qui se souvient",
+  metadataBase: new URL("https://laanibazakaria.github.io/soutenance-coach/"),
+  title: {
+    default: "SoutenanceCoach — prépare ta soutenance, sérieusement",
+    template: "%s · SoutenanceCoach",
+  },
   description:
-    "Entraîne-toi à l'oral : transcription en direct, évaluation objective et suivi de ta progression. Tes données restent dans ton navigateur.",
+    "L'entraînement à l'oral qui se souvient. Transcription en direct, mesures objectives (débit, mots béquilles, structure, tenue du temps) et suivi de ta progression d'une séance à l'autre. Gratuit, sans compte, tes enregistrements restent sur ton appareil.",
+  keywords: ["soutenance", "PFA", "PFE", "oral", "entraînement", "ENSIAS", "prise de parole"],
+  authors: [{ name: "Zakaria Laaniba", url: "https://laanibazakaria.github.io" }],
+  openGraph: {
+    title: "SoutenanceCoach — prépare ta soutenance, sérieusement",
+    description:
+      "Transcription en direct, mesures objectives et suivi de ta progression. Gratuit, sans compte.",
+    type: "website",
+    locale: "fr_FR",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
-      <body>
-        <header className="topbar">
-          <Link href="/" className="brand">
-            <svg width="22" height="22" viewBox="0 0 150 150" aria-hidden="true">
-              <g transform="translate(75,75)">
-                <path
-                  d="M0,-62 L11,-15 L44,-44 L15,-11 L62,0 L15,11 L44,44 L11,15 L0,62 L-11,15 L-44,44 L-15,11 L-62,0 L-15,-11 L-44,-44 L-11,-15 Z"
-                  fill="none"
-                  stroke="#D4AF37"
-                  strokeWidth="7"
-                />
-                <circle r="8" fill="#D4AF37" />
-              </g>
-            </svg>
-            SoutenanceCoach
-          </Link>
-          <span className="privacy-note">100 % local — rien ne quitte ton navigateur</span>
-        </header>
-        <main className="content">{children}</main>
-      </body>
+    <html lang="fr" className={inter.variable}>
+      <body>{children}</body>
     </html>
   );
 }

@@ -1,252 +1,284 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { listSessions, removeSession, exportSessions, importSessions } from "@/lib/storage";
-import { computeReport } from "@/lib/scoring";
-import { buildTrendReport, SEUILS_TENDANCES } from "@/lib/trends";
-import type { SessionRecord } from "@/lib/types";
-import TrendsView from "@/app/components/TrendsView";
+import Image from "next/image";
+import accueil from "@/docs/accueil.png";
+import session from "@/docs/session.png";
 
-function formatDuration(ms: number): string {
-  const totalSec = Math.round(ms / 1000);
-  const min = Math.floor(totalSec / 60);
-  const sec = totalSec % 60;
-  return `${min} min ${sec.toString().padStart(2, "0")} s`;
-}
+const METRIQUES = [
+  {
+    icone: "⏱️",
+    titre: "Tenue du temps",
+    texte:
+      "Format PFA 15 min ou PFE 20 min : le minuteur passe à l'orange dans les dernières minutes, au rouge au dépassement. Un jury coupe — coupe avant lui.",
+  },
+  {
+    icone: "🗣️",
+    titre: "Débit de parole",
+    texte:
+      "Mots par minute, comparés à la zone confortable d'un exposé (110-160). Trop lent, le jury décroche ; trop rapide, il ne suit plus.",
+  },
+  {
+    icone: "🎯",
+    titre: "Mots béquilles",
+    texte:
+      "« euh », « du coup », « en fait », « voilà »… comptés pour 100 mots, avec le détail de ceux qui reviennent le plus. Ceux qu'on n'entend jamais soi-même.",
+  },
+  {
+    icone: "🧭",
+    titre: "Structure annoncée",
+    texte:
+      "Est-ce que tu annonces ton plan en introduction ? Est-ce que ta conclusion est marquée ? Le jury doit toujours savoir où tu en es.",
+  },
+];
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-/** Unités courtes pour les chips de l'historique. */
-const CHIP_UNITS: Record<string, string> = {
-  temps: "min",
-  debit: "mots/min",
-  bequilles: "béq./100 mots",
-  phrases: "mots/phrase",
-};
-
-/** Chips par session : les valeurs mesurables du rapport, recalculées à la volée. */
-function SessionChips({ session }: { session: SessionRecord }) {
-  const report = computeReport({
-    transcript: session.transcript,
-    durationMs: session.durationMs,
-    confidence: session.confidence,
-    targetDurationMs: session.targetDurationMs,
-  });
-  const chips = report.metrics
-    .filter((m) => m.level !== "absent" && m.value !== undefined)
-    .map((m) => ({ id: m.id, level: m.level, text: `${m.value} ${CHIP_UNITS[m.id] ?? ""}`.trim() }));
-  if (chips.length === 0) return null;
+export default function LandingPage() {
   return (
-    <div className="chips">
-      {chips.map((c) => (
-        <span key={c.id} className={`chip chip-${c.level}`}>
-          {c.text}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-export default function HomePage() {
-  const [sessions, setSessions] = useState<SessionRecord[] | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setSessions(listSessions(window.localStorage));
-  }, []);
-
-  function handleRemove(id: string) {
-    setSessions(removeSession(window.localStorage, id));
-    setConfirmingId(null);
-    setNotice("Session supprimée.");
-  }
-
-  function handleExport() {
-    if (!sessions || sessions.length === 0) return;
-    const json = exportSessions(sessions, new Date().toISOString());
-    const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `soutenance-coach-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setNotice(`${sessions.length} session${sessions.length > 1 ? "s" : ""} exportée${sessions.length > 1 ? "s" : ""}.`);
-  }
-
-  async function handleImportFile(file: File) {
-    const outcome = importSessions(window.localStorage, await file.text());
-    setSessions(listSessions(window.localStorage));
-    setNotice(
-      outcome.error ??
-        `Import : ${outcome.added} ajoutée${outcome.added > 1 ? "s" : ""}` +
-          (outcome.skipped > 0 ? `, ${outcome.skipped} déjà présente${outcome.skipped > 1 ? "s" : ""}` : "") +
-          (outcome.invalid > 0 ? `, ${outcome.invalid} ignorée${outcome.invalid > 1 ? "s" : ""}` : "") +
-          ".",
-    );
-  }
-
-  const trends = sessions !== null && sessions.length > 0 ? buildTrendReport(sessions) : null;
-  const anyTrendUnlocked = trends?.some((t) => t.trend !== "absent") ?? false;
-  const remaining =
-    sessions === null ? 0 : Math.max(0, SEUILS_TENDANCES.minSessions - sessions.length);
-
-  return (
-    <>
-      {sessions !== null && sessions.length > 0 && (
-        <div className="toolbar">
-          <div>
-            <h1>Tes sessions</h1>
-            <p className="subtitle">Enregistre-toi, relis-toi, progresse.</p>
+    <div className="landing">
+      {/* ── barre de navigation ── */}
+      <nav className="lp-nav">
+        <div className="lp-container lp-nav-inner">
+          <span className="lp-brand">
+            <svg width="26" height="26" viewBox="0 0 150 150" aria-hidden="true">
+              <g transform="translate(75,75)">
+                <path
+                  d="M0,-62 L11,-15 L44,-44 L15,-11 L62,0 L15,11 L44,44 L11,15 L0,62 L-11,15 L-44,44 L-15,11 L-62,0 L-15,-11 L-44,-44 L-11,-15 Z"
+                  fill="none"
+                  stroke="#D4AF37"
+                  strokeWidth="7"
+                />
+                <circle r="8" fill="#D4AF37" />
+              </g>
+            </svg>
+            SoutenanceCoach
+          </span>
+          <div className="lp-nav-links">
+            <a href="#fonctionnement">Comment ça marche</a>
+            <a href="#mesures">Ce qui est mesuré</a>
+            <a
+              href="https://github.com/laanibazakaria/soutenance-coach"
+              target="_blank"
+              rel="noopener"
+            >
+              Code source
+            </a>
+            <Link href="/app" className="btn primary small">
+              Commencer
+            </Link>
           </div>
-          <Link href="/session" className="btn primary">
-            🎤 Nouvelle session
-          </Link>
         </div>
-      )}
+      </nav>
 
-      <input
-        ref={fileRef}
-        type="file"
-        accept="application/json,.json"
-        hidden
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) void handleImportFile(file);
-          e.target.value = "";
-        }}
-      />
-
-      {sessions === null ? null : sessions.length === 0 ? (
-        <div className="onboarding">
-          <h2 className="onboarding-title">Prépare ta soutenance, sérieusement.</h2>
-          <p className="onboarding-lead">
-            Tu t&apos;entraînes à l&apos;oral, l&apos;application t&apos;écoute et te donne des
-            mesures objectives — puis elle se souvient de tes séances pour te montrer ce qui
-            progresse et ce qui bloque.
+      {/* ── hero ── */}
+      <header className="lp-hero">
+        <div className="lp-container">
+          <span className="lp-badge">Gratuit · Sans compte · Open source</span>
+          <h1 className="lp-title">
+            Prépare ta soutenance
+            <br />
+            <span className="lp-title-accent">avec des chiffres, pas des impressions.</span>
+          </h1>
+          <p className="lp-lead">
+            Tu t&apos;entraînes à l&apos;oral, l&apos;application t&apos;écoute et mesure ce qu&apos;un
+            jury remarquera : ton débit, tes mots béquilles, ta structure, ta tenue du temps.
+            Puis elle se souvient de tes séances — et te montre ce qui progresse vraiment.
           </p>
-
-          <ol className="steps">
-            <li>
-              <span className="step-num">1</span>
-              <div>
-                <b>Choisis ton format</b>
-                <p>PFA 15 min, PFE 20 min, ou entraînement libre.</p>
-              </div>
-            </li>
-            <li>
-              <span className="step-num">2</span>
-              <div>
-                <b>Parle comme devant le jury</b>
-                <p>
-                  Ton navigateur transcrit en direct. Autorise le micro quand il te le demande.
-                </p>
-              </div>
-            </li>
-            <li>
-              <span className="step-num">3</span>
-              <div>
-                <b>Lis ton rapport</b>
-                <p>
-                  Débit, mots béquilles, structure, tenue du temps — chiffrés, pas commentés à
-                  la louche.
-                </p>
-              </div>
-            </li>
-          </ol>
-
-          <Link href="/session" className="btn primary big">
-            🎤 Lancer ma première session
-          </Link>
-
-          <div className="reassure">
-            <p>
-              🔒 <b>Tes enregistrements ne partent nulle part.</b> Pas de compte, pas de serveur :
-              tout reste dans ce navigateur, sur cet appareil.
-            </p>
-            <p>
-              🧭 <b>Aucun chiffre n&apos;est inventé par une IA.</b> Chaque mesure est calculée
-              par du code testé — et quand la transcription est mauvaise, l&apos;application le
-              dit au lieu de deviner.
-            </p>
-            <p className="reassure-note">
-              Fonctionne sur Chrome et Edge. Déjà des sessions sur un autre appareil ?
-              <button className="link-btn" onClick={() => fileRef.current?.click()}>
-                Importe ton fichier
-              </button>
-            </p>
+          <div className="lp-cta">
+            <Link href="/app" className="btn primary big">
+              🎤 Commencer mon entraînement
+            </Link>
+            <a href="#fonctionnement" className="btn big">
+              Voir comment ça marche
+            </a>
+          </div>
+          <p className="lp-hint">
+            Fonctionne sur Chrome et Edge · Rien à installer · Tes enregistrements restent sur ton
+            appareil
+          </p>
+          <div className="lp-shot">
+            <Image src={accueil} alt="L'écran d'accueil de SoutenanceCoach" priority />
           </div>
         </div>
-      ) : (
-        <>
-          {anyTrendUnlocked && trends ? (
-            <TrendsView trends={trends} />
-          ) : (
-            <div className="card teaser">
-              🔒 Encore {remaining} session{remaining > 1 ? "s" : ""} pour débloquer tes tendances
-              — le coach ne juge pas ta progression sur du bruit.
-            </div>
-          )}
+      </header>
 
-          <div className="list-head">
-            <h2 className="list-title">Historique</h2>
-            <div className="list-actions">
-              <button className="btn small" onClick={handleExport}>
-                ⬇ Exporter
-              </button>
-              <button className="btn small" onClick={() => fileRef.current?.click()}>
-                ⬆ Importer
-              </button>
+      {/* ── le problème ── */}
+      <section className="lp-section lp-problem">
+        <div className="lp-container lp-narrow">
+          <h2 className="lp-h2">Le miroir ne te dit pas la vérité</h2>
+          <p className="lp-p">
+            Tu répètes devant ton miroir, ou devant un ami qui te dit « c&apos;était bien ». Personne
+            ne peut te dire que tu as prononcé <b>onze fois « du coup »</b>, que tu as parlé à
+            47 mots par minute, ou que tu n&apos;as jamais annoncé ton plan. Et surtout : personne ne
+            se souvient de ta séance d&apos;il y a trois jours pour te dire si tu progresses.
+          </p>
+          <p className="lp-p">
+            <b>C&apos;est exactement ce que fait cette application</b> — et rien d&apos;autre.
+          </p>
+        </div>
+      </section>
+
+      {/* ── fonctionnement ── */}
+      <section className="lp-section" id="fonctionnement">
+        <div className="lp-container">
+          <h2 className="lp-h2 lp-center">Trois étapes, deux minutes</h2>
+          <div className="lp-steps">
+            <article>
+              <span className="lp-step-num">1</span>
+              <h3>Choisis ton format</h3>
+              <p>
+                PFA 15 min, PFE 20 min, pitch 5 min, ou entraînement libre. Le minuteur t&apos;aide
+                à tenir le cadre imposé par ton jury.
+              </p>
+            </article>
+            <article>
+              <span className="lp-step-num">2</span>
+              <h3>Parle comme devant le jury</h3>
+              <p>
+                Ton navigateur transcrit en direct pendant que tu présentes. Tu lis ton texte
+                défiler, exactement comme le jury t&apos;entend.
+              </p>
+            </article>
+            <article>
+              <span className="lp-step-num">3</span>
+              <h3>Lis ton rapport</h3>
+              <p>
+                Quatre mesures chiffrées, chacune expliquée, avec un conseil concret. Puis
+                recommence — c&apos;est à la troisième séance que ça devient intéressant.
+              </p>
+            </article>
+          </div>
+          <div className="lp-shot lp-shot-narrow">
+            <Image src={session} alt="L'écran de session avec les formats PFA et PFE" />
+          </div>
+        </div>
+      </section>
+
+      {/* ── mesures ── */}
+      <section className="lp-section lp-alt" id="mesures">
+        <div className="lp-container">
+          <h2 className="lp-h2 lp-center">Ce qui est mesuré</h2>
+          <p className="lp-sub lp-center">
+            Quatre indicateurs qu&apos;un jury remarque — et que tu ne perçois pas toi-même.
+          </p>
+          <div className="lp-grid">
+            {METRIQUES.map((m) => (
+              <article key={m.titre} className="lp-card">
+                <span className="lp-card-icon" aria-hidden="true">
+                  {m.icone}
+                </span>
+                <h3>{m.titre}</h3>
+                <p>{m.texte}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── la mémoire ── */}
+      <section className="lp-section">
+        <div className="lp-container lp-split">
+          <div>
+            <span className="lp-eyebrow">La différence</span>
+            <h2 className="lp-h2">Un coach qui se souvient</h2>
+            <p className="lp-p">
+              Une note isolée ne dit rien. Ce qui compte, c&apos;est la tendance : est-ce que tes
+              béquilles diminuent ? est-ce que ton débit se stabilise ? est-ce que tu bloques
+              toujours au même endroit ?
+            </p>
+            <p className="lp-p">
+              À partir de <b>trois séances</b>, l&apos;application compare et te dit franchement ce
+              qui progresse, ce qui stagne, et ce qui recule.
+            </p>
+            <p className="lp-quote">
+              « En progression : 9,3 → 0 béquilles pour 100 mots sur 3 sessions. »
+            </p>
+          </div>
+          <div className="lp-trend-demo">
+            <div className="lp-trend lp-trend-up">
+              <span className="lp-trend-icon">↗</span>
+              <div>
+                <b>Mots béquilles</b>
+                <span>En progression · 3 sessions</span>
+              </div>
+            </div>
+            <div className="lp-trend lp-trend-flat">
+              <span className="lp-trend-icon">→</span>
+              <div>
+                <b>Structure annoncée</b>
+                <span>Stagne — c&apos;est TON point prioritaire</span>
+              </div>
+            </div>
+            <div className="lp-trend lp-trend-locked">
+              <span className="lp-trend-icon">🔒</span>
+              <div>
+                <b>Tenue du temps</b>
+                <span>Encore 2 séances pour débloquer</span>
+              </div>
             </div>
           </div>
-          {notice && (
-            <p className="notice" role="status">
-              {notice}
-            </p>
-          )}
-          {sessions.map((s) => (
-            <div key={s.id} className="card session-row">
-              <div>
-                <div className="session-meta">
-                  {formatDate(s.startedAt)} · {formatDuration(s.durationMs)} · {s.wordCount} mots
-                </div>
-                <SessionChips session={s} />
-                <div className="session-excerpt">{s.transcript || "(transcription vide)"}</div>
-              </div>
-              {confirmingId === s.id ? (
-                // Pattern hérité de la mission 6 : sur une action destructive,
-                // l'action sûre est en premier dans le DOM — elle reçoit le
-                // focus, et une pression sur Entrée ne supprime jamais rien.
-                <div className="confirm" role="group" aria-label="Confirmer la suppression">
-                  <button className="btn small" autoFocus onClick={() => setConfirmingId(null)}>
-                    Annuler
-                  </button>
-                  <button className="btn small danger" onClick={() => handleRemove(s.id)}>
-                    Confirmer
-                  </button>
-                </div>
-              ) : (
-                <button
-                  className="btn danger"
-                  onClick={() => setConfirmingId(s.id)}
-                  aria-label={`Supprimer la session du ${formatDate(s.startedAt)}`}
-                >
-                  Supprimer
-                </button>
-              )}
-            </div>
-          ))}
-        </>
-      )}
-    </>
+        </div>
+      </section>
+
+      {/* ── philosophie ── */}
+      <section className="lp-section lp-alt">
+        <div className="lp-container lp-narrow">
+          <span className="lp-eyebrow">Ce qui rend cet outil différent</span>
+          <h2 className="lp-h2">Aucun chiffre n&apos;est inventé par une IA</h2>
+          <p className="lp-p">
+            Un modèle de langage se trompe de manière <i>plausible</i> : une note fausse ressemble à
+            une note juste, et rien ne la distingue. Ici, <b>chaque mesure est calculée par du code
+            déterministe et testé</b> — 81 tests automatisés le vérifient à chaque modification.
+          </p>
+          <p className="lp-p">
+            Et quand les données ne suffisent pas, l&apos;application <b>s&apos;abstient</b> : elle
+            affiche « non mesuré » et explique pourquoi, plutôt que de produire un verdict sur du
+            bruit. Une transcription hachée ne prouve pas des phrases courtes ; un micro qui a mal
+            capté ne prouve pas que tu parles lentement.
+          </p>
+          <div className="lp-pills">
+            <span className="lp-pill">🔒 Aucune donnée envoyée</span>
+            <span className="lp-pill">🧪 81 tests automatisés</span>
+            <span className="lp-pill">📖 Code source ouvert</span>
+            <span className="lp-pill">🆓 Gratuit, sans compte</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA final ── */}
+      <section className="lp-final">
+        <div className="lp-container lp-center">
+          <h2 className="lp-h2">Ta soutenance mérite mieux qu&apos;une répétition dans le vide.</h2>
+          <p className="lp-lead lp-center">
+            Deux minutes suffisent pour ta première séance.
+          </p>
+          <Link href="/app" className="btn primary big">
+            🎤 Commencer maintenant
+          </Link>
+        </div>
+      </section>
+
+      {/* ── pied de page ── */}
+      <footer className="lp-footer">
+        <div className="lp-container lp-footer-inner">
+          <p>
+            Construit par{" "}
+            <a href="https://laanibazakaria.github.io" target="_blank" rel="noopener">
+              Zakaria Laaniba
+            </a>{" "}
+            — élève-ingénieur en IA à l&apos;ENSIAS.
+          </p>
+          <p className="lp-footer-links">
+            <a
+              href="https://github.com/laanibazakaria/soutenance-coach"
+              target="_blank"
+              rel="noopener"
+            >
+              GitHub
+            </a>
+            <a href="https://www.linkedin.com/in/laaniba-zakaria" target="_blank" rel="noopener">
+              LinkedIn
+            </a>
+          </p>
+        </div>
+      </footer>
+    </div>
   );
 }

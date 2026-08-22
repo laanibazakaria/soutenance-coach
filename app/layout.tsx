@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://laanibazakaria.github.io/soutenance-coach/"),
+  metadataBase: new URL("https://soutenance-coach.vercel.app"),
   title: {
     default: "SoutenanceCoach — prépare ta soutenance, sérieusement",
     template: "%s · SoutenanceCoach",

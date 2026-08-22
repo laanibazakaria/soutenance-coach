@@ -3,7 +3,7 @@ export type MetricLevel = "bon" | "attention" | "alerte" | "absent";
 
 export interface MetricResult {
   /** Identifiant stable de la métrique. */
-  id: "debit" | "bequilles" | "phrases" | "structure";
+  id: "temps" | "debit" | "bequilles" | "phrases" | "structure";
   /** Libellé affichable. */
   label: string;
   /** Verdict — calculé par du code, jamais par un LLM. */
@@ -35,4 +35,9 @@ export interface ScoringInput {
    * ne refléterait pas l'élocution réelle.
    */
   confidence?: number;
+  /**
+   * Durée visée en mode soutenance (millisecondes). Absente en entraînement
+   * libre — la métrique « tenue du temps » ne se calcule alors pas.
+   */
+  targetDurationMs?: number;
 }

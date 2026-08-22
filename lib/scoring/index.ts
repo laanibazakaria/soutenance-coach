@@ -33,6 +33,8 @@ export const SEUILS = {
   bequillesPour100: { bon: 2, attention: 5 },
   phrases: { moyenneHachee: 7, moyenneBonne: 22, moyenneAttention: 30 },
   conclusionFenetre: { ratio: 0.35, motsMinimum: 30 },
+  /** Écart relatif toléré à la durée visée, en mode soutenance. */
+  temps: { ecartBon: 0.1, ecartAttention: 0.2 },
 } as const;
 
 const INTRO_MARKERS: ReadonlyArray<[label: string, re: RegExp]> = [
@@ -64,11 +66,54 @@ export function computeReport(input: ScoringInput): ScoreReport {
   return {
     wordCount: words.length,
     metrics: [
+      tempsMetric(input.durationMs, input.targetDurationMs),
       debitMetric(words.length, input.durationMs, input.confidence),
       bequillesMetric(input.transcript, words.length),
       phrasesMetric(input.transcript),
       structureMetric(input.transcript, words.length),
     ],
+  };
+}
+
+/** Formate une durée en « m min s ». */
+function formatDuree(ms: number): string {
+  const totalSec = Math.round(ms / 1000);
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  return min > 0 ? `${min} min ${sec.toString().padStart(2, "0")}` : `${sec} s`;
+}
+
+/** Tenue du temps — ne se calcule qu'en mode soutenance (durée visée fournie). */
+function tempsMetric(durationMs: number, targetMs: number | undefined): MetricResult {
+  const base = { id: "temps" as const, label: "Tenue du temps" };
+  if (targetMs === undefined || targetMs <= 0) {
+    return {
+      ...base,
+      level: "absent",
+      summary:
+        "Entraînement libre : aucune durée visée. Choisis un format « soutenance » pour que le temps soit évalué.",
+      details: [],
+    };
+  }
+  const ecart = (durationMs - targetMs) / targetMs;
+  const abs = Math.abs(ecart);
+  const level =
+    abs <= SEUILS.temps.ecartBon ? "bon" : abs <= SEUILS.temps.ecartAttention ? "attention" : "alerte";
+  const minutes = Math.round((durationMs / 60_000) * 10) / 10;
+  const signe = ecart >= 0 ? "+" : "−";
+  const summary =
+    level === "bon"
+      ? `${formatDuree(durationMs)} pour ${formatDuree(targetMs)} visées : tu tiens ton format.`
+      : ecart > 0
+        ? `${formatDuree(durationMs)} pour ${formatDuree(targetMs)} visées : tu dépasses. Un jury coupe — coupe avant lui.`
+        : `${formatDuree(durationMs)} pour ${formatDuree(targetMs)} visées : c'est court. Développe, ou le jury comblera avec ses questions.`;
+  return {
+    ...base,
+    level,
+    value: minutes,
+    unit: "min",
+    summary,
+    details: [`Écart : ${signe}${Math.round(abs * 100)} % de la durée visée`],
   };
 }
 

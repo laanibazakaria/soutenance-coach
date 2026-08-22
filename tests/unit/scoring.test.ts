@@ -103,6 +103,53 @@ describe("computeReport — débit", () => {
   });
 });
 
+describe("computeReport — tenue du temps (mode soutenance)", () => {
+  const dixMinutes = 600_000;
+
+  it("sans durée visée → absent, avec l'invitation à choisir un format", () => {
+    const m = metric(computeReport({ transcript: "bonjour", durationMs: 60_000 }), "temps");
+    expect(m.level).toBe("absent");
+    expect(m.summary).toContain("Entraînement libre");
+  });
+
+  it("dans les 10 % de la cible → bon", () => {
+    const m = metric(
+      computeReport({ transcript: "x", durationMs: 570_000, targetDurationMs: dixMinutes }),
+      "temps",
+    );
+    expect(m.level).toBe("bon");
+    expect(m.summary).toContain("tu tiens ton format");
+  });
+
+  it("dépassement franc → alerte, message orienté jury", () => {
+    const m = metric(
+      computeReport({ transcript: "x", durationMs: 780_000, targetDurationMs: dixMinutes }),
+      "temps",
+    );
+    expect(m.level).toBe("alerte");
+    expect(m.summary).toContain("dépasses");
+    expect(m.details[0]).toContain("+30 %");
+  });
+
+  it("trop court → alerte avec un message différent du dépassement", () => {
+    const m = metric(
+      computeReport({ transcript: "x", durationMs: 300_000, targetDurationMs: dixMinutes }),
+      "temps",
+    );
+    expect(m.level).toBe("alerte");
+    expect(m.summary).toContain("court");
+    expect(m.details[0]).toContain("−50 %");
+  });
+
+  it("écart intermédiaire → attention", () => {
+    const m = metric(
+      computeReport({ transcript: "x", durationMs: 690_000, targetDurationMs: dixMinutes }),
+      "temps",
+    );
+    expect(m.level).toBe("attention");
+  });
+});
+
 describe("computeReport — béquilles", () => {
   it("aucune béquille → bon, avec un résumé positif", () => {
     const transcript = Array(50).fill("contenu").join(" ");
@@ -187,8 +234,14 @@ describe("computeReport — structure", () => {
 describe("computeReport — session réelle du 21 août (77 mots, 1 min 13)", () => {
   const report = computeReport({ transcript: SESSION_REELLE, durationMs: 73_000 });
 
-  it("le rapport contient toujours les 4 métriques, dans un ordre stable", () => {
-    expect(report.metrics.map((m) => m.id)).toEqual(["debit", "bequilles", "phrases", "structure"]);
+  it("le rapport contient toujours les 5 métriques, dans un ordre stable", () => {
+    expect(report.metrics.map((m) => m.id)).toEqual([
+      "temps",
+      "debit",
+      "bequilles",
+      "phrases",
+      "structure",
+    ]);
   });
 
   it("débit lent détecté (≈63 mots/min → alerte)", () => {

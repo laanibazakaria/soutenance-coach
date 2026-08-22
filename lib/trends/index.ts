@@ -26,7 +26,7 @@ export const SEUILS_TENDANCES = {
   /** Variation de pénalité (sur 100) en dessous de laquelle on déclare une stagnation. */
   stagnationDelta: 8,
   /** Plafonds de normalisation des pénalités (100 = ce plafond est atteint). */
-  plafonds: { debit: 60, bequilles: 15, phrases: 15, structure: 2 },
+  plafonds: { temps: 40, debit: 60, bequilles: 15, phrases: 15, structure: 2 },
 } as const;
 
 export type TrendDirection = "progression" | "stagnation" | "regression" | "absent";
@@ -81,10 +81,23 @@ interface PointMesure {
 }
 
 /** Extrait le point mesurable d'une métrique, ou null si elle est absente. */
-function pointDe(report: ScoreReport, id: MetricResult["id"]): PointMesure | null {
+function pointDe(
+  report: ScoreReport,
+  id: MetricResult["id"],
+  ecartTempsPct?: number,
+): PointMesure | null {
   const m = report.metrics.find((x) => x.id === id);
   if (!m || m.level === "absent") return null;
   switch (id) {
+    case "temps":
+      // L'écart relatif au temps visé reste comparable même si la durée visée
+      // change d'une session à l'autre (10 min puis 15 min).
+      return ecartTempsPct === undefined
+        ? null
+        : {
+            penalite: normalise(ecartTempsPct, SEUILS_TENDANCES.plafonds.temps),
+            brut: m.value ?? 0,
+          };
     case "debit":
       return m.value === undefined ? null : { penalite: penaliteDebit(m.value), brut: m.value };
     case "bequilles":
@@ -121,6 +134,7 @@ function moyenne(xs: number[]): number {
 /* ── rapport complet ── */
 
 const LABELS: Record<MetricResult["id"], string> = {
+  temps: "Tenue du temps",
   debit: "Débit de parole",
   bequilles: "Mots béquilles",
   phrases: "Longueur des phrases",
@@ -138,12 +152,20 @@ export function buildTrendReport(sessions: SessionRecord[]): TrendResult[] {
       transcript: s.transcript,
       durationMs: s.durationMs,
       confidence: s.confidence,
+      targetDurationMs: s.targetDurationMs,
     }),
   );
+  /** Écart au temps visé, en % — comparable même si la durée visée change. */
+  const ecartsTemps = new Map<number, number>();
+  chrono.forEach((s, i) => {
+    if (s.targetDurationMs && s.targetDurationMs > 0) {
+      ecartsTemps.set(i, Math.abs((s.durationMs - s.targetDurationMs) / s.targetDurationMs) * 100);
+    }
+  });
 
   return (Object.keys(LABELS) as MetricResult["id"][]).map((id) => {
     const points = reports
-      .map((r) => pointDe(r, id))
+      .map((r, i) => pointDe(r, id, ecartsTemps.get(i)))
       .filter((p): p is PointMesure => p !== null)
       .slice(-SEUILS_TENDANCES.fenetre);
 
@@ -181,6 +203,7 @@ function phrase(
   const evolution =
     id === "structure" ? `${String(first)} → ${String(last)}` : `${first} → ${last}`;
   const unites: Record<string, string> = {
+    temps: "min",
     debit: "mots/min",
     bequilles: "béquilles pour 100 mots",
     phrases: "mots/phrase",

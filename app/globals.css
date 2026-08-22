@@ -139,3 +139,41 @@ h1 { font-size: 1.7rem; margin-bottom: 6px; }
 .chip-bon { color: var(--ok); border-color: rgba(52, 211, 153, 0.4); }
 .chip-attention { color: var(--gold); border-color: rgba(212, 175, 55, 0.4); }
 .chip-alerte { color: var(--danger); border-color: rgba(248, 113, 113, 0.4); }
+
+/* ── mode soutenance : format et minuteur ── */
+.formats { border: none; margin-bottom: 22px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.formats legend { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; text-align: center; width: 100%; }
+.format-btn {
+  padding: 7px 16px; border-radius: 99px; border: 1px solid var(--line);
+  background: none; color: var(--muted); font-family: inherit; font-size: 0.86rem;
+  cursor: pointer; transition: border-color 0.15s, color 0.15s;
+}
+.format-btn:hover { border-color: var(--violet); color: var(--txt); }
+.format-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.format-btn.active { border-color: var(--violet); background: rgba(139, 92, 246, 0.18); color: var(--txt); font-weight: 600; }
+.timer-target { font-size: 1.2rem; color: var(--muted); font-weight: 400; }
+.timer-dans-les-temps { color: var(--ok); }
+.timer-proche { color: var(--gold); }
+.timer-depasse { color: var(--danger); }
+.progress { height: 6px; background: var(--bg2); border-radius: 99px; overflow: hidden; margin: -8px auto 22px; max-width: 420px; }
+.progress-bar { height: 100%; transition: width 0.3s linear; }
+.progress-dans-les-temps { background: var(--ok); }
+.progress-proche { background: var(--gold); }
+.progress-depasse { background: var(--danger); }
+
+/* ── export / import ── */
+.list-head { display: flex; justify-content: space-between; align-items: center; margin: 26px 0 12px; flex-wrap: wrap; gap: 10px; }
+.list-head .list-title { margin: 0; }
+.list-actions { display: flex; gap: 8px; }
+.btn.small { padding: 6px 14px; font-size: 0.82rem; }
+.notice { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; }
+
+/* ── confirmation de suppression (pattern mission 6 : action sûre en premier) ── */
+.confirm { display: flex; gap: 8px; align-items: center; }
+
+/* ── accessibilité : focus visible partout, y compris sur les liens ── */
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 6px;
+}

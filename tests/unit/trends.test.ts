@@ -71,8 +71,11 @@ describe("buildTrendReport — sur des sessions complètes", () => {
     ]);
     for (const t of report) {
       expect(t.trend).toBe("absent");
-      expect(t.insight).toContain("Encore 1 session");
     }
+    // Les métriques mesurées sur ces 2 sessions n'en attendent plus qu'une ;
+    // la tenue du temps, jamais mesurée (mode libre), en attend trois.
+    expect(trend(report, "bequilles").insight).toContain("Encore 1 session");
+    expect(trend(report, "temps").insight).toContain("Encore 3 sessions");
   });
 
   it("les béquilles qui fondent sur 3 sessions → progression, valeurs brutes dans l'insight", () => {
@@ -164,9 +167,30 @@ describe("buildTrendReport — sur des sessions complètes", () => {
     expect(t.trend).toBe("absent");
   });
 
-  it("le rapport contient toujours les 4 métriques dans un ordre stable", () => {
+  it("le rapport contient toujours les 5 métriques dans un ordre stable", () => {
     const report = buildTrendReport([]);
-    expect(report.map((t) => t.id)).toEqual(["debit", "bequilles", "phrases", "structure"]);
+    expect(report.map((t) => t.id)).toEqual([
+      "temps",
+      "debit",
+      "bequilles",
+      "phrases",
+      "structure",
+    ]);
+  });
+
+  it("la tenue du temps ne se suit que sur les sessions en mode soutenance", () => {
+    const libres = [1, 2, 3].map((j) => sessionAvec({ id: `l${j}`, jour: j, texte: texte(120) }));
+    expect(trend(buildTrendReport(libres), "temps").sessionsCount).toBe(0);
+
+    // Trois soutenances visant 10 min, de plus en plus proches de la cible.
+    const soutenances = [
+      { ...sessionAvec({ id: "s1", jour: 4, texte: texte(120), durationMs: 780_000 }), targetDurationMs: 600_000 },
+      { ...sessionAvec({ id: "s2", jour: 5, texte: texte(120), durationMs: 690_000 }), targetDurationMs: 600_000 },
+      { ...sessionAvec({ id: "s3", jour: 6, texte: texte(120), durationMs: 605_000 }), targetDurationMs: 600_000 },
+    ];
+    const t = trend(buildTrendReport(soutenances), "temps");
+    expect(t.sessionsCount).toBe(3);
+    expect(t.trend).toBe("progression");
   });
 
   it("déterminisme : deux calculs identiques → résultats identiques", () => {

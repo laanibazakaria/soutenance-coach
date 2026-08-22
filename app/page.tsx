@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { listSessions, removeSession } from "@/lib/storage";
+import { useEffect, useRef, useState } from "react";
+import { listSessions, removeSession, exportSessions, importSessions } from "@/lib/storage";
 import { computeReport } from "@/lib/scoring";
 import { buildTrendReport, SEUILS_TENDANCES } from "@/lib/trends";
 import type { SessionRecord } from "@/lib/types";
@@ -25,6 +25,7 @@ function formatDate(iso: string): string {
 
 /** Unités courtes pour les chips de l'historique. */
 const CHIP_UNITS: Record<string, string> = {
+  temps: "min",
   debit: "mots/min",
   bequilles: "béq./100 mots",
   phrases: "mots/phrase",
@@ -36,6 +37,7 @@ function SessionChips({ session }: { session: SessionRecord }) {
     transcript: session.transcript,
     durationMs: session.durationMs,
     confidence: session.confidence,
+    targetDurationMs: session.targetDurationMs,
   });
   const chips = report.metrics
     .filter((m) => m.level !== "absent" && m.value !== undefined)
@@ -54,6 +56,9 @@ function SessionChips({ session }: { session: SessionRecord }) {
 
 export default function HomePage() {
   const [sessions, setSessions] = useState<SessionRecord[] | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setSessions(listSessions(window.localStorage));
@@ -61,6 +66,32 @@ export default function HomePage() {
 
   function handleRemove(id: string) {
     setSessions(removeSession(window.localStorage, id));
+    setConfirmingId(null);
+    setNotice("Session supprimée.");
+  }
+
+  function handleExport() {
+    if (!sessions || sessions.length === 0) return;
+    const json = exportSessions(sessions, new Date().toISOString());
+    const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `soutenance-coach-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setNotice(`${sessions.length} session${sessions.length > 1 ? "s" : ""} exportée${sessions.length > 1 ? "s" : ""}.`);
+  }
+
+  async function handleImportFile(file: File) {
+    const outcome = importSessions(window.localStorage, await file.text());
+    setSessions(listSessions(window.localStorage));
+    setNotice(
+      outcome.error ??
+        `Import : ${outcome.added} ajoutée${outcome.added > 1 ? "s" : ""}` +
+          (outcome.skipped > 0 ? `, ${outcome.skipped} déjà présente${outcome.skipped > 1 ? "s" : ""}` : "") +
+          (outcome.invalid > 0 ? `, ${outcome.invalid} ignorée${outcome.invalid > 1 ? "s" : ""}` : "") +
+          ".",
+    );
   }
 
   const trends = sessions !== null && sessions.length > 0 ? buildTrendReport(sessions) : null;
@@ -80,6 +111,18 @@ export default function HomePage() {
         </a>
       </div>
 
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/json,.json"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void handleImportFile(file);
+          e.target.value = "";
+        }}
+      />
+
       {sessions === null ? null : sessions.length === 0 ? (
         <div className="empty">
           <p>Aucune session pour l&apos;instant.</p>
@@ -96,7 +139,22 @@ export default function HomePage() {
             </div>
           )}
 
-          <h2 className="list-title">Historique</h2>
+          <div className="list-head">
+            <h2 className="list-title">Historique</h2>
+            <div className="list-actions">
+              <button className="btn small" onClick={handleExport}>
+                ⬇ Exporter
+              </button>
+              <button className="btn small" onClick={() => fileRef.current?.click()}>
+                ⬆ Importer
+              </button>
+            </div>
+          </div>
+          {notice && (
+            <p className="notice" role="status">
+              {notice}
+            </p>
+          )}
           {sessions.map((s) => (
             <div key={s.id} className="card session-row">
               <div>
@@ -106,13 +164,27 @@ export default function HomePage() {
                 <SessionChips session={s} />
                 <div className="session-excerpt">{s.transcript || "(transcription vide)"}</div>
               </div>
-              <button
-                className="btn danger"
-                onClick={() => handleRemove(s.id)}
-                aria-label={`Supprimer la session du ${formatDate(s.startedAt)}`}
-              >
-                Supprimer
-              </button>
+              {confirmingId === s.id ? (
+                // Pattern hérité de la mission 6 : sur une action destructive,
+                // l'action sûre est en premier dans le DOM — elle reçoit le
+                // focus, et une pression sur Entrée ne supprime jamais rien.
+                <div className="confirm" role="group" aria-label="Confirmer la suppression">
+                  <button className="btn small" autoFocus onClick={() => setConfirmingId(null)}>
+                    Annuler
+                  </button>
+                  <button className="btn small danger" onClick={() => handleRemove(s.id)}>
+                    Confirmer
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="btn danger"
+                  onClick={() => setConfirmingId(s.id)}
+                  aria-label={`Supprimer la session du ${formatDate(s.startedAt)}`}
+                >
+                  Supprimer
+                </button>
+              )}
             </div>
           ))}
         </>

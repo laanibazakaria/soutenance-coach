@@ -8,6 +8,15 @@ import ScoreReportView from "@/app/components/ScoreReportView";
 
 type Phase = "idle" | "recording" | "stopped";
 
+/** Formats proposés. `null` = entraînement libre, sans évaluation du temps. */
+const FORMATS: ReadonlyArray<{ label: string; minutes: number | null }> = [
+  { label: "Libre", minutes: null },
+  { label: "5 min", minutes: 5 },
+  { label: "10 min", minutes: 10 },
+  { label: "15 min", minutes: 15 },
+  { label: "20 min", minutes: 20 },
+];
+
 /** Renvoie le constructeur SpeechRecognition du navigateur, s'il existe. */
 function getRecognitionCtor(): SpeechRecognitionConstructor | null {
   if (typeof window === "undefined") return null;
@@ -22,6 +31,9 @@ export default function SessionPage() {
   const [interimText, setInterimText] = useState("");
   const [elapsedMs, setElapsedMs] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [targetMinutes, setTargetMinutes] = useState<number | null>(null);
+
+  const targetMs = targetMinutes === null ? undefined : targetMinutes * 60_000;
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -156,6 +168,7 @@ export default function SessionPage() {
       transcript,
       wordCount: countWords(transcript),
       confidence: currentConfidence(),
+      targetDurationMs: targetMs,
     });
     router.push("/");
   }
@@ -167,6 +180,12 @@ export default function SessionPage() {
 
   const minutes = Math.floor(elapsedMs / 60000);
   const seconds = Math.floor((elapsedMs % 60000) / 1000);
+
+  // Couleur du minuteur en mode soutenance : vert tant qu'on est loin de la
+  // cible, or dans les 10 % finaux, rouge au-delà. Aucun son, aucune coupure —
+  // c'est un repère visuel, pas une contrainte.
+  const ratio = targetMs ? elapsedMs / targetMs : 0;
+  const timerState = !targetMs ? "libre" : ratio > 1 ? "depasse" : ratio > 0.9 ? "proche" : "dans-les-temps";
 
   return (
     <div className="rec-panel">
@@ -185,10 +204,43 @@ export default function SessionPage() {
         </div>
       )}
 
-      <div className="timer" aria-live="off">
+      {phase === "idle" && (
+        <fieldset className="formats">
+          <legend>Format de l&apos;exercice</legend>
+          {FORMATS.map((f) => (
+            <button
+              key={f.label}
+              type="button"
+              className={`format-btn${targetMinutes === f.minutes ? " active" : ""}`}
+              aria-pressed={targetMinutes === f.minutes}
+              onClick={() => setTargetMinutes(f.minutes)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </fieldset>
+      )}
+
+      <div className={`timer timer-${timerState}`} aria-live="off">
         {phase === "recording" && <span className="rec-dot" aria-hidden="true" />}
         {minutes}:{seconds.toString().padStart(2, "0")}
+        {targetMs !== undefined && (
+          <span className="timer-target"> / {targetMinutes}:00</span>
+        )}
       </div>
+
+      {phase === "recording" && targetMs !== undefined && (
+        <div
+          className="progress"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.min(100, Math.round(ratio * 100))}
+          aria-label="Progression vers la durée visée"
+        >
+          <div className={`progress-bar progress-${timerState}`} style={{ width: `${Math.min(100, ratio * 100)}%` }} />
+        </div>
+      )}
 
       <div className="actions">
         {phase === "idle" && (
@@ -219,6 +271,7 @@ export default function SessionPage() {
             transcript: finalText.trim(),
             durationMs: elapsedMs,
             confidence: currentConfidence(),
+            targetDurationMs: targetMs,
           })}
         />
       )}

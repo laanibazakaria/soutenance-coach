@@ -16,6 +16,11 @@ export interface SessionRecord {
    * l'introduction de ce champ n'en ont pas.
    */
   confidence?: number;
+  /**
+   * Durée visée si la session a été lancée en mode soutenance (millisecondes).
+   * Absente pour un entraînement libre.
+   */
+  targetDurationMs?: number;
 }
 
 /**

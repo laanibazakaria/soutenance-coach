@@ -39,6 +39,96 @@ export function removeSession(storage: StorageLike, id: string): SessionRecord[]
   return sessions;
 }
 
+/* ── export / import ──────────────────────────────────────────────────────
+   Les données vivent dans le navigateur : sans export, un vidage du cache les
+   perd. Le format est un JSON lisible, versionné, réimportable ailleurs. */
+
+export interface ExportBundle {
+  format: "soutenance-coach/sessions";
+  version: 1;
+  exportedAt: string;
+  sessions: SessionRecord[];
+}
+
+/** Sérialise les sessions pour un fichier téléchargeable. */
+export function exportSessions(sessions: SessionRecord[], exportedAt: string): string {
+  const bundle: ExportBundle = {
+    format: "soutenance-coach/sessions",
+    version: 1,
+    exportedAt,
+    sessions,
+  };
+  return JSON.stringify(bundle, null, 2);
+}
+
+export interface ImportOutcome {
+  /** Sessions ajoutées (celles dont l'id n'existait pas déjà). */
+  added: number;
+  /** Sessions ignorées car déjà présentes. */
+  skipped: number;
+  /** Entrées rejetées car mal formées. */
+  invalid: number;
+  /** Message d'erreur si le fichier entier est inexploitable. */
+  error?: string;
+}
+
+/**
+ * Fusionne un export dans le stockage : les sessions déjà présentes (même id)
+ * ne sont jamais écrasées — un import ne détruit rien.
+ */
+export function importSessions(storage: StorageLike, raw: string): ImportOutcome {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return { added: 0, skipped: 0, invalid: 0, error: "Fichier illisible : ce n'est pas du JSON." };
+  }
+  const candidates = extractSessions(parsed);
+  if (candidates === null) {
+    return {
+      added: 0,
+      skipped: 0,
+      invalid: 0,
+      error: "Format non reconnu : attendu un export SoutenanceCoach.",
+    };
+  }
+
+  const existing = listSessions(storage);
+  const knownIds = new Set(existing.map((s) => s.id));
+  let added = 0;
+  let skipped = 0;
+  let invalid = 0;
+  const merged = [...existing];
+
+  for (const candidate of candidates) {
+    if (!isSessionRecord(candidate)) {
+      invalid++;
+      continue;
+    }
+    if (knownIds.has(candidate.id)) {
+      skipped++;
+      continue;
+    }
+    knownIds.add(candidate.id);
+    merged.push(candidate);
+    added++;
+  }
+
+  merged.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+  storage.setItem(KEY, JSON.stringify(merged));
+  return { added, skipped, invalid };
+}
+
+/** Accepte l'enveloppe versionnée ou un simple tableau de sessions. */
+function extractSessions(parsed: unknown): unknown[] | null {
+  if (Array.isArray(parsed)) return parsed;
+  if (typeof parsed === "object" && parsed !== null) {
+    const bundle = parsed as Record<string, unknown>;
+    if (Array.isArray(bundle.sessions)) return bundle.sessions;
+  }
+  return null;
+}
+
 /** Compte les mots d'une transcription (séparateurs d'espaces, robuste au vide). */
 export function countWords(text: string): number {
   const trimmed = text.trim();
@@ -54,6 +144,8 @@ function isSessionRecord(value: unknown): value is SessionRecord {
     typeof v.startedAt === "string" &&
     typeof v.durationMs === "number" &&
     typeof v.transcript === "string" &&
-    typeof v.wordCount === "number"
+    typeof v.wordCount === "number" &&
+    (v.confidence === undefined || typeof v.confidence === "number") &&
+    (v.targetDurationMs === undefined || typeof v.targetDurationMs === "number")
   );
 }

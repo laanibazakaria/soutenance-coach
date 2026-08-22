@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { extraireDeckPDF, ExtractionError } from "@/lib/slides/extract";
 import { analyserDeck, repartirTemps } from "@/lib/slides/analyse";
@@ -10,6 +10,7 @@ import {
   supportExploitable,
   LIBELLES_CATEGORIES,
 } from "@/lib/jury";
+import { sauverDeck, listeDeckSauvegarde } from "@/lib/slides/persistance";
 import type { Deck, DeckFinding, JuryQuestion } from "@/lib/slides/types";
 
 const DUREES = [
@@ -33,6 +34,11 @@ export default function SlidesPage() {
   const [ongletJury, setOngletJury] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const memorise = listeDeckSauvegarde(window.localStorage);
+    if (memorise) setDeck(memorise);
+  }, []);
+
   async function charger(file: File) {
     setErreur(null);
     setChargement(true);
@@ -45,6 +51,7 @@ export default function SlidesPage() {
         setDeck(null);
       } else {
         setDeck(d);
+        sauverDeck(window.localStorage, d);
       }
     } catch (e) {
       setErreur(
@@ -196,6 +203,12 @@ export default function SlidesPage() {
             </>
           ) : (
             <>
+              <div className="actions" style={{ marginBottom: 18 }}>
+                <Link href="/app/jury" className="btn primary">
+                  🎓 S&apos;entraîner à répondre à l&apos;oral
+                </Link>
+              </div>
+
               <div className="card jury-intro">
                 <b>Les cinq questions à préparer en priorité</b>
                 <p>

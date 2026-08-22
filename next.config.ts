@@ -1,21 +1,20 @@
 import type { NextConfig } from "next";
 
 /**
- * Export statique : l'application n'a ni route d'API ni rendu serveur — tout
- * le calcul se fait dans le navigateur, par conception (aucune donnée ne sort).
- * Elle se sert donc comme un site statique, hébergeable sur GitHub Pages.
+ * Deux cibles de déploiement :
  *
- * `basePath` correspond au nom du dépôt, puisque le site est publié sur
- * laanibazakaria.github.io/soutenance-coach.
+ * - **Vercel** (par défaut) : build complet, avec les routes API — nécessaire
+ *   pour le jury qui évalue les réponses, la clé du modèle restant côté serveur.
+ * - **GitHub Pages** (`PAGES_BASE_PATH` défini) : export statique. Tout le
+ *   produit fonctionne, sauf l'évaluation des réponses, qui exige un serveur.
+ *   L'interface le dit explicitement plutôt que d'échouer silencieusement.
  */
 const basePath = process.env.PAGES_BASE_PATH ?? "";
+const exportStatique = basePath !== "";
 
 const nextConfig: NextConfig = {
-  output: "export",
-  basePath,
+  ...(exportStatique ? { output: "export" as const, basePath, trailingSlash: true } : {}),
   images: { unoptimized: true },
-  // GitHub Pages sert /chemin/ plutôt que /chemin : les liens internes doivent suivre.
-  trailingSlash: true,
 };
 
 export default nextConfig;

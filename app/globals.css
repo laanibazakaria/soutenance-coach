@@ -311,3 +311,21 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .question-texte { font-size: 1rem; margin-bottom: 10px; }
 .question-pourquoi { font-size: 0.86rem; color: var(--muted); }
 .question-slide { display: inline-block; margin-top: 10px; font-size: 0.76rem; color: var(--muted); background: var(--bg2); border-radius: 99px; padding: 2px 10px; }
+
+/* ── simulation d'entretien ── */
+.jury-progress { font-size: 0.82rem; color: var(--muted); margin-bottom: 14px; }
+.question-posee { border-left: 3px solid var(--gold); padding: 26px 28px; }
+.question-grande { font-size: 1.25rem; line-height: 1.5; margin-bottom: 10px; }
+.rec-banner { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--danger); font-weight: 600; font-size: 0.92rem; margin: 20px 0 8px; }
+.jury-loading { text-align: center; color: var(--muted); font-style: italic; }
+.jury-degrade { border-left: 3px solid var(--muted); }
+.jury-degrade p { color: var(--muted); font-size: 0.88rem; margin-top: 6px; }
+.avis { margin-top: 8px; }
+.avis-bloc { border-left: 3px solid var(--line); }
+.avis-bloc b { display: block; margin-bottom: 8px; font-size: 0.95rem; }
+.avis-bloc ul { margin-left: 18px; }
+.avis-bloc li { font-size: 0.92rem; margin-bottom: 6px; }
+.avis-bloc p { font-size: 0.92rem; color: var(--txt); }
+.avis-forts { border-left-color: var(--ok); }
+.avis-faibles { border-left-color: var(--gold); }
+.avis-relance { border-left-color: var(--violet); font-style: italic; }

@@ -7,6 +7,7 @@ import { computeReport } from "@/lib/scoring";
 import { buildTrendReport, SEUILS_TENDANCES } from "@/lib/trends";
 import type { SessionRecord } from "@/lib/types";
 import TrendsView from "@/app/components/TrendsView";
+import { pousserTout, supprimerDistante } from "@/lib/sync/client";
 
 function formatDuration(ms: number): string {
   const totalSec = Math.round(ms / 1000);
@@ -67,6 +68,7 @@ export default function HomePage() {
 
   function handleRemove(id: string) {
     setSessions(removeSession(window.localStorage, id));
+    void supprimerDistante(id);
     setConfirmingId(null);
     setNotice("Session supprimée.");
   }
@@ -86,6 +88,7 @@ export default function HomePage() {
   async function handleImportFile(file: File) {
     const outcome = importSessions(window.localStorage, await file.text());
     setSessions(listSessions(window.localStorage));
+    void pousserTout();
     setNotice(
       outcome.error ??
         `Import : ${outcome.added} ajoutée${outcome.added > 1 ? "s" : ""}` +
@@ -180,8 +183,9 @@ export default function HomePage() {
 
           <div className="reassure">
             <p>
-              🔒 <b>Tes enregistrements ne partent nulle part.</b> Pas de compte, pas de serveur :
-              tout reste dans ce navigateur, sur cet appareil.
+              🔒 <b>Tes enregistrements restent ici.</b> Sans compte, tout vit dans ce navigateur.
+              Avec un compte (optionnel), tes sessions te suivent sur tous tes appareils — jamais
+              l&apos;audio, seulement les transcriptions.
             </p>
             <p>
               🧭 <b>Aucun chiffre n&apos;est inventé par une IA.</b> Chaque mesure est calculée

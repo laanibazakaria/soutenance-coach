@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { SessionProvider } from "next-auth/react";
+import AccountBar from "./components/AccountBar";
 
-/** Layout de l'application : barre supérieure commune au tableau de bord et aux sessions. */
+/** Layout de l'application : barre supérieure commune, état du compte. */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <SessionProvider>
       <header className="topbar">
         <Link href="/" className="brand">
           <svg width="22" height="22" viewBox="0 0 150 150" aria-hidden="true">
@@ -19,9 +21,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </svg>
           SoutenanceCoach
         </Link>
-        <span className="privacy-note">100 % local — rien ne quitte ton navigateur</span>
+        <AccountBar />
       </header>
       <main className="content">{children}</main>
-    </>
+    </SessionProvider>
   );
 }

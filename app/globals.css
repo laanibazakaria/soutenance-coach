@@ -348,3 +348,11 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .classiques summary { cursor: pointer; color: var(--muted); font-size: 0.92rem; padding: 10px 0; }
 .classiques summary:hover { color: var(--txt); }
 .classiques .card { margin-top: 12px; }
+
+/* ── compte ── */
+.account { display: flex; align-items: center; gap: 12px; }
+.account-name { font-size: 0.88rem; font-weight: 600; }
+.avatar { border-radius: 50%; border: 1px solid var(--line); }
+.connexion { max-width: 560px; margin: 0 auto; text-align: center; padding-top: 20px; }
+.connexion .reassure { text-align: left; margin-top: 36px; }
+.connexion .actions { margin: 26px 0; }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { saveSession, countWords } from "@/lib/storage";
 import { computeReport } from "@/lib/scoring";
 import ScoreReportView from "@/app/components/ScoreReportView";
+import { pousserTout } from "@/lib/sync/client";
 
 type Phase = "idle" | "recording" | "stopped";
 
@@ -174,12 +175,13 @@ export default function SessionPage() {
       confidence: currentConfidence(),
       targetDurationMs: targetMs,
     });
-    router.push("/");
+    void pousserTout();
+    router.push("/app");
   }
 
   function discard() {
     cleanup();
-    router.push("/");
+    router.push("/app");
   }
 
   const minutes = Math.floor(elapsedMs / 60000);

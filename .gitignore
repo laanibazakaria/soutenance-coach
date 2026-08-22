@@ -10,3 +10,4 @@ out/
 
 .vercel
 .env*
+lib/generated/

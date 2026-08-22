@@ -13,6 +13,7 @@ import {
 import { sauverDeck, listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { cleCache, lireCache, ecrireCache } from "@/lib/ia-cache";
 import { pitchEnTexte, type Pitch } from "@/lib/pitch";
+import { pousserTout } from "@/lib/sync/client";
 import type { Deck, DeckFinding, JuryQuestion } from "@/lib/slides/types";
 
 const DUREES = [
@@ -81,6 +82,7 @@ export default function SlidesPage() {
       } else {
         setDeck(d);
         sauverDeck(window.localStorage, d);
+        void pousserTout();
       }
     } catch (e) {
       setErreur(
@@ -109,6 +111,7 @@ export default function SlidesPage() {
         // Pointeur « courant » pour la simulation d'entretien.
         ecrireCache(window.localStorage, "questions-courantes", data.questions);
         setQuestionsIA(data.questions as JuryQuestion[]);
+        void pousserTout();
       } else {
         setErreurIA(data.erreur ?? "Génération impossible.");
       }
@@ -134,6 +137,7 @@ export default function SlidesPage() {
         const textes = deck.slides.map((s) => s.texte);
         ecrireCache(window.localStorage, cleCache("pitch", textes, String(duree)), data.pitch);
         setPitch(data.pitch as Pitch);
+        void pousserTout();
       } else {
         setErreurIA(data.erreur ?? "Génération impossible.");
       }

@@ -16,7 +16,7 @@ export function listSessions(storage: StorageLike): SessionRecord[] {
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
     return parsed
-      .filter(isSessionRecord)
+      .filter(estSessionRecord)
       .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
   } catch {
     return [];
@@ -30,6 +30,13 @@ export function saveSession(storage: StorageLike, session: SessionRecord): Sessi
   sessions.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
   storage.setItem(KEY, JSON.stringify(sessions));
   return sessions;
+}
+
+/** Remplace toute la liste (fusion après synchronisation). */
+export function remplacerSessions(storage: StorageLike, sessions: SessionRecord[]): SessionRecord[] {
+  const triees = [...sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+  storage.setItem(KEY, JSON.stringify(triees));
+  return triees;
 }
 
 /** Supprime une session par id. Retourne la liste mise à jour. */
@@ -101,7 +108,7 @@ export function importSessions(storage: StorageLike, raw: string): ImportOutcome
   const merged = [...existing];
 
   for (const candidate of candidates) {
-    if (!isSessionRecord(candidate)) {
+    if (!estSessionRecord(candidate)) {
       invalid++;
       continue;
     }
@@ -136,7 +143,8 @@ export function countWords(text: string): number {
   return trimmed.split(/\s+/).length;
 }
 
-function isSessionRecord(value: unknown): value is SessionRecord {
+/** Validation d'une session — partagée avec la synchronisation serveur. */
+export function estSessionRecord(value: unknown): value is SessionRecord {
   if (typeof value !== "object" || value === null) return false;
   const v = value as Record<string, unknown>;
   return (

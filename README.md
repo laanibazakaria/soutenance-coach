@@ -94,6 +94,35 @@ GEMINI_MODEL=gemini-3.6-flash   # optionnel — Google retire régulièrement le
 
 En local : dans `.env.local` (ignoré par git). Sur Vercel : *Settings → Environment Variables*.
 
+## Comptes (optionnels) : retrouver son travail sur tous ses appareils
+
+Sans compte, tout reste dans le navigateur. Avec un compte Google, les sessions, le support
+et les résultats IA sont copiés sur le serveur et fusionnés d'un appareil à l'autre — **jamais
+l'audio, jamais le PDF**, et chaque session reste supprimable.
+
+Pile : [Auth.js](https://authjs.dev) (v5) + [Prisma](https://www.prisma.io) 7 + PostgreSQL
+([Neon](https://neon.tech)). Ce que le navigateur stocke localement et ce que le serveur
+stocke ont exactement la même forme : la synchronisation est une copie, pas une traduction
+(`lib/sync/merge.ts`, testé).
+
+### Mise en place
+
+1. **Base de données** — sur Neon, créer un projet et copier la chaîne de connexion
+   (*pooled*) dans `DATABASE_URL`. Puis :
+   ```bash
+   npm run db:migrate      # crée les tables (prisma/migrations)
+   ```
+2. **Google** — sur [console.cloud.google.com](https://console.cloud.google.com) → *APIs &
+   Services → Credentials → Create OAuth client ID* (type *Web application*) :
+   - *Authorized JavaScript origins* : `http://localhost:3000` et `https://soutenance-coach.vercel.app`
+   - *Authorized redirect URIs* : `http://localhost:3000/api/auth/callback/google` et
+     `https://soutenance-coach.vercel.app/api/auth/callback/google`
+   - Copier l'identifiant et le secret dans `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`.
+3. **Secret de session** — `AUTH_SECRET` : une chaîne aléatoire (`openssl rand -base64 32`).
+
+Tant que ces variables manquent, le bouton « Se connecter » mène à une page qui l'explique,
+et l'application fonctionne en mode local.
+
 ## Démarrer
 
 ```bash

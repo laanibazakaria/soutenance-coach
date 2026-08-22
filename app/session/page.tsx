@@ -31,6 +31,10 @@ export default function SessionPage() {
   // les pertes quand la reconnaissance redémarre (Chrome coupe après un silence).
   const finalRef = useRef("");
   const stoppingRef = useRef(false);
+  // Confiance pondérée par le nombre de mots de chaque segment finalisé :
+  // un long segment sûr pèse plus qu'un mot isolé mal entendu.
+  const confSumRef = useRef(0);
+  const confWeightRef = useRef(0);
 
   useEffect(() => {
     setSupported(getRecognitionCtor() !== null);
@@ -72,7 +76,16 @@ export default function SessionPage() {
       for (let i = ev.resultIndex; i < ev.results.length; i++) {
         const res = ev.results[i];
         if (res.isFinal) {
-          finalRef.current += res[0].transcript + " ";
+          const segment = res[0].transcript;
+          finalRef.current += segment + " ";
+          // Certains navigateurs renvoient une confiance à 0 sur les segments
+          // finaux : on ne la compte que si elle est renseignée.
+          const conf = res[0].confidence;
+          if (typeof conf === "number" && conf > 0) {
+            const poids = countWords(segment);
+            confSumRef.current += conf * poids;
+            confWeightRef.current += poids;
+          }
         } else {
           interim += res[0].transcript;
         }
@@ -106,6 +119,8 @@ export default function SessionPage() {
 
     stoppingRef.current = false;
     finalRef.current = "";
+    confSumRef.current = 0;
+    confWeightRef.current = 0;
     setFinalText("");
     setInterimText("");
     recognitionRef.current = rec;
@@ -127,6 +142,11 @@ export default function SessionPage() {
     setPhase("stopped");
   }
 
+  /** Confiance moyenne pondérée, ou undefined si le navigateur n'en fournit pas. */
+  function currentConfidence(): number | undefined {
+    return confWeightRef.current > 0 ? confSumRef.current / confWeightRef.current : undefined;
+  }
+
   function save() {
     const transcript = finalRef.current.trim();
     saveSession(window.localStorage, {
@@ -135,6 +155,7 @@ export default function SessionPage() {
       durationMs: elapsedMs,
       transcript,
       wordCount: countWords(transcript),
+      confidence: currentConfidence(),
     });
     router.push("/");
   }
@@ -194,7 +215,11 @@ export default function SessionPage() {
 
       {phase === "stopped" && finalText.trim() !== "" && (
         <ScoreReportView
-          report={computeReport({ transcript: finalText.trim(), durationMs: elapsedMs })}
+          report={computeReport({
+            transcript: finalText.trim(),
+            durationMs: elapsedMs,
+            confidence: currentConfidence(),
+          })}
         />
       )}
 

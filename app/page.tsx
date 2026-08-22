@@ -32,7 +32,11 @@ const CHIP_UNITS: Record<string, string> = {
 
 /** Chips par session : les valeurs mesurables du rapport, recalculées à la volée. */
 function SessionChips({ session }: { session: SessionRecord }) {
-  const report = computeReport({ transcript: session.transcript, durationMs: session.durationMs });
+  const report = computeReport({
+    transcript: session.transcript,
+    durationMs: session.durationMs,
+    confidence: session.confidence,
+  });
   const chips = report.metrics
     .filter((m) => m.level !== "absent" && m.value !== undefined)
     .map((m) => ({ id: m.id, level: m.level, text: `${m.value} ${CHIP_UNITS[m.id] ?? ""}`.trim() }));

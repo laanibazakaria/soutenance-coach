@@ -10,6 +10,12 @@ export interface SessionRecord {
   transcript: string;
   /** Nombre de mots de la transcription (calculé à la sauvegarde). */
   wordCount: number;
+  /**
+   * Confiance moyenne de la reconnaissance vocale (0 à 1), pondérée par la
+   * longueur des segments. Optionnelle : les sessions enregistrées avant
+   * l'introduction de ce champ n'en ont pas.
+   */
+  confidence?: number;
 }
 
 /**

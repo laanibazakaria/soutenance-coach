@@ -81,6 +81,26 @@ describe("computeReport — débit", () => {
     const transcript = Array(200).fill("mot").join(" ");
     expect(metric(computeReport({ transcript, durationMs: 60_000 }), "debit").level).toBe("alerte");
   });
+
+  it("confiance de transcription basse → absent : « je t'ai mal entendu » ≠ « tu parles lentement »", () => {
+    const transcript = Array(60).fill("mot").join(" ");
+    const m = metric(computeReport({ transcript, durationMs: 73_000, confidence: 0.62 }), "debit");
+    expect(m.level).toBe("absent");
+    expect(m.summary).toContain("manqué une partie de tes mots");
+    expect(m.details[0]).toContain("62 %");
+  });
+
+  it("confiance haute → le débit est calculé normalement", () => {
+    const transcript = Array(120).fill("mot").join(" ");
+    const m = metric(computeReport({ transcript, durationMs: 60_000, confidence: 0.94 }), "debit");
+    expect(m.level).toBe("bon");
+    expect(m.value).toBe(120);
+  });
+
+  it("confiance inconnue (sessions d'avant le champ) → comportement inchangé", () => {
+    const transcript = Array(120).fill("mot").join(" ");
+    expect(metric(computeReport({ transcript, durationMs: 60_000 }), "debit").value).toBe(120);
+  });
 });
 
 describe("computeReport — béquilles", () => {

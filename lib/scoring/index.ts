@@ -22,6 +22,13 @@ export { countFillers, tokenize } from "./fillers";
 export const SEUILS = {
   dureeMinimaleMs: 10_000,
   motsMinimumStructure: 60,
+  /**
+   * En dessous de cette confiance de reconnaissance, la transcription a perdu
+   * assez de mots pour fausser tout comptage — le débit s'abstient.
+   * Observé en session réelle n°3 : ~92 mots prononcés, 60 transcrits (−35 %),
+   * ce qui affichait un « recul » qui n'existait pas.
+   */
+  confianceMinimaleDebit: 0.8,
   debit: { bonMin: 110, bonMax: 160, attentionMin: 90, attentionMax: 185 },
   bequillesPour100: { bon: 2, attention: 5 },
   phrases: { moyenneHachee: 7, moyenneBonne: 22, moyenneAttention: 30 },
@@ -57,7 +64,7 @@ export function computeReport(input: ScoringInput): ScoreReport {
   return {
     wordCount: words.length,
     metrics: [
-      debitMetric(words.length, input.durationMs),
+      debitMetric(words.length, input.durationMs, input.confidence),
       bequillesMetric(input.transcript, words.length),
       phrasesMetric(input.transcript),
       structureMetric(input.transcript, words.length),
@@ -65,7 +72,11 @@ export function computeReport(input: ScoringInput): ScoreReport {
   };
 }
 
-function debitMetric(wordCount: number, durationMs: number): MetricResult {
+function debitMetric(
+  wordCount: number,
+  durationMs: number,
+  confidence: number | undefined,
+): MetricResult {
   const base = { id: "debit" as const, label: "Débit de parole" };
   if (durationMs < SEUILS.dureeMinimaleMs || wordCount === 0) {
     return {
@@ -73,6 +84,18 @@ function debitMetric(wordCount: number, durationMs: number): MetricResult {
       level: "absent",
       summary: "Session trop courte pour mesurer un débit fiable (minimum 10 secondes).",
       details: [],
+    };
+  }
+  // Le débit se calcule sur le nombre de mots *captés*. Si la reconnaissance
+  // a peu confiance, elle en a perdu — la mesure dirait « tu parles lentement »
+  // alors qu'elle veut dire « je t'ai mal entendu ». On s'abstient.
+  if (confidence !== undefined && confidence < SEUILS.confianceMinimaleDebit) {
+    return {
+      ...base,
+      level: "absent",
+      summary:
+        "La reconnaissance vocale a manqué une partie de tes mots sur cette session — un débit calculé dessus sous-estimerait ton élocution réelle. Micro plus proche ou articulation plus nette pour la prochaine.",
+      details: [`Confiance de transcription : ${Math.round(confidence * 100)} %`],
     };
   }
   const wpm = Math.round(wordCount / (durationMs / 60_000));

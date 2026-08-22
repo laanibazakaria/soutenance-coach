@@ -151,6 +151,19 @@ describe("buildTrendReport — sur des sessions complètes", () => {
     expect(t.firstValue).toBe(5);
   });
 
+  it("une session à confiance basse ne pollue pas la tendance du débit", () => {
+    // 3 sessions au débit stable, dont une mal transcrite : son débit est
+    // absent, donc elle ne compte pas — et la tendance retombe sous le seuil.
+    const sessions = [
+      sessionAvec({ id: "a", jour: 1, texte: texte(120) }),
+      { ...sessionAvec({ id: "b", jour: 2, texte: texte(60) }), confidence: 0.5 },
+      sessionAvec({ id: "c", jour: 3, texte: texte(120) }),
+    ];
+    const t = trend(buildTrendReport(sessions), "debit");
+    expect(t.sessionsCount).toBe(2);
+    expect(t.trend).toBe("absent");
+  });
+
   it("le rapport contient toujours les 4 métriques dans un ordre stable", () => {
     const report = buildTrendReport([]);
     expect(report.map((t) => t.id)).toEqual(["debit", "bequilles", "phrases", "structure"]);

@@ -134,7 +134,11 @@ const LABELS: Record<MetricResult["id"], string> = {
 export function buildTrendReport(sessions: SessionRecord[]): TrendResult[] {
   const chrono = [...sessions].sort((a, b) => a.startedAt.localeCompare(b.startedAt));
   const reports = chrono.map((s) =>
-    computeReport({ transcript: s.transcript, durationMs: s.durationMs }),
+    computeReport({
+      transcript: s.transcript,
+      durationMs: s.durationMs,
+      confidence: s.confidence,
+    }),
   );
 
   return (Object.keys(LABELS) as MetricResult["id"][]).map((id) => {

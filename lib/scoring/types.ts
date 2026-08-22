@@ -28,4 +28,11 @@ export interface ScoreReport {
 export interface ScoringInput {
   transcript: string;
   durationMs: number;
+  /**
+   * Confiance moyenne de la reconnaissance vocale (0 à 1). Quand elle est
+   * connue et basse, les métriques qui dépendent du *volume* de mots capté
+   * (le débit) s'abstiennent : la transcription a perdu des mots, la mesure
+   * ne refléterait pas l'élocution réelle.
+   */
+  confidence?: number;
 }

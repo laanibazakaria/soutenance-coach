@@ -279,3 +279,35 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .lp-footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .lp-footer p { font-size: 0.86rem; color: var(--muted); }
 .lp-footer-links { display: flex; gap: 20px; }
+
+/* ── support de présentation ── */
+.dropzone { text-align: center; border: 1.5px dashed var(--line); border-radius: 18px; padding: 56px 28px; }
+.dropzone-icon { font-size: 2.6rem; display: block; margin-bottom: 14px; }
+.dropzone h2 { font-size: 1.25rem; margin-bottom: 8px; }
+.dropzone p { color: var(--muted); font-size: 0.92rem; margin-bottom: 22px; max-width: 440px; margin-left: auto; margin-right: auto; }
+.dropzone-note { margin-top: 20px; font-size: 0.82rem !important; }
+.deck-head { display: flex; justify-content: space-between; align-items: center; gap: 14px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-bottom: 18px; flex-wrap: wrap; }
+
+/* onglets */
+.tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin: 24px 0 20px; }
+.tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); font-family: inherit; font-size: 0.92rem; padding: 10px 16px; cursor: pointer; }
+.tab:hover { color: var(--txt); }
+.tab.active { color: var(--txt); border-bottom-color: var(--violet); font-weight: 600; }
+
+/* répartition du temps */
+.timeline { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.timeline-row { display: flex; align-items: center; gap: 14px; padding: 11px 16px; border-bottom: 1px solid var(--line); }
+.timeline-row:last-child { border-bottom: none; }
+.timeline-num { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--bg2); display: inline-flex; align-items: center; justify-content: center; font-size: 0.78rem; color: var(--muted); }
+.timeline-titre { flex: 1; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.timeline-temps { flex: none; font-size: 0.86rem; font-weight: 600; color: var(--violet2); }
+
+/* jury virtuel */
+.jury-intro { background: var(--bg2); }
+.jury-intro p { color: var(--muted); font-size: 0.88rem; margin-top: 6px; }
+.question { border-left: 3px solid var(--line); }
+.question-priorite { border-left-color: var(--gold); }
+.question-cat { display: inline-block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.question-texte { font-size: 1rem; margin-bottom: 10px; }
+.question-pourquoi { font-size: 0.86rem; color: var(--muted); }
+.question-slide { display: inline-block; margin-top: 10px; font-size: 0.76rem; color: var(--muted); background: var(--bg2); border-radius: 99px; padding: 2px 10px; }

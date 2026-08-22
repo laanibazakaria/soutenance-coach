@@ -108,9 +108,14 @@ export default function HomePage() {
             <h1>Tes sessions</h1>
             <p className="subtitle">Enregistre-toi, relis-toi, progresse.</p>
           </div>
-          <Link href="/session" className="btn primary">
-            🎤 Nouvelle session
-          </Link>
+          <div className="list-actions">
+            <Link href="/app/slides" className="btn">
+              📄 Mes slides
+            </Link>
+            <Link href="/app/session" className="btn primary">
+              🎤 Nouvelle session
+            </Link>
+          </div>
         </div>
       )}
 
@@ -164,9 +169,14 @@ export default function HomePage() {
             </li>
           </ol>
 
-          <Link href="/session" className="btn primary big">
+          <Link href="/app/session" className="btn primary big">
             🎤 Lancer ma première session
           </Link>
+
+          <p className="onboarding-alt">
+            Tu as déjà tes slides ?{" "}
+            <Link href="/app/slides">Analyse-les et découvre les questions du jury →</Link>
+          </p>
 
           <div className="reassure">
             <p>

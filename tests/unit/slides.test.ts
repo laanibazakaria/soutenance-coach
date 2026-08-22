@@ -31,6 +31,13 @@ describe("decouperSlide", () => {
     expect(s.motsCount).toBe(0);
   });
 
+  it("un numéro de page ou une puce en tête n'est pas pris pour le titre", () => {
+    expect(decouperSlide(2, "iv\nRemerciements\ntexte").titre).toBe("Remerciements");
+    expect(decouperSlide(3, "12\n•\nArchitecture du système").titre).toBe("Architecture du système");
+    // Rien qui ressemble à du texte : on garde la première ligne plutôt que rien.
+    expect(decouperSlide(4, "42\n7").titre).toBe("42");
+  });
+
   it("titre très long → tronqué pour rester lisible", () => {
     const s = decouperSlide(1, "x".repeat(200));
     expect(s.titre.length).toBeLessThanOrEqual(90);

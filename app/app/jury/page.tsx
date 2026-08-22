@@ -6,6 +6,7 @@ import { genererQuestions, selectionnerPourEntrainement, LIBELLES_CATEGORIES } f
 import { analyserReponse } from "@/lib/jury/evaluation";
 import type { AvisModele } from "@/lib/jury/evaluation";
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
+import { lireCache } from "@/lib/ia-cache";
 import type { JuryQuestion } from "@/lib/slides/types";
 
 type Etape = "attente" | "reponse" | "evaluation";
@@ -35,10 +36,16 @@ export default function JuryPage() {
   useEffect(() => {
     setSupporte(getRecognitionCtor() !== null);
     const deck = listeDeckSauvegarde(window.localStorage);
+    // Priorité aux questions générées pour CE projet ; sinon la banque classique.
+    const specifiques = lireCache<JuryQuestion[]>(window.localStorage, "questions-courantes");
     if (deck) {
-      const toutes = genererQuestions(deck);
-      setQuestions(selectionnerPourEntrainement(toutes, 8));
       setContexte(deck.slides.map((s) => s.texte).join(" "));
+      if (specifiques && specifiques.length >= 3) {
+        const classiques = selectionnerPourEntrainement(genererQuestions(deck), 2);
+        setQuestions([...specifiques, ...classiques]);
+      } else {
+        setQuestions(selectionnerPourEntrainement(genererQuestions(deck), 8));
+      }
     } else {
       // Sans support chargé, on s'entraîne sur les questions universelles.
       setQuestions(
@@ -165,7 +172,7 @@ export default function JuryPage() {
         <>
           <div className="jury-progress">
             Question {index + 1} sur {questions.length}
-            {contexte ? " · basée sur tes slides" : " · questions générales"}
+            {contexte ? (question?.id.startsWith("ia-") ? " · spécifique à ton projet" : " · basée sur tes slides") : " · questions générales"}
           </div>
 
           <article className="card question-posee">

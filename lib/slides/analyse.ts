@@ -35,7 +35,11 @@ export function decouperSlide(numero: number, texteBrut: string): Slide {
     .split("\n")
     .map((l) => l.trim())
     .filter((l) => l !== "");
-  const titre = (lignes[0] ?? `Diapositive ${numero}`).slice(0, 90);
+  // Le titre est la première ligne qui ressemble à du texte : on saute les
+  // numéros de page (« 12 », « iv »), les puces seules et les dates isolées,
+  // fréquents en tête de diapositive exportée.
+  const titreCandidat = lignes.find((l) => /\p{L}{3,}/u.test(l) && !/^[ivxlc]+$/iu.test(l));
+  const titre = (titreCandidat ?? lignes[0] ?? `Diapositive ${numero}`).slice(0, 90);
   const texte = lignes.join(" ");
   return { numero, titre, texte, motsCount: compterMots(texte) };
 }

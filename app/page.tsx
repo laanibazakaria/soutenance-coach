@@ -101,15 +101,17 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="toolbar">
-        <div>
-          <h1>Tes sessions</h1>
-          <p className="subtitle">Enregistre-toi, relis-toi, progresse.</p>
+      {sessions !== null && sessions.length > 0 && (
+        <div className="toolbar">
+          <div>
+            <h1>Tes sessions</h1>
+            <p className="subtitle">Enregistre-toi, relis-toi, progresse.</p>
+          </div>
+          <a href="/session" className="btn primary">
+            🎤 Nouvelle session
+          </a>
         </div>
-        <a href="/session" className="btn primary">
-          🎤 Nouvelle session
-        </a>
-      </div>
+      )}
 
       <input
         ref={fileRef}
@@ -124,9 +126,64 @@ export default function HomePage() {
       />
 
       {sessions === null ? null : sessions.length === 0 ? (
-        <div className="empty">
-          <p>Aucune session pour l&apos;instant.</p>
-          <p>Lance ta première session d&apos;entraînement — il ne faut qu&apos;un micro.</p>
+        <div className="onboarding">
+          <h2 className="onboarding-title">Prépare ta soutenance, sérieusement.</h2>
+          <p className="onboarding-lead">
+            Tu t&apos;entraînes à l&apos;oral, l&apos;application t&apos;écoute et te donne des
+            mesures objectives — puis elle se souvient de tes séances pour te montrer ce qui
+            progresse et ce qui bloque.
+          </p>
+
+          <ol className="steps">
+            <li>
+              <span className="step-num">1</span>
+              <div>
+                <b>Choisis ton format</b>
+                <p>PFA 15 min, PFE 20 min, ou entraînement libre.</p>
+              </div>
+            </li>
+            <li>
+              <span className="step-num">2</span>
+              <div>
+                <b>Parle comme devant le jury</b>
+                <p>
+                  Ton navigateur transcrit en direct. Autorise le micro quand il te le demande.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span className="step-num">3</span>
+              <div>
+                <b>Lis ton rapport</b>
+                <p>
+                  Débit, mots béquilles, structure, tenue du temps — chiffrés, pas commentés à
+                  la louche.
+                </p>
+              </div>
+            </li>
+          </ol>
+
+          <a href="/session" className="btn primary big">
+            🎤 Lancer ma première session
+          </a>
+
+          <div className="reassure">
+            <p>
+              🔒 <b>Tes enregistrements ne partent nulle part.</b> Pas de compte, pas de serveur :
+              tout reste dans ce navigateur, sur cet appareil.
+            </p>
+            <p>
+              🧭 <b>Aucun chiffre n&apos;est inventé par une IA.</b> Chaque mesure est calculée
+              par du code testé — et quand la transcription est mauvaise, l&apos;application le
+              dit au lieu de deviner.
+            </p>
+            <p className="reassure-note">
+              Fonctionne sur Chrome et Edge. Déjà des sessions sur un autre appareil ?
+              <button className="link-btn" onClick={() => fileRef.current?.click()}>
+                Importe ton fichier
+              </button>
+            </p>
+          </div>
         </div>
       ) : (
         <>

@@ -8,13 +8,17 @@ import ScoreReportView from "@/app/components/ScoreReportView";
 
 type Phase = "idle" | "recording" | "stopped";
 
-/** Formats proposés. `null` = entraînement libre, sans évaluation du temps. */
-const FORMATS: ReadonlyArray<{ label: string; minutes: number | null }> = [
+/**
+ * Formats proposés, nommés d'après les soutenances réelles des étudiants
+ * (PFA ≈ 15 min de présentation, PFE ≈ 20 min, hors questions).
+ * `null` = entraînement libre, sans évaluation du temps.
+ */
+const FORMATS: ReadonlyArray<{ label: string; hint?: string; minutes: number | null }> = [
   { label: "Libre", minutes: null },
-  { label: "5 min", minutes: 5 },
-  { label: "10 min", minutes: 10 },
-  { label: "15 min", minutes: 15 },
-  { label: "20 min", minutes: 20 },
+  { label: "5 min", hint: "pitch", minutes: 5 },
+  { label: "10 min", hint: "stage", minutes: 10 },
+  { label: "15 min", hint: "PFA", minutes: 15 },
+  { label: "20 min", hint: "PFE", minutes: 20 },
 ];
 
 /** Renvoie le constructeur SpeechRecognition du navigateur, s'il existe. */
@@ -216,6 +220,7 @@ export default function SessionPage() {
               onClick={() => setTargetMinutes(f.minutes)}
             >
               {f.label}
+              {f.hint && <span className="format-hint"> · {f.hint}</span>}
             </button>
           ))}
         </fieldset>

@@ -8,6 +8,8 @@ d'une session à l'autre.
 > en IA à l'ENSIAS, après un stage passé à fiabiliser une application d'IA en production.
 > J'ai préparé ma propre soutenance avec.
 
+![L'écran d'accueil de SoutenanceCoach](docs/accueil.png)
+
 ---
 
 ## Le problème
@@ -36,6 +38,14 @@ Donc ici :
   - une tendance sur deux points, c'est du bruit — il en faut **trois minimum**, sans exception.
 - **Aucune donnée ne quitte le navigateur.** Pas de compte, pas de serveur, pas d'appel réseau :
   tout vit dans le stockage local. Vérifiable dans l'onglet Réseau.
+
+## En pratique
+
+Tu choisis le format de ton exercice — les durées correspondent aux soutenances réelles
+(PFA 15 min, PFE 20 min) — puis tu parles. La transcription suit en direct, et le minuteur
+passe à l'orange dans les 10 % finaux, au rouge au dépassement.
+
+![L'écran de session avec les formats PFA et PFE](docs/session.png)
 
 ## Ce que ça mesure
 

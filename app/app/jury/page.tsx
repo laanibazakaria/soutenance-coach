@@ -104,7 +104,9 @@ export default function JuryPage() {
 
     setEvaluationEnCours(true);
     try {
-      const res = await fetch("api/jury/evaluate", {
+      // Chemin absolu : depuis /app/jury, un chemin relatif résoudrait vers
+      // /app/api/jury/evaluate, qui n'existe pas.
+      const res = await fetch("/api/jury/evaluate", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

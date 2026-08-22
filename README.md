@@ -67,6 +67,29 @@ tendance — *en progression*, *stable*, *en recul* — avec les valeurs brutes
 (« 12,5 → 0,8 béquilles pour 100 mots »). Stagner au bon niveau se dit « c'est acquis » ;
 stagner au mauvais, « c'est TON point de travail prioritaire ».
 
+## Et avec l'IA : pitch, questions de jury, simulation d'entretien
+
+Dépose le PDF de tes slides. Seul le **texte extrait** est envoyé au modèle — jamais le fichier.
+
+| Fonction | Ce que fait le modèle | Ce que fait le code |
+|---|---|---|
+| **🎬 Mon pitch** | Rédige l'accroche, ce que dire sur chaque diapositive, les transitions, la conclusion, trois conseils de livraison propres au support | Renormalise le minutage vers la durée visée — un modèle ne décide pas d'un chiffre |
+| **🎓 Questions du jury** | Génère les questions *spécifiques* à ce projet : elles citent une technologie nommée, un chiffre avancé, un choix de conception, et pointent les faiblesses réelles | Interdit dans la consigne toute question posable à n'importe quel projet ; rattache chaque question à sa diapositive ; une banque de questions classiques reste disponible hors ligne |
+| **🎤 Simulation d'entretien** | Donne son avis de jury sur ta réponse orale : ce qui fonctionne, ce qu'il relèverait, ce qu'il attendait, sa relance probable | Mesure longueur, hésitations, présence d'un exemple concret et temps de réaction — avant et indépendamment du modèle |
+
+**Le modèle n'attribue jamais de note.** Chaque consigne le lui interdit explicitement, et une réponse hors format est refusée plutôt que présentée comme fiable.
+
+Sans clé configurée, tout le reste fonctionne : l'analyse du support, les questions classiques, les mesures de réponse.
+
+### Configuration
+
+```
+GEMINI_API_KEY=...        # clé Google AI Studio (palier gratuit suffisant)
+GEMINI_MODEL=gemini-3.6-flash   # optionnel — Google retire régulièrement les anciens modèles
+```
+
+En local : dans `.env.local` (ignoré par git). Sur Vercel : *Settings → Environment Variables*.
+
 ## Démarrer
 
 ```bash

@@ -197,7 +197,7 @@ Elles sont écrites ici plutôt que découvertes à l'usage :
 
 ## Journal de bord
 
-Ce projet a été construit en quatre étapes, chacune vérifiée par l'usage réel — et plusieurs
+Ce projet a été construit par étapes, chacune vérifiée par l'usage réel — et plusieurs
 correctifs viennent directement de sessions d'entraînement enregistrées avec l'outil :
 
 | Étape | Contenu |
@@ -206,6 +206,11 @@ correctifs viennent directement de sessions d'entraînement enregistrées avec l
 | B | La grille : 5 métriques déterministes et leurs seuils |
 | C | La mémoire : tendances multi-sessions, seuil de 3 sessions non négociable |
 | D | Mode soutenance chronométré, export/import, accessibilité, publication |
+| E | Le parcours J-X : date, étapes réparties, détection automatique, jauge « Prêt à X % » |
+| F | Répéter avec ses slides : chrono par diapositive, bilan prévu / réel |
+| G | L'avis du coach : oublis, passages confus, reformulations — jamais de note |
+| H | Les fiches à mémoriser : chiffres, définitions, pièges, révision espacée |
+| I | Le guide de la soutenance, et une navigation commune |
 
 La fiche de mission complète — rédigée **avant la première ligne de code** — est dans
 [MISSION.md](MISSION.md), garde-fous compris.

@@ -57,10 +57,12 @@ export interface StorageEnumerable extends StorageLike {
 export function detecterContexte(storage: StorageEnumerable, sessions: SessionRecord[]): Contexte {
   let pitchGenere = false;
   let questionsGenerees = false;
+  let avisCoach = false;
   for (let i = 0; i < storage.length; i++) {
     const k = storage.key(i) ?? "";
     if (k.startsWith("sc.ia.v1:pitch:")) pitchGenere = true;
     if (k.startsWith("sc.ia.v1:questions")) questionsGenerees = true;
+    if (k.startsWith("sc.ia.v1:coach:")) avisCoach = true;
   }
-  return { sessions, deckPresent: listeDeckSauvegarde(storage) !== null, pitchGenere, questionsGenerees };
+  return { sessions, deckPresent: listeDeckSauvegarde(storage) !== null, pitchGenere, questionsGenerees, avisCoach };
 }

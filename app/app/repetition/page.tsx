@@ -14,6 +14,7 @@ import type { Deck } from "@/lib/slides/types";
 import type { Pitch } from "@/lib/pitch";
 import type { SlideTiming } from "@/lib/types";
 import ScoreReportView from "@/app/components/ScoreReportView";
+import AvisCoach from "@/app/components/AvisCoach";
 import { pousserTout } from "@/lib/sync/client";
 
 const DUREES: ReadonlyArray<{ minutes: number; hint?: string }> = [
@@ -59,6 +60,8 @@ export default function RepetitionPage() {
   const [transcriptOuvert, setTranscriptOuvert] = useState(false);
 
   const segmentsRef = useRef<Segment[]>([]);
+  // Fixé à l'arrêt : l'avis du coach demandé avant la sauvegarde suit la session.
+  const idRef = useRef("");
   const debutSegmentRef = useRef(0);
   const pdfRef = useRef<DocumentPDF | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -125,6 +128,7 @@ export default function RepetitionPage() {
     if (!deck || !plan) return;
     const fin = Date.now() - rec.startedAt();
     segmentsRef.current.push({ numero: deck.slides[index].numero, debutMs: debutSegmentRef.current, finMs: fin });
+    idRef.current = crypto.randomUUID();
     rec.stop();
     const cumul = cumulerSegments(segmentsRef.current);
     setReel(cumul);
@@ -134,7 +138,7 @@ export default function RepetitionPage() {
   function sauvegarder() {
     const transcript = rec.transcript();
     saveSession(window.localStorage, {
-      id: crypto.randomUUID(),
+      id: idRef.current || crypto.randomUUID(),
       startedAt: new Date(rec.startedAt()).toISOString(),
       durationMs: elapsedMs,
       transcript,
@@ -387,14 +391,28 @@ export default function RepetitionPage() {
           </p>
 
           {rec.finalText.trim() !== "" && (
-            <ScoreReportView
-              report={computeReport({
-                transcript: rec.finalText.trim(),
-                durationMs: elapsedMs,
-                confidence: rec.confidence(),
-                targetDurationMs: dureeMs,
-              })}
-            />
+            <>
+              <ScoreReportView
+                report={computeReport({
+                  transcript: rec.finalText.trim(),
+                  durationMs: elapsedMs,
+                  confidence: rec.confidence(),
+                  targetDurationMs: dureeMs,
+                })}
+              />
+              <AvisCoach
+                session={{
+                  id: idRef.current,
+                  startedAt: new Date(rec.startedAt()).toISOString(),
+                  durationMs: elapsedMs,
+                  transcript: rec.finalText.trim(),
+                  wordCount: countWords(rec.finalText.trim()),
+                  confidence: rec.confidence(),
+                  targetDurationMs: dureeMs,
+                  slides: reel,
+                }}
+              />
+            </>
           )}
 
           <div className="actions">

@@ -8,6 +8,7 @@ import { buildTrendReport, SEUILS_TENDANCES } from "@/lib/trends";
 import type { SessionRecord } from "@/lib/types";
 import TrendsView from "@/app/components/TrendsView";
 import ParcoursView from "./components/ParcoursView";
+import AvisCoach from "@/app/components/AvisCoach";
 import { pousserTout, supprimerDistante, surSynchronisation } from "@/lib/sync/client";
 
 function formatDuration(ms: number): string {
@@ -245,6 +246,7 @@ export default function HomePage() {
                 </div>
                 <SessionChips session={s} />
                 <div className="session-excerpt">{s.transcript || "(transcription vide)"}</div>
+                <AvisCoach session={s} compact />
               </div>
               {confirmingId === s.id ? (
                 // Pattern hérité de la mission 6 : sur une action destructive,

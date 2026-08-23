@@ -12,7 +12,7 @@ import {
 import { lireParcours, sauverParcours, marquerEtape, detecterContexte } from "../../lib/parcours/persistance";
 import type { SessionRecord } from "../../lib/types";
 
-const vide: Contexte = { sessions: [], deckPresent: false, pitchGenere: false, questionsGenerees: false };
+const vide: Contexte = { sessions: [], deckPresent: false, pitchGenere: false, questionsGenerees: false, avisCoach: false };
 
 const parcours = (extra: Partial<Parcours> = {}): Parcours => ({
   dateSoutenance: "2026-09-15",
@@ -107,6 +107,7 @@ describe("construirePlan — états et détection", () => {
       deckPresent: true,
       pitchGenere: true,
       questionsGenerees: true,
+      avisCoach: false,
     };
     const plan = construirePlan(parcours(), ctx, "2026-09-05");
     const faite = Object.fromEntries(plan.etapes.map((e) => [e.id, e.faite]));
@@ -181,8 +182,8 @@ describe("persistance", () => {
   });
 
   it("détecte le contexte depuis les clés du stockage", () => {
-    const st = memoire({ "sc.ia.v1:pitch:abc": "{}", "sc.ia.v1:questions-courantes": "[]" });
+    const st = memoire({ "sc.ia.v1:pitch:abc": "{}", "sc.ia.v1:questions-courantes": "[]", "sc.ia.v1:coach:s1": "{}" });
     const ctx = detecterContexte(st, []);
-    expect(ctx).toEqual({ sessions: [], deckPresent: false, pitchGenere: true, questionsGenerees: true });
+    expect(ctx).toEqual({ sessions: [], deckPresent: false, pitchGenere: true, questionsGenerees: true, avisCoach: true });
   });
 });

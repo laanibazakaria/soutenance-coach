@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveSession, countWords } from "@/lib/storage";
 import { computeReport } from "@/lib/scoring";
 import ScoreReportView from "@/app/components/ScoreReportView";
+import AvisCoach from "@/app/components/AvisCoach";
 import { pousserTout } from "@/lib/sync/client";
 import { useEnregistrement } from "../hooks/useEnregistrement";
 
@@ -25,6 +26,9 @@ export default function SessionPage() {
   const router = useRouter();
   const rec = useEnregistrement();
   const [targetMinutes, setTargetMinutes] = useState<number | null>(null);
+  // L'identifiant est fixé à l'arrêt : l'avis du coach demandé avant la
+  // sauvegarde reste attaché à la session une fois sauvegardée.
+  const idRef = useRef("");
 
   const targetMs = targetMinutes === null ? undefined : targetMinutes * 60_000;
   const { phase, supported, finalText, interimText, elapsedMs, error } = rec;
@@ -32,7 +36,7 @@ export default function SessionPage() {
   function save() {
     const transcript = rec.transcript();
     saveSession(window.localStorage, {
-      id: crypto.randomUUID(),
+      id: idRef.current || crypto.randomUUID(),
       startedAt: new Date(rec.startedAt()).toISOString(),
       durationMs: elapsedMs,
       transcript,
@@ -119,7 +123,13 @@ export default function SessionPage() {
           </button>
         )}
         {phase === "recording" && (
-          <button className="btn danger" onClick={rec.stop}>
+          <button
+            className="btn danger"
+            onClick={() => {
+              idRef.current = crypto.randomUUID();
+              rec.stop();
+            }}
+          >
             ■ Arrêter
           </button>
         )}
@@ -136,14 +146,27 @@ export default function SessionPage() {
       </div>
 
       {phase === "stopped" && finalText.trim() !== "" && (
-        <ScoreReportView
-          report={computeReport({
-            transcript: finalText.trim(),
-            durationMs: elapsedMs,
-            confidence: rec.confidence(),
-            targetDurationMs: targetMs,
-          })}
-        />
+        <>
+          <ScoreReportView
+            report={computeReport({
+              transcript: finalText.trim(),
+              durationMs: elapsedMs,
+              confidence: rec.confidence(),
+              targetDurationMs: targetMs,
+            })}
+          />
+          <AvisCoach
+            session={{
+              id: idRef.current,
+              startedAt: new Date(rec.startedAt()).toISOString(),
+              durationMs: elapsedMs,
+              transcript: finalText.trim(),
+              wordCount: countWords(finalText.trim()),
+              confidence: rec.confidence(),
+              targetDurationMs: targetMs,
+            }}
+          />
+        </>
       )}
 
       <div className="transcript" aria-live="polite">

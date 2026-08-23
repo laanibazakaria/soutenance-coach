@@ -173,3 +173,24 @@ diapositive est sauvegardé avec la session et synchronisé.
   session classique — pas deux implémentations des redémarrages silencieux.
 - *Le retour en arrière compte* : les passages sur une même diapositive se cumulent.
 - *Seuils exportés* (± 20 % vert, ± 50 % orange), pas de note globale.
+
+## Étape G — L'avis du coach (fiche écrite avant le code, 23 août 2026)
+
+**Le manque.** Les métriques disent *comment* l'étudiant parle. Personne ne lui dit *ce qu'il a
+oublié* de ses propres slides, ni *quelle phrase* était confuse. C'est le retour qu'un bon
+encadrant donne après une répétition — et qu'un étudiant seul n'a jamais.
+
+**Ce qui est construit.** Un bouton, jamais un appel automatique : « Demander l'avis du coach ».
+Le modèle reçoit la transcription, le texte numéroté des diapositives, le temps par diapositive
+s'il existe, et les mesures déjà calculées. Il rend : oublis (avec numéro de diapositive),
+passages confus cités entre guillemets, reformulations avant → après, points forts, une
+priorité. Disponible à la fin d'une session, à la fin d'une répétition avec slides, et depuis
+l'historique. Un avis par session, mis en cache et synchronisé.
+
+**Garde-fous.**
+- *Jamais de note* : la consigne l'interdit ; un avis hors format est refusé, pas rafistolé.
+- *Les chiffres viennent du code* : ils sont transmis comme des faits « à ne pas contredire ».
+- *Sans support, pas d'oublis inventés* : la consigne exige une liste vide.
+- *Ce qui est envoyé est borné* (7 000 caractères de transcription, 5 000 de slides) et
+  ne contient jamais l'audio ni le PDF.
+- *Identifiant fixé à l'arrêt* : l'avis demandé avant la sauvegarde reste attaché à la session.

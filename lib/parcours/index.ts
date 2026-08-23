@@ -37,6 +37,8 @@ export interface Contexte {
   deckPresent: boolean;
   pitchGenere: boolean;
   questionsGenerees: boolean;
+  /** Au moins un avis du coach demandé sur une session. */
+  avisCoach: boolean;
 }
 
 /** Position dans la fenêtre de préparation : fraction 0..1, ou un jour fixe. */
@@ -134,6 +136,16 @@ export const ETAPES: readonly Etape[] = [
     lien: "/app/repetition",
     position: 0.5,
     auto: (c) => c.sessions.some((s) => Boolean(s.slides && s.slides.length > 0)),
+  },
+  {
+    id: "coach",
+    titre: "Demande l'avis du coach sur une répétition",
+    pourquoi:
+      "Les chiffres disent comment tu parles ; le coach dit ce que tu as oublié de tes slides, ce qui était confus, et quoi dire autrement. Une fois suffit pour savoir quoi retravailler.",
+    action: "Voir mes sessions",
+    lien: "/app",
+    position: 0.55,
+    auto: (c) => c.avisCoach,
   },
   {
     id: "jury",

@@ -80,6 +80,8 @@ model TrainingSession {
   wordCount        Int
   confidence       Float?
   targetDurationMs Int?
+  /// Temps par diapositive (répétition avec le support), même forme qu'en local.
+  slides           Json?
   createdAt        DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

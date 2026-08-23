@@ -21,6 +21,17 @@ export interface SessionRecord {
    * Absente pour un entraînement libre.
    */
   targetDurationMs?: number;
+  /**
+   * Temps passé sur chaque diapositive, si la session est une répétition
+   * avec le support. Absent sinon.
+   */
+  slides?: SlideTiming[];
+}
+
+/** Temps passé sur une diapositive pendant une répétition. */
+export interface SlideTiming {
+  numero: number;
+  dureeMs: number;
 }
 
 /**

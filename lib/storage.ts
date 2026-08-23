@@ -154,6 +154,11 @@ export function estSessionRecord(value: unknown): value is SessionRecord {
     typeof v.transcript === "string" &&
     typeof v.wordCount === "number" &&
     (v.confidence === undefined || typeof v.confidence === "number") &&
-    (v.targetDurationMs === undefined || typeof v.targetDurationMs === "number")
+    (v.targetDurationMs === undefined || typeof v.targetDurationMs === "number") &&
+    (v.slides === undefined ||
+      (Array.isArray(v.slides) &&
+        v.slides.every(
+          (s) => typeof s === "object" && s !== null && typeof (s as { numero?: unknown }).numero === "number" && typeof (s as { dureeMs?: unknown }).dureeMs === "number",
+        )))
   );
 }

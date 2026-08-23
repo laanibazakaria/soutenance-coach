@@ -409,3 +409,43 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .formats-inline legend { text-align: left; }
 .parcours-form .actions { justify-content: flex-start; }
 @media (max-width: 640px) { .etape { flex-wrap: wrap; } .etape-action { width: 100%; text-align: center; } }
+
+/* ── Répétition avec slides ── */
+.repetition { text-align: center; }
+.repetition .deck-head { text-align: left; }
+.rep-source { font-size: 0.88rem; color: var(--muted); margin: 0 auto 18px; max-width: 620px; }
+.rep-source b { color: var(--txt); }
+.rep-source-pitch { color: var(--ok); }
+.pdf-option { display: flex; flex-direction: column; gap: 8px; align-items: center; font-size: 0.88rem; color: var(--muted); margin: 0 auto 18px; max-width: 620px; }
+.pdf-option b { color: var(--txt); }
+.pdf-option input { font-size: 0.85rem; color: var(--muted); }
+.pdf-ok { color: var(--ok); font-weight: 600; }
+.rep-barre { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin: 6px 0 14px; }
+.rep-chrono { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; text-align: left; }
+.rep-chrono-slide { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.rep-position { font-size: 0.9rem; color: var(--muted); }
+.rep-position b { color: var(--txt); font-size: 1.1rem; }
+.rep-scene { background: #fff; color: #111; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); min-height: 280px; display: flex; align-items: stretch; }
+.rep-canvas { display: block; width: 100%; height: auto; }
+.rep-slide-texte { flex: 1; text-align: left; padding: 34px 40px; position: relative; }
+.rep-slide-texte h2 { font-size: 1.6rem; margin-bottom: 16px; color: #2a1650; }
+.rep-slide-texte p { font-size: 1.02rem; line-height: 1.6; white-space: pre-wrap; color: #333; max-height: 360px; overflow-y: auto; }
+.rep-slide-num { position: absolute; right: 18px; bottom: 12px; font-size: 0.8rem; color: #999; }
+.rep-nav { display: flex; justify-content: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.rep-astuce { font-size: 0.78rem; color: var(--muted); margin-top: 10px; }
+kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; }
+.rep-transcript { margin-top: 18px; text-align: left; }
+.rep-transcript summary { cursor: pointer; color: var(--muted); font-size: 0.88rem; }
+.rep-transcript .transcript { margin-top: 10px; min-height: 80px; }
+.rep-resume { font-size: 1rem; color: var(--txt); max-width: 680px; margin: 0 auto 22px; line-height: 1.6; }
+.rep-bilan { text-align: left; }
+.rep-bilan-head, .rep-bilan-total { background: var(--bg2); font-weight: 600; font-size: 0.82rem; color: var(--muted); }
+.rep-col { flex: none; width: 74px; text-align: right; font-variant-numeric: tabular-nums; font-size: 0.88rem; }
+.rep-ecart { font-weight: 700; }
+.rep-ecart-bon { color: var(--ok); }
+.rep-ecart-attention { color: var(--gold); }
+.rep-ecart-alerte { color: var(--danger); }
+.rep-ecart-non-vue { color: var(--muted); font-weight: 400; }
+.rep-non-vue .timeline-titre { color: var(--muted); }
+.chip-info { color: var(--violet2); border-color: rgba(167, 139, 250, 0.4); }
+@media (max-width: 640px) { .rep-barre { grid-template-columns: 1fr 1fr; } .rep-position { grid-column: 1 / -1; order: -1; } .rep-col { width: 58px; } }

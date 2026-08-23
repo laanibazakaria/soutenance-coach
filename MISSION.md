@@ -153,3 +153,23 @@ restants ; les deux derniers jours sont réservés. Une jauge « Prêt à X % »
 
 **Extensions prévues** : les fonctions suivantes (répétition avec slides, avis du coach,
 fiches à mémoriser, guide) deviendront des étapes du catalogue.
+
+## Étape F — Répéter avec ses slides (fiche écrite avant le code, 23 août 2026)
+
+**Le manque.** On répète « dans le vide » : la session mesure l'élocution, pas la gestion du
+support. Or le jury voit d'abord ça : une diapositive qui mange trois minutes, une autre
+survolée, la conclusion bâclée faute de temps.
+
+**Ce qui est construit.** La diapositive courante à l'écran (texte extrait ; ou le vrai PDF
+si l'étudiant le recharge — il ne quitte pas le navigateur), avance au clavier, un chrono par
+diapositive face au temps prévu, et à la fin un bilan : prévu / réel / écart par diapositive,
+les non vues, le pire dépassement, une phrase qui dit où part le temps. Le temps par
+diapositive est sauvegardé avec la session et synchronisé.
+
+**Garde-fous.**
+- *Le prévu a une origine* : le minutage du pitch généré pour cette durée ; sinon une
+  répartition uniforme, affichée comme telle avec l'invitation à générer le pitch.
+- *Un seul enregistreur* : la logique Web Speech est extraite dans un hook partagé avec la
+  session classique — pas deux implémentations des redémarrages silencieux.
+- *Le retour en arrière compte* : les passages sur une même diapositive se cumulent.
+- *Seuils exportés* (± 20 % vert, ± 50 % orange), pas de note globale.

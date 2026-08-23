@@ -126,6 +126,16 @@ export const ETAPES: readonly Etape[] = [
     auto: (c) => c.sessions.some((s) => Boolean(s.targetDurationMs)),
   },
   {
+    id: "repetition-slides",
+    titre: "Répète avec tes slides : le temps par diapositive",
+    pourquoi:
+      "Tes diapositives à l'écran, un chrono par diapositive comparé au minutage de ton pitch. C'est là qu'on découvre que la slide 2 mange trois minutes.",
+    action: "Répéter avec mes slides",
+    lien: "/app/repetition",
+    position: 0.5,
+    auto: (c) => c.sessions.some((s) => Boolean(s.slides && s.slides.length > 0)),
+  },
+  {
     id: "jury",
     titre: "Simulation d'entretien : réponds à voix haute",
     pourquoi:

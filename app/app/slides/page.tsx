@@ -225,9 +225,14 @@ export default function SlidesPage() {
               <b>{deck.nomFichier}</b>
               <span className="session-meta"> · {deck.slides.length} diapositives</span>
             </div>
-            <button className="btn small" onClick={() => fileRef.current?.click()}>
-              Changer de fichier
-            </button>
+            <div className="list-actions">
+              <Link href="/app/repetition" className="btn small">
+                🎞️ Répéter avec ces slides
+              </Link>
+              <button className="btn small" onClick={() => fileRef.current?.click()}>
+                Changer de fichier
+              </button>
+            </div>
           </div>
 
           <fieldset className="formats">

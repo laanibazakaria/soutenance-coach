@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma, baseConfiguree } from "@/lib/prisma";
 import { estSessionRecord } from "@/lib/storage";
-import type { SessionRecord } from "@/lib/types";
+import type { SessionRecord, SlideTiming } from "@/lib/types";
 import type { Deck } from "@/lib/slides/types";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { estParcours, type Parcours } from "@/lib/parcours";
@@ -32,6 +32,7 @@ function versRecord(s: {
   wordCount: number;
   confidence: number | null;
   targetDurationMs: number | null;
+  slides?: unknown;
 }): SessionRecord {
   return {
     id: s.id,
@@ -41,6 +42,7 @@ function versRecord(s: {
     wordCount: s.wordCount,
     ...(s.confidence !== null ? { confidence: s.confidence } : {}),
     ...(s.targetDurationMs !== null ? { targetDurationMs: s.targetDurationMs } : {}),
+    ...(Array.isArray(s.slides) ? { slides: s.slides as SlideTiming[] } : {}),
   };
 }
 
@@ -104,6 +106,7 @@ export async function PUT(request: Request) {
         wordCount: s.wordCount,
         confidence: s.confidence,
         targetDurationMs: s.targetDurationMs,
+        slides: s.slides ? (s.slides as unknown as Prisma.InputJsonValue) : undefined,
       })),
       skipDuplicates: true,
     });

@@ -86,34 +86,94 @@ export function voixNavigateurExcellente(voix: SpeechSynthesisVoice | null): boo
   return /natural|online|neural/i.test(voix.name) || /^Microsoft (Denise|Henri|Vivienne|Remy|Ava|Andrew|Emma)/.test(voix.name);
 }
 
-let audioEnCours: HTMLAudioElement | null = null;
+let contexteAudio: AudioContext | null = null;
+let lectureEnCours: { arreter: () => void } | null = null;
 
-/** Joue la réplique avec la voix naturelle de l'API. Résout `false` si ça échoue (→ repli navigateur). */
+function obtenirContexte(): AudioContext {
+  contexteAudio ??= new AudioContext();
+  return contexteAudio;
+}
+
+/**
+ * Joue la réplique avec la voix naturelle de l'API, en STREAMING : les
+ * morceaux PCM sont joués au fil de leur arrivée (premier son ~1,7 s).
+ * Résout `false` si ça échoue (→ repli sur la voix du navigateur).
+ */
 export async function parlerNaturel(texte: string, langue: "fr" | "en", voix: "jury" | "recruteur" = "jury"): Promise<boolean> {
+  let annule = false;
   try {
-    const r = await fetch("/api/voix", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ texte, langue, voix }), signal: AbortSignal.timeout(22_000) });
-    if (!r.ok) return false;
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    await new Promise<void>((resolve, reject) => {
-      const a = new Audio(url);
-      audioEnCours = a;
-      a.onended = () => resolve();
-      a.onerror = () => reject(new Error("lecture"));
-      a.play().catch(reject);
+    const ctx = obtenirContexte();
+    if (ctx.state === "suspended") await ctx.resume();
+    const r = await fetch("/api/voix", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ texte, langue, voix }),
+      signal: AbortSignal.timeout(30_000),
     });
-    URL.revokeObjectURL(url);
-    audioEnCours = null;
+    if (!r.ok || !r.body) return false;
+    const rate = Number(r.headers.get("x-voix-rate") ?? 24_000) || 24_000;
+    const lecteur = r.body.getReader();
+    lectureEnCours = {
+      arreter: () => {
+        annule = true;
+        void lecteur.cancel();
+      },
+    };
+
+    // Planification bout à bout : chaque morceau démarre là où le précédent finit.
+    let prochainDepart = ctx.currentTime + 0.08;
+    let reste: Uint8Array | null = null;
+    let recu = false;
+    const jouer = (octets: Uint8Array) => {
+      // PCM 16 bits little-endian mono → Float32.
+      const utile = octets.length - (octets.length % 2);
+      if (utile === 0) return;
+      const vue = new DataView(octets.buffer, octets.byteOffset, utile);
+      const flottants = new Float32Array(utile / 2);
+      for (let i = 0; i < flottants.length; i++) flottants[i] = vue.getInt16(i * 2, true) / 32768;
+      const tamponAudio = ctx.createBuffer(1, flottants.length, rate);
+      tamponAudio.getChannelData(0).set(flottants);
+      const source = ctx.createBufferSource();
+      source.buffer = tamponAudio;
+      source.connect(ctx.destination);
+      const depart = Math.max(prochainDepart, ctx.currentTime + 0.02);
+      source.start(depart);
+      prochainDepart = depart + tamponAudio.duration;
+      recu = true;
+    };
+
+    for (;;) {
+      const { done, value } = await lecteur.read();
+      if (done || annule) break;
+      let octets = value;
+      if (reste && reste.length > 0) {
+        const fusion = new Uint8Array(reste.length + value.length);
+        fusion.set(reste);
+        fusion.set(value, reste.length);
+        octets = fusion;
+      }
+      const impair = octets.length % 2;
+      reste = impair ? octets.slice(octets.length - impair) : null;
+      jouer(impair ? octets.slice(0, octets.length - impair) : octets);
+    }
+    if (annule) return true;
+    if (!recu) return false;
+    // Attendre la fin de la lecture planifiée.
+    const resteS = Math.max(0, prochainDepart - ctx.currentTime);
+    await new Promise((r2) => setTimeout(r2, resteS * 1000 + 60));
     return true;
   } catch {
-    audioEnCours = null;
     return false;
+  } finally {
+    lectureEnCours = null;
   }
 }
 
 export function taireNaturel(): void {
-  if (audioEnCours) {
-    audioEnCours.pause();
-    audioEnCours = null;
+  lectureEnCours?.arreter();
+  if (contexteAudio) {
+    // Coupe net ce qui est déjà planifié.
+    void contexteAudio.close().catch(() => {});
+    contexteAudio = null;
   }
 }

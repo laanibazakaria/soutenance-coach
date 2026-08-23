@@ -19,6 +19,7 @@ import { pousserTout, signalerSynchronisation } from "@/lib/sync/client";
 import { signalerAppelIa } from "@/lib/usage-client";
 import { voixDisponible, meilleureVoix, parler, taire, voixNavigateurExcellente, parlerNaturel, taireNaturel } from "@/lib/voix";
 import { CLE_RAPPORT } from "../components/RapportView";
+import { useEcouteSegments } from "../hooks/useEcouteSegments";
 import DebriefAppel from "./DebriefAppel";
 
 type Phase = "idle" | "jury-reflechit" | "jury-parle" | "ecoute" | "debrief" | "fini";
@@ -95,6 +96,7 @@ function AppelInner() {
   const arreteRef = useRef(false);
   const historiqueRef = useRef<Message[]>([]);
   const finirReponseRef = useRef<() => void>(() => {});
+  const segments = useEcouteSegments();
 
   useEffect(() => {
     const a = (lireModulesActifs(window.localStorage) ?? ["soutenance"]) as ModeAppel[];
@@ -103,7 +105,7 @@ function AppelInner() {
     const initial = demande && MODES.includes(demande as ModeAppel) ? (demande as ModeAppel) : a[0] && MODES.includes(a[0]) ? a[0] : "soutenance";
     setMode(initial);
     setLangue(courte(lireLangue(window.localStorage)));
-    setSupporte({ micro: getRecognitionCtor() !== null, voix: voixDisponible() });
+    setSupporte({ micro: getRecognitionCtor() !== null || segments.disponible(), voix: voixDisponible() });
   }, [params]);
 
   useEffect(() => {
@@ -117,6 +119,7 @@ function AppelInner() {
   }, [phase]);
 
   const nettoyerEcoute = useCallback(() => {
+    segments.arreter();
     if (silenceRef.current) window.clearTimeout(silenceRef.current);
     if (maxRef.current) window.clearTimeout(maxRef.current);
     silenceRef.current = null;
@@ -139,6 +142,7 @@ function AppelInner() {
     async (hist: Message[]) => {
       arreteRef.current = true;
       nettoyerEcoute();
+      segments.arreter();
       taire();
       taireNaturel();
       const reponses = hist.filter((m) => m.role === "user");
@@ -219,10 +223,41 @@ function AppelInner() {
 
   function ecouter(hist: Message[]) {
     const Ctor = getRecognitionCtor();
-    if (!Ctor) return;
     setPhase("ecoute");
     finalRef.current = "";
     setInterim("");
+    if (!Ctor) {
+      // Pas de reconnaissance vocale (Firefox, Safari, mobiles) : segments de
+      // 3,5 s transcrits par Whisper. Fin de réponse : deux segments muets.
+      const finirSegments = () => {
+        segments.arreter();
+        if (maxRef.current) window.clearTimeout(maxRef.current);
+        const texte = finalRef.current.trim();
+        const nouveau: Message[] = [...hist, { role: "user", content: texte || "(silence)" }];
+        historiqueRef.current = nouveau;
+        setHistorique(nouveau);
+        void tourDuJury(nouveau);
+      };
+      finirReponseRef.current = finirSegments;
+      maxRef.current = window.setTimeout(finirSegments, REPONSE_MAX_MS);
+      void segments
+        .demarrer({
+          langue,
+          surTexte: (t) => {
+            finalRef.current += `${t} `;
+            setInterim("");
+            setHistorique((h) => [...h]); // rafraîchit la bulle en cours
+          },
+          surFin: finirSegments,
+        })
+        .then((ok) => {
+          if (!ok) {
+            setErreur("Le micro est refusé ou absent. Autorise-le pour répondre au jury.");
+            void terminerAppel(hist);
+          }
+        });
+      return;
+    }
     const rec = new Ctor();
     rec.lang = langue === "en" ? "en-US" : "fr-FR";
     rec.continuous = true;

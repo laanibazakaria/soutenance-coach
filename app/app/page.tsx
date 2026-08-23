@@ -7,6 +7,7 @@ import { computeReport } from "@/lib/scoring";
 import { buildTrendReport, SEUILS_TENDANCES } from "@/lib/trends";
 import type { SessionRecord } from "@/lib/types";
 import TrendsView from "@/app/components/TrendsView";
+import ParcoursView from "./components/ParcoursView";
 import { pousserTout, supprimerDistante, surSynchronisation } from "@/lib/sync/client";
 
 function formatDuration(ms: number): string {
@@ -107,6 +108,8 @@ export default function HomePage() {
 
   return (
     <>
+      {sessions !== null && <ParcoursView sessions={sessions} onChange={() => void pousserTout()} />}
+
       {sessions !== null && sessions.length > 0 && (
         <div className="toolbar">
           <div>

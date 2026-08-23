@@ -126,3 +126,30 @@ utilisable pour ça avant la fin du projet (dogfooding obligatoire).
 - Une PR par étape (A, B, C, D), auto-relue avec la question : *« si Charles relisait
   cette PR, qu'est-ce qu'il soulignerait ? »*
 - Point d'étape hebdomadaire : chaque fin de semaine, bilan honnête — fait / pas fait / appris.
+
+## Étape E — Le parcours J-X (fiche écrite avant le code, 23 août 2026)
+
+**Le manque.** L'application mesure et fait répéter, mais n'accompagne pas : un étudiant
+qui a une date ne sait pas quoi faire ce soir. Un bon coach humain commence par « c'est quand ? ».
+
+**Ce qui est construit.** L'étudiant donne sa date et son format (PFA 15 min, PFE 20 min,
+autre). Un catalogue d'étapes — déposer ses slides, lire son pitch, première répétition,
+questions du jury, répétition chronométrée, simulation d'entretien, trois sessions, une
+session dans les temps, une session propre, la veille, le jour J — est réparti sur les jours
+restants ; les deux derniers jours sont réservés. Une jauge « Prêt à X % » et la liste
+« à faire maintenant » (dû aujourd'hui ou en retard) sont le cœur de l'écran.
+
+**Garde-fous propres à cette étape.**
+- *Détection automatique plutôt que déclaration* : une étape prouvée par l'activité (une
+  session avec durée visée existe, un pitch est en cache) se coche seule et se marque
+  « détectée ». Les autres se cochent à la main — on ne devine pas.
+- *Le plan ne bouge pas* : réparti à partir du jour de création, pas d'aujourd'hui. Sinon rien
+  n'est jamais en retard, et « en retard » est précisément l'information utile.
+- *Dates civiles, pas d'horloge dans la logique* : tout est pur et testé avec des dates en
+  paramètre ; le composant seul lit `new Date()`.
+- *Le jour J ne compte pas dans la progression* : on ne peut pas l'avoir « fait » avant.
+- *Synchronisé comme le reste* : même forme locale et distante, fusion = champs du plus
+  récent + union des étapes cochées.
+
+**Extensions prévues** : les fonctions suivantes (répétition avec slides, avis du coach,
+fiches à mémoriser, guide) deviendront des étapes du catalogue.

@@ -29,6 +29,7 @@ model User {
   trainingSessions TrainingSession[]
   deck             Deck?
   iaResults        IaResult[]
+  parcours         Parcours?
 }
 
 model Account {
@@ -107,4 +108,17 @@ model IaResult {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, cle])
+}
+
+/// Le parcours J-X — un par utilisateur, même forme que le stockage local.
+model Parcours {
+  userId         String   @id
+  dateSoutenance String
+  type           String
+  dureeMin       Int
+  creeLe         String
+  etapesFaites   Json
+  misAJourLe     DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

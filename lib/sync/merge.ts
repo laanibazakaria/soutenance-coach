@@ -57,7 +57,7 @@ export interface StorageEffacable {
 }
 
 /** Clés locales appartenant au travail de l'utilisateur (pas les réglages). */
-export const CLES_DONNEES = ["sc.sessions.v1", "sc.deck.v1", "sc.connecte"] as const;
+export const CLES_DONNEES = ["sc.sessions.v1", "sc.deck.v1", "sc.parcours.v1", "sc.connecte"] as const;
 export const PREFIXE_IA = "sc.ia.v1:";
 
 /**

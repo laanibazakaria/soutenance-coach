@@ -7,6 +7,7 @@ import { analyserReponse } from "@/lib/jury/evaluation";
 import type { AvisModele } from "@/lib/jury/evaluation";
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCache } from "@/lib/ia-cache";
+import { marquerEtape } from "@/lib/parcours/persistance";
 import { surSynchronisation } from "@/lib/sync/client";
 import type { JuryQuestion } from "@/lib/slides/types";
 
@@ -118,6 +119,8 @@ export default function JuryPage() {
     try {
       // Chemin absolu : depuis /app/jury, un chemin relatif résoudrait vers
       // /app/api/jury/evaluate, qui n'existe pas.
+      // Répondre à voix haute à une question du jury : l'étape du parcours est faite.
+      marquerEtape(window.localStorage, "jury", true);
       const res = await fetch("/api/jury/evaluate", {
         method: "POST",
         headers: { "content-type": "application/json" },

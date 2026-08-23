@@ -10,6 +10,8 @@ import { listeDeckSauvegarde, sauverDeck } from "../slides/persistance";
 import { fusionnerSessions, sessionsAPousser, fusionnerDeck, fusionnerIa, viderDonneesLocales } from "./merge";
 import type { SessionRecord } from "../types";
 import type { Deck } from "../slides/types";
+import { fusionnerParcours, type Parcours } from "../parcours";
+import { lireParcours, sauverParcours } from "../parcours/persistance";
 
 const FLAG = "sc.connecte";
 const PREFIXE_IA = "sc.ia.v1:";
@@ -64,9 +66,15 @@ interface Distant {
   sessions: SessionRecord[];
   deck: Deck | null;
   ia: Record<string, unknown>;
+  parcours?: Parcours | null;
 }
 
-async function envoyer(corps: { sessions?: SessionRecord[]; deck?: Deck | null; ia?: Record<string, unknown> }) {
+async function envoyer(corps: {
+  sessions?: SessionRecord[];
+  deck?: Deck | null;
+  ia?: Record<string, unknown>;
+  parcours?: Parcours | null;
+}) {
   const res = await fetch("/api/sync", {
     method: "PUT",
     headers: { "content-type": "application/json" },
@@ -101,10 +109,14 @@ export async function synchroniser(): Promise<{ ok: boolean; sessions: number }>
     const iaLocal = lireToutIa();
     ecrireIa(fusionnerIa(iaLocal, distant.ia ?? {}));
 
+    const parcours = fusionnerParcours(lireParcours(ls), distant.parcours ?? null);
+    if (parcours) sauverParcours(ls, parcours);
+
     await envoyer({
       sessions: sessionsAPousser(locales, distant.sessions ?? []),
       deck: deckLocal,
       ia: iaLocal,
+      parcours,
     });
     ls.setItem(FLAG, "1");
     window.dispatchEvent(new Event(EVENEMENT));
@@ -119,7 +131,7 @@ export async function pousserTout(): Promise<void> {
   if (!estConnecte()) return;
   try {
     const ls = window.localStorage;
-    await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa() });
+    await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa(), parcours: lireParcours(ls) });
   } catch {
     /* réessayé à la prochaine synchronisation */
   }
@@ -133,7 +145,7 @@ export async function pousserTout(): Promise<void> {
 export async function deconnexionPropre(): Promise<"vide" | "conserve"> {
   const ls = window.localStorage;
   try {
-    const ok = await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa() });
+    const ok = await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa(), parcours: lireParcours(ls) });
     if (!ok) return "conserve";
   } catch {
     return "conserve";

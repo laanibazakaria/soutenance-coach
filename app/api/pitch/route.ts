@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { appelerGemini } from "@/lib/gemini";
-import { consommerQuota } from "@/lib/quota-serveur";
+import { verifierQuota } from "@/lib/quota-serveur";
 import { construirePromptPitch, parsePitch } from "@/lib/pitch";
 import { decouperSlide } from "@/lib/slides/analyse";
 import type { Deck } from "@/lib/slides/types";
@@ -30,14 +30,15 @@ export async function POST(request: Request) {
   const duree = typeof corps.dureeMinutes === "number" && corps.dureeMinutes > 0 ? corps.dureeMinutes : 15;
   const deck: Deck = { nomFichier: corps.nomFichier ?? "support.pdf", slides };
 
-  // Un appel au modèle = un appel du quota. La requête est déjà validée : une requête invalide ne coûte rien.
-  const quota = await consommerQuota(request);
+  // Quota vérifié avant le modèle, consommé seulement après succès : ni une requête invalide ni une panne du fournisseur ne coûtent un appel.
+  const quota = await verifierQuota(request);
   if (!quota.ok) return quota.reponse;
   const resultat = await appelerGemini(construirePromptPitch(deck, duree), {
     maxOutputTokens: 8000,
     temperature: 0.6,
     timeoutMs: 60_000,
   });
+  if (resultat.ok) await quota.confirmer();
   if (!resultat.ok) {
     return NextResponse.json({ erreur: resultat.erreur, code: resultat.code }, { status: 502 });
   }

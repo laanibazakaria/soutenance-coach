@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { appelerGemini } from "@/lib/gemini";
-import { consommerQuota } from "@/lib/quota-serveur";
+import { verifierQuota } from "@/lib/quota-serveur";
 import { computeReport } from "@/lib/scoring";
 import { construirePromptCoach, parseAvisCoach, type DemandeCoach } from "@/lib/coach";
 
@@ -40,13 +40,14 @@ export async function POST(request: Request) {
     targetDurationMs: corps.targetDurationMs,
   });
 
-  // Un appel au modèle = un appel du quota. La requête est déjà validée : une requête invalide ne coûte rien.
-  const quota = await consommerQuota(request);
+  // Quota vérifié avant le modèle, consommé seulement après succès : ni une requête invalide ni une panne du fournisseur ne coûtent un appel.
+  const quota = await verifierQuota(request);
   if (!quota.ok) return quota.reponse;
   const resultat = await appelerGemini(construirePromptCoach(corps, rapport), {
     maxOutputTokens: 3500,
     temperature: 0.4,
   });
+  if (resultat.ok) await quota.confirmer();
   if (!resultat.ok) {
     return NextResponse.json(
       { erreur: `${resultat.erreur} Les mesures automatiques restent disponibles.`, code: resultat.code },

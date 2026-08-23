@@ -27,25 +27,29 @@ export async function lireQuota(request: Request): Promise<EtatQuota & { admin: 
 }
 
 /**
- * Consomme un appel. À appeler juste avant l'appel au modèle, après la
- * validation de la requête — une requête invalide ne coûte rien.
+ * Vérifie le quota avant l'appel au modèle, et ne le consomme qu'après un
+ * succès (`confirmer`) : un échec du fournisseur ne coûte rien à l'étudiant.
+ * À appeler après la validation de la requête — une requête invalide ne
+ * coûte rien non plus.
  */
-export async function consommerQuota(request: Request): Promise<{ ok: true; etat: EtatQuota } | { ok: false; reponse: NextResponse }> {
+export async function verifierQuota(
+  request: Request,
+): Promise<{ ok: true; etat: EtatQuota; confirmer: () => Promise<void> } | { ok: false; reponse: NextResponse }> {
   const { cle, type, admin } = await identite(request);
   const limite = limitePour(type, process.env);
-  if (!baseConfiguree()) return { ok: true, etat: etatQuota(type, 0, limite) };
+  if (!baseConfiguree()) return { ok: true, etat: etatQuota(type, 0, limite), confirmer: async () => {} };
   const mois = moisCourant();
-  const ligne = await prisma.usage.upsert({
-    where: { cle_mois: { cle, mois } },
-    create: { cle, mois, appels: 1 },
-    update: { appels: { increment: 1 } },
-  });
-  const etat = etatQuota(type, ligne.appels, limite);
-  if (!admin && ligne.appels > limite) {
-    return {
-      ok: false,
-      reponse: NextResponse.json({ erreur: messageQuota(etat), code: "quota", quota: etat }, { status: 429 }),
-    };
+  const ligne = await prisma.usage.findUnique({ where: { cle_mois: { cle, mois } } });
+  const appels = ligne?.appels ?? 0;
+  const etat = etatQuota(type, appels, limite);
+  if (!admin && appels >= limite) {
+    return { ok: false, reponse: NextResponse.json({ erreur: messageQuota(etat), code: "quota", quota: etat }, { status: 429 }) };
   }
-  return { ok: true, etat };
+  return {
+    ok: true,
+    etat,
+    confirmer: async () => {
+      await prisma.usage.upsert({ where: { cle_mois: { cle, mois } }, create: { cle, mois, appels: 1 }, update: { appels: { increment: 1 } } });
+    },
+  };
 }

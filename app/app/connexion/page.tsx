@@ -6,6 +6,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
 import { useToast } from "@/app/components/Toast";
 import { viderDonneesLocales } from "@/lib/sync/merge";
+import { toutEffacerAudio } from "@/lib/audio/stockage";
 
 /**
  * Page de connexion. Le compte est optionnel : on le dit, et on dit ce qu'il
@@ -25,6 +26,7 @@ export default function ConnexionPage() {
       if (!res.ok) throw new Error(String(res.status));
       // Le compte n'existe plus : cet appareil ne doit rien garder non plus.
       viderDonneesLocales(window.localStorage);
+      await toutEffacerAudio();
       await signOut({ callbackUrl: "/" });
     } catch {
       toast.error("La suppression n'a pas abouti. Réessaie, ou écris-nous.");

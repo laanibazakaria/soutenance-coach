@@ -311,3 +311,12 @@ résultats IA. Le rapporteur IA en tire dix questions — citant un passage, un 
 absence — qui rejoignent les questions courantes. Quand le document dépasse la borne d'envoi,
 on transmet le début et la fin (problématique, méthode / résultats, limites, conclusion), et
 on le dit dans la consigne.
+
+## Étape P — Réécoute-toi (24 août 2026)
+
+Entendre son propre « euh » vaut mille conseils. L'audio est capturé localement (MediaRecorder,
+IndexedDB) et réécoutable ; il ne quitte jamais l'appareil — ni synchronisation, ni envoi — et
+part avec la session, à la déconnexion, à la suppression du compte. Pendant l'enregistrement,
+l'intensité est échantillonnée (Web Audio) ; les mesures — blancs longs, part de silence,
+dynamique de la voix — sont du code pur et testé, avec un seuil de silence adaptatif au bruit
+de fond. Le hook accepte désormais une langue de reconnaissance.

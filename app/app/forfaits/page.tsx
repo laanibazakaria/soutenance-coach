@@ -70,7 +70,7 @@ export default function ForfaitsPage() {
           <p className="forfait-prix">0 €</p>
           <ul className="forfait-liste">
             <li>✓ Sessions, mesures, tendances, répétition avec slides — <b>illimités</b>, tout reste sur ton appareil</li>
-            <li>✓ Les quatre modules et leurs guides, la soutenance blanche, le bilan, le calendrier</li>
+            <li>✓ Les quatre modules et leurs guides, la soutenance blanche, la réécoute audio, le bilan, le calendrier</li>
             <li>
               ✓ <b>{LIMITES_PAR_DEFAUT.anonyme} appels IA</b> par mois sans compte, <b>{LIMITES_PAR_DEFAUT.compte}</b> avec un compte (pitch, questions, fiches, coach, jury)
             </li>
@@ -92,7 +92,6 @@ export default function ForfaitsPage() {
           </p>
           <ul className="forfait-liste">
             <li>★ Appels IA largement étendus, pour préparer plusieurs oraux en même temps</li>
-            <li>★ <b>Réécoute-toi</b> : ton audio (jamais envoyé) synchronisé avec la transcription, silences et monotonie mesurés</li>
             <li>★ Le <b>mémoire ou la thèse</b> en entrée — les questions du rapporteur</li>
             <li>★ Plusieurs entretiens, plusieurs oraux en parallèle</li>
           </ul>

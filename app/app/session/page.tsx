@@ -6,6 +6,8 @@ import { saveSession, countWords } from "@/lib/storage";
 import { computeReport } from "@/lib/scoring";
 import ScoreReportView from "@/app/components/ScoreReportView";
 import AvisCoach from "@/app/components/AvisCoach";
+import LecteurAudio from "@/app/components/LecteurAudio";
+import { sauverAudio } from "@/lib/audio/stockage";
 import { pousserTout } from "@/lib/sync/client";
 import { useEnregistrement } from "../hooks/useEnregistrement";
 import { MODULES, estModuleId } from "@/lib/modules";
@@ -50,8 +52,11 @@ export default function SessionPage() {
 
   function save() {
     const transcript = rec.transcript();
+    const id = idRef.current || crypto.randomUUID();
+    const blob = rec.audioBlob();
+    if (blob) void sauverAudio(id, blob);
     saveSession(window.localStorage, {
-      id: idRef.current || crypto.randomUUID(),
+      id,
       startedAt: new Date(rec.startedAt()).toISOString(),
       durationMs: elapsedMs,
       transcript,
@@ -59,6 +64,7 @@ export default function SessionPage() {
       confidence: rec.confidence(),
       targetDurationMs: targetMs,
       ...(mode !== "soutenance" ? { mode } : {}),
+      ...(rec.mesuresAudio() ? { audio: rec.mesuresAudio()! } : {}),
     });
     void pousserTout();
     router.push(mode === "entretien" ? "/app/entretien" : estModuleId(mode) ? `/app/m/${mode}` : "/app");
@@ -188,6 +194,7 @@ export default function SessionPage() {
               targetDurationMs: targetMs,
             })}
           />
+          {rec.mesuresAudio() && <LecteurAudio sessionId="" mesures={rec.mesuresAudio()!} />}
           <AvisCoach
             session={{
               id: idRef.current,

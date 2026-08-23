@@ -16,6 +16,7 @@ import { fusionnerCandidature, type Candidature } from "../entretien";
 import { lireCandidature, sauverCandidature } from "../entretien/persistance";
 import { fusionnerProfil, IDS_MODULES, type ProfilModule } from "../modules";
 import { lireProfil, sauverProfil } from "../modules/persistance";
+import { toutEffacerAudio } from "../audio/stockage";
 
 const FLAG = "sc.connecte";
 const PREFIXE_IA = "sc.ia.v1:";
@@ -181,6 +182,7 @@ export async function deconnexionPropre(): Promise<"vide" | "conserve"> {
     return "conserve";
   }
   viderDonneesLocales(ls);
+  void toutEffacerAudio();
   return "vide";
 }
 

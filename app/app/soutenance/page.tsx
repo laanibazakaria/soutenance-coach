@@ -32,7 +32,7 @@ export default function SoutenancePage() {
       <RapportView />
 
       <div className="list-head">
-        <h2 className="list-title">Ta progression</h2>
+        <h2 className="list-title">Tes sessions de soutenance</h2>
         <div className="list-actions">
           <Link href="/app/sessions" className="btn small">
             Historique

@@ -170,6 +170,11 @@ stocke ont exactement la même forme : la synchronisation est une copie, pas une
 Tant que ces variables manquent, le bouton « Se connecter » mène à une page qui l'explique,
 et l'application fonctionne en mode local.
 
+**Réécoute-toi** : l'audio est enregistré sur l'appareil (IndexedDB — jamais envoyé, jamais
+synchronisé, effacé avec la session), réécoutable depuis l'historique ; le son est mesuré
+pendant l'enregistrement — blancs de plus de 1,5 s, part de silence, dynamique de la voix — par
+du code testé (`lib/audio/mesures.ts`), seuils exportés.
+
 **Le mémoire, le rapport, la thèse** : déposé en PDF (lu localement, texte seul conservé —
 jusqu'à 120 000 caractères, le début et la fin sont envoyés au modèle si le document dépasse
 la borne), il donne **les questions du rapporteur** — celles qui citent un passage, un chiffre,

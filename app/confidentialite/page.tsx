@@ -24,8 +24,10 @@ export default function ConfidentialitePage() {
         l&apos;onglet « Réseau » des outils de développement.
       </p>
       <p>
-        <b>L&apos;audio n&apos;est jamais enregistré ni envoyé.</b> La transcription est faite par ton navigateur (Web Speech
-        API, Chrome ou Edge) ; seul le texte en résulte. Le PDF de tes slides est lu dans ton navigateur ; seul son texte est
+        <b>L&apos;audio n&apos;est jamais envoyé.</b> La transcription est faite par ton navigateur (Web Speech API, Chrome ou
+        Edge) ; seul le texte en résulte. L&apos;enregistrement audio peut être conservé <b>sur ton appareil uniquement</b>
+        (pour te réécouter) : il n&apos;est ni synchronisé ni transmis, et il est effacé avec la session, à la déconnexion et
+        à la suppression du compte. Le PDF de tes slides ou de ton mémoire est lu dans ton navigateur ; seul son texte est
         conservé.
       </p>
 

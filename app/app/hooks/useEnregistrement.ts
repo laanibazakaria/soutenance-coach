@@ -2,14 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import { countWords } from "@/lib/storage";
+import { mesurerAudio, type MesuresAudio } from "@/lib/audio/mesures";
 
 export type Phase = "idle" | "recording" | "stopped";
+export type Langue = "fr-FR" | "en-US";
 
 /** Renvoie le constructeur SpeechRecognition du navigateur, s'il existe. */
 export function getRecognitionCtor(): SpeechRecognitionConstructor | null {
   if (typeof window === "undefined") return null;
   return window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null;
 }
+
+const PAS_MESURE_MS = 100;
 
 export interface Enregistrement {
   phase: Phase;
@@ -27,14 +31,19 @@ export interface Enregistrement {
   startedAt(): number;
   /** Transcription finalisée, nettoyée. */
   transcript(): string;
+  /** L'audio enregistré (webm/opus), disponible après l'arrêt — reste sur l'appareil. */
+  audioBlob(): Blob | null;
+  /** Mesures sur le son (silences, dynamique), disponibles après l'arrêt. */
+  mesuresAudio(): MesuresAudio | null;
 }
 
 /**
- * Enregistrement + transcription en direct (Web Speech API, fr-FR).
- * Partagé entre la session classique et la répétition avec slides : une
- * seule implémentation des redémarrages silencieux et des erreurs bénignes.
+ * Enregistrement + transcription en direct (Web Speech API), capture audio
+ * locale (MediaRecorder) et intensité échantillonnée (Web Audio) pour les
+ * mesures de silence et de dynamique. Partagé entre toutes les pages qui
+ * écoutent : une seule implémentation des redémarrages silencieux.
  */
-export function useEnregistrement(): Enregistrement {
+export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
   const [phase, setPhase] = useState<Phase>("idle");
   const [supported, setSupported] = useState(true);
   const [finalText, setFinalText] = useState("");
@@ -50,10 +59,16 @@ export function useEnregistrement(): Enregistrement {
   // les pertes quand la reconnaissance redémarre (Chrome coupe après un silence).
   const finalRef = useRef("");
   const stoppingRef = useRef(false);
-  // Confiance pondérée par le nombre de mots de chaque segment finalisé :
-  // un long segment sûr pèse plus qu'un mot isolé mal entendu.
   const confSumRef = useRef(0);
   const confWeightRef = useRef(0);
+  // Capture audio locale et mesures d'intensité.
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const morceauxRef = useRef<Blob[]>([]);
+  const blobRef = useRef<Blob | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const rmsRef = useRef<number[]>([]);
+  const mesureTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mesuresRef = useRef<MesuresAudio | null>(null);
 
   useEffect(() => {
     setSupported(getRecognitionCtor() !== null);
@@ -61,14 +76,68 @@ export function useEnregistrement(): Enregistrement {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function arreterCapture() {
+    if (mesureTimerRef.current) clearInterval(mesureTimerRef.current);
+    mesureTimerRef.current = null;
+    try {
+      if (recorderRef.current && recorderRef.current.state !== "inactive") recorderRef.current.stop();
+    } catch {
+      /* déjà arrêté */
+    }
+    void audioCtxRef.current?.close().catch(() => {});
+    audioCtxRef.current = null;
+  }
+
   function cleanup() {
     stoppingRef.current = true;
     recognitionRef.current?.abort();
     recognitionRef.current = null;
+    arreterCapture();
     mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
     mediaStreamRef.current = null;
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = null;
+  }
+
+  function demarrerCapture(stream: MediaStream) {
+    morceauxRef.current = [];
+    blobRef.current = null;
+    rmsRef.current = [];
+    mesuresRef.current = null;
+    // Enregistrement local — aucune exigence : si le navigateur refuse, on transcrit quand même.
+    try {
+      const type = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find((t) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t));
+      const rec = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) morceauxRef.current.push(e.data);
+      };
+      rec.onstop = () => {
+        blobRef.current = morceauxRef.current.length ? new Blob(morceauxRef.current, { type: rec.mimeType || "audio/webm" }) : null;
+      };
+      rec.start(1000);
+      recorderRef.current = rec;
+    } catch {
+      recorderRef.current = null;
+    }
+    try {
+      const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      source.connect(analyser);
+      const tampon = new Float32Array(analyser.fftSize);
+      audioCtxRef.current = ctx;
+      mesureTimerRef.current = setInterval(() => {
+        analyser.getFloatTimeDomainData(tampon);
+        let somme = 0;
+        for (let i = 0; i < tampon.length; i++) somme += tampon[i] * tampon[i];
+        rmsRef.current.push(Math.sqrt(somme / tampon.length));
+      }, PAS_MESURE_MS);
+    } catch {
+      audioCtxRef.current = null;
+    }
   }
 
   async function start(): Promise<boolean> {
@@ -77,15 +146,15 @@ export function useEnregistrement(): Enregistrement {
     if (!Ctor) return false;
 
     try {
-      // Demande explicite du micro : déclenche la permission.
       mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
       setError("Accès au micro refusé. Autorise le micro pour t'enregistrer.");
       return false;
     }
+    if (mediaStreamRef.current) demarrerCapture(mediaStreamRef.current);
 
     const rec = new Ctor();
-    rec.lang = "fr-FR";
+    rec.lang = langue;
     rec.continuous = true;
     rec.interimResults = true;
 
@@ -96,8 +165,6 @@ export function useEnregistrement(): Enregistrement {
         if (res.isFinal) {
           const segment = res[0].transcript;
           finalRef.current += segment + " ";
-          // Certains navigateurs renvoient une confiance à 0 sur les segments
-          // finaux : on ne la compte que si elle est renseignée.
           const conf = res[0].confidence;
           if (typeof conf === "number" && conf > 0) {
             const poids = countWords(segment);
@@ -113,18 +180,13 @@ export function useEnregistrement(): Enregistrement {
     };
 
     rec.onerror = (ev) => {
-      // Événements normaux du cycle de vie, pas des erreurs à montrer :
-      // - "no-speech" / "aborted" : silences et arrêts volontaires ;
-      // - "network" : micro-coupure du service de reconnaissance de Chrome,
-      //   observée en conditions réelles — onend suit et on redémarre seul,
-      //   sans perte du texte déjà finalisé.
+      // "no-speech" / "aborted" : cycle de vie normal ; "network" : micro-coupure
+      // du service de reconnaissance, onend suit et on redémarre seul.
       if (ev.error !== "no-speech" && ev.error !== "aborted" && ev.error !== "network") {
         setError(`Reconnaissance vocale : ${ev.error}`);
       }
     };
 
-    // Chrome arrête la reconnaissance après un silence : on la relance tant
-    // que l'utilisateur n'a pas explicitement arrêté la session.
     rec.onend = () => {
       if (!stoppingRef.current && recognitionRef.current === rec) {
         try {
@@ -154,6 +216,8 @@ export function useEnregistrement(): Enregistrement {
   function stop() {
     stoppingRef.current = true;
     recognitionRef.current?.stop();
+    mesuresRef.current = mesurerAudio(rmsRef.current, PAS_MESURE_MS);
+    arreterCapture();
     mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
     if (timerRef.current) clearInterval(timerRef.current);
     setElapsedMs(Date.now() - startedAtRef.current);
@@ -174,5 +238,7 @@ export function useEnregistrement(): Enregistrement {
     confidence: () => (confWeightRef.current > 0 ? confSumRef.current / confWeightRef.current : undefined),
     startedAt: () => startedAtRef.current,
     transcript: () => finalRef.current.trim(),
+    audioBlob: () => blobRef.current,
+    mesuresAudio: () => mesuresRef.current,
   };
 }

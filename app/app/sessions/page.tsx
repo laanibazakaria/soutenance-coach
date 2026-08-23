@@ -6,6 +6,8 @@ import { listSessions, removeSession, exportSessions, importSessions } from "@/l
 import { computeReport } from "@/lib/scoring";
 import type { SessionRecord } from "@/lib/types";
 import AvisCoach from "@/app/components/AvisCoach";
+import LecteurAudio from "@/app/components/LecteurAudio";
+import { supprimerAudio } from "@/lib/audio/stockage";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
 import { useToast } from "@/app/components/Toast";
 import { lireCache } from "@/lib/ia-cache";
@@ -64,6 +66,7 @@ export default function SessionsPage() {
   function handleRemove(id: string) {
     setSessions(removeSession(window.localStorage, id));
     void supprimerDistante(id);
+    void supprimerAudio(id);
     setConfirmingId(null);
     toast.success("Session supprimée.");
   }
@@ -161,6 +164,7 @@ export default function SessionsPage() {
                   🎓 Débrief de la soutenance blanche →
                 </Link>
               )}
+              <LecteurAudio sessionId={s.id} mesures={s.audio} compact />
               <AvisCoach session={s} compact />
             </div>
             <button className="btn danger small" onClick={() => setConfirmingId(s.id)} aria-label={`Supprimer la session du ${formatDate(s.startedAt)}`}>

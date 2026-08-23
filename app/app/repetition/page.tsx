@@ -15,6 +15,8 @@ import type { Pitch } from "@/lib/pitch";
 import type { SlideTiming } from "@/lib/types";
 import ScoreReportView from "@/app/components/ScoreReportView";
 import AvisCoach from "@/app/components/AvisCoach";
+import LecteurAudio from "@/app/components/LecteurAudio";
+import { sauverAudio } from "@/lib/audio/stockage";
 import { pousserTout } from "@/lib/sync/client";
 
 const DUREES: ReadonlyArray<{ minutes: number; hint?: string }> = [
@@ -145,6 +147,8 @@ export default function RepetitionPage() {
     const transcript = rec.transcript();
     const id = idRef.current || crypto.randomUUID();
     idRef.current = id;
+    const blob = rec.audioBlob();
+    if (blob) void sauverAudio(id, blob);
     saveSession(window.localStorage, {
       id,
       startedAt: new Date(rec.startedAt()).toISOString(),
@@ -154,6 +158,7 @@ export default function RepetitionPage() {
       confidence: rec.confidence(),
       targetDurationMs: dureeMs,
       slides: reel,
+      ...(rec.mesuresAudio() ? { audio: rec.mesuresAudio()! } : {}),
     });
     void pousserTout();
     router.push(destination ? `${destination}?session=${id}` : "/app/soutenance");
@@ -413,6 +418,7 @@ export default function RepetitionPage() {
                   targetDurationMs: dureeMs,
                 })}
               />
+              {rec.mesuresAudio() && <LecteurAudio sessionId="" mesures={rec.mesuresAudio()!} />}
               <AvisCoach
                 session={{
                   id: idRef.current,

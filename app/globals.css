@@ -810,3 +810,11 @@ input[type="checkbox"]:focus { box-shadow: none; outline: 2px solid var(--violet
 /* ═══════════════ Mémoire / rapport ═══════════════ */
 .rapport { border-left: 3px solid var(--violet-deep); }
 .rapport .question { margin-bottom: 8px; }
+
+/* ═══════════════ Réécoute ═══════════════ */
+.lecteur { margin-top: 14px; text-align: left; }
+.lecteur-ligne { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.lecteur-label { font-weight: 600; font-size: 0.9rem; }
+.lecteur-audio { height: 36px; max-width: 100%; }
+.lecteur-compact { margin-top: 8px; }
+.lecteur-compact .lecteur-audio { height: 32px; width: 280px; }

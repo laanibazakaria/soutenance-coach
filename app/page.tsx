@@ -3,6 +3,15 @@ import Image from "next/image";
 import accueil from "@/docs/accueil.png";
 import session from "@/docs/session.png";
 
+const OUTILS = [
+  { icone: "📅", titre: "Le parcours J-X", texte: "Ta date, ton format, et chaque jour ce qu'il faut faire : les étapes prouvées par ton activité se cochent seules." },
+  { icone: "🎞️", titre: "Répéter avec tes slides", texte: "La diapositive à l'écran, un chrono par diapositive comparé au minutage de ton pitch. Tu sauras laquelle mange le temps." },
+  { icone: "🗂️", titre: "Les fiches à mémoriser", texte: "Chiffres, définitions, choix à justifier, questions pièges — tirés de tes slides, révisés avec rappel espacé." },
+  { icone: "💬", titre: "L'avis du coach", texte: "Ce que tu as oublié de tes diapositives, ce qui était confus, quoi dire autrement. Des conseils, jamais une note." },
+  { icone: "🎓", titre: "Le jury qui t'interroge", texte: "Des questions propres à ton projet, tu réponds au micro, et un avis de jury sur chaque réponse." },
+  { icone: "📖", titre: "Le guide de la soutenance", texte: "Comment ça se passe, ce que le jury note vraiment, et comment répondre à une question dont tu n'as pas la réponse." },
+] as const;
+
 const METRIQUES = [
   {
     icone: "⏱️",
@@ -70,7 +79,7 @@ export default function LandingPage() {
       {/* ── hero ── */}
       <header className="lp-hero">
         <div className="lp-container">
-          <span className="lp-badge">Gratuit · Sans compte · Open source</span>
+          <span className="lp-badge">Gratuit · Compte facultatif · Open source</span>
           <h1 className="lp-title">
             Prépare ta soutenance
             <br />
@@ -110,7 +119,8 @@ export default function LandingPage() {
             se souvient de ta séance d&apos;il y a trois jours pour te dire si tu progresses.
           </p>
           <p className="lp-p">
-            <b>C&apos;est exactement ce que fait cette application</b> — et rien d&apos;autre.
+            <b>C&apos;est par là que cette application commence.</b> Puis elle t&apos;accompagne jusqu&apos;au
+            jour J : un plan jour par jour, tes slides, tes fiches, un coach, un jury.
           </p>
         </div>
       </section>
@@ -147,6 +157,28 @@ export default function LandingPage() {
           </div>
           <div className="lp-shot lp-shot-narrow">
             <Image src={session} alt="L'écran de session avec les formats PFA et PFE" />
+          </div>
+        </div>
+      </section>
+
+      {/* ── la plateforme ── */}
+      <section className="lp-section" id="outils">
+        <div className="lp-container">
+          <h2 className="lp-h2 lp-center">Tout ce qu&apos;il faut pour être prêt</h2>
+          <p className="lp-sub lp-center">
+            Donne ta date de soutenance : le parcours répartit les étapes sur les jours qui restent et coche
+            tout seul celles que ton activité prouve.
+          </p>
+          <div className="lp-grid">
+            {OUTILS.map((o) => (
+              <article key={o.titre} className="lp-card">
+                <span className="lp-card-icon" aria-hidden="true">
+                  {o.icone}
+                </span>
+                <h3>{o.titre}</h3>
+                <p>{o.texte}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -225,7 +257,8 @@ export default function LandingPage() {
           <p className="lp-p">
             Un modèle de langage se trompe de manière <i>plausible</i> : une note fausse ressemble à
             une note juste, et rien ne la distingue. Ici, <b>chaque mesure est calculée par du code
-            déterministe et testé</b> — 81 tests automatisés le vérifient à chaque modification.
+            déterministe et testé</b> — plus de 200 tests automatisés le vérifient à chaque modification.
+            L&apos;IA, elle, rédige : un pitch, des questions, des fiches, un avis — jamais une note.
           </p>
           <p className="lp-p">
             Et quand les données ne suffisent pas, l&apos;application <b>s&apos;abstient</b> : elle
@@ -234,10 +267,10 @@ export default function LandingPage() {
             capté ne prouve pas que tu parles lentement.
           </p>
           <div className="lp-pills">
-            <span className="lp-pill">🔒 Aucune donnée envoyée</span>
-            <span className="lp-pill">🧪 81 tests automatisés</span>
+            <span className="lp-pill">🔒 Audio et PDF jamais envoyés</span>
+            <span className="lp-pill">🧪 212 tests automatisés</span>
             <span className="lp-pill">📖 Code source ouvert</span>
-            <span className="lp-pill">🆓 Gratuit, sans compte</span>
+            <span className="lp-pill">🆓 Gratuit, compte facultatif</span>
           </div>
         </div>
       </section>

@@ -90,6 +90,15 @@ export const ETAPES: readonly Etape[] = [
     auto: (c) => c.deckPresent,
   },
   {
+    id: "guide",
+    titre: "Lis le guide de la soutenance",
+    pourquoi:
+      "Dix minutes pour savoir comment ça se passe, ce que le jury note vraiment, et comment répondre à une question dont tu n'as pas la réponse. Tout ce qu'on apprend d'habitude après.",
+    action: "Lire le guide",
+    lien: "/app/guide",
+    position: 0.05,
+  },
+  {
     id: "pitch",
     titre: "Génère ton pitch et lis-le à voix haute",
     pourquoi:
@@ -203,8 +212,8 @@ export const ETAPES: readonly Etape[] = [
     titre: "La veille : relis, ne répète plus",
     pourquoi:
       "Relis ton pitch, tes fiches et tes questions, puis arrête. Une dernière répétition la veille au soir fatigue plus qu'elle ne rassure.",
-    action: "Relire mon pitch",
-    lien: "/app/slides",
+    action: "Relire la veille",
+    lien: "/app/guide#veille",
     position: "veille",
     details: [
       "Pitch relu une fois, à voix basse",
@@ -218,8 +227,8 @@ export const ETAPES: readonly Etape[] = [
     id: "jourJ",
     titre: "Le jour J",
     pourquoi: "Arrive en avance, respire, et commence par ton accroche — tu la connais.",
-    action: "Relire mon accroche",
-    lien: "/app/slides",
+    action: "Le jour J, dans le guide",
+    lien: "/app/guide#jour-j",
     position: "jourJ",
     details: [
       "Arriver 20 minutes en avance",

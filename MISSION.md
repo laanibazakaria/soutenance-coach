@@ -215,3 +215,20 @@ niveau par fiche et « tes fiches difficiles ». Progression synchronisée avec 
   progression.
 - *Répondre à voix haute avant de retourner* : rappelé à chaque fiche — c'est l'oral qu'on
   prépare, pas un QCM.
+
+## Étape I — Le guide de la soutenance (23 août 2026)
+
+**Le manque.** Le déroulé, la composition du jury, ce qu'il note, la bonne manière de dire
+« je ne sais pas » : tout ça s'apprend d'habitude *après* la première soutenance. Un texte
+de dix minutes, relu la veille, vaut une heure de répétition mal orientée.
+
+**Ce qui est construit.** Une page statique en huit sections : comment ça se passe (PFA/PFE,
+rôles du jury, le temps), ce que le jury note vraiment, les dix erreurs classiques, répondre
+aux questions (méthode en quatre temps, la question sans réponse, la critique juste et
+injuste, le piège), voix/regard/corps, la veille, le jour J, et « si ça tourne mal ». Les
+étapes « la veille » et « le jour J » du parcours y renvoient ; une étape manuelle « lis le
+guide » ouvre le parcours.
+
+**Garde-fou.** Les durées et compositions de jury sont données comme des ordres de grandeur
+avec le rappel explicite que le règlement de l'école fait foi — on ne promet pas ce qu'on
+ne contrôle pas.

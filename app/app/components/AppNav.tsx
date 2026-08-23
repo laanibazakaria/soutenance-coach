@@ -9,6 +9,7 @@ const LIENS: ReadonlyArray<{ href: string; label: string; exact?: boolean }> = [
   { href: "/app/repetition", label: "Répéter" },
   { href: "/app/fiches", label: "Fiches" },
   { href: "/app/jury", label: "Jury" },
+  { href: "/app/guide", label: "Guide" },
 ];
 
 /** Navigation principale de l'application, sous la barre de compte. */

@@ -497,3 +497,32 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
 .fiche-point { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
 .fiche-point.on { background: var(--ok); }
 .fiche-niveau .question-slide { margin: 0 0 0 8px; }
+
+/* ── Guide ── */
+.guide { max-width: 760px; margin: 0 auto; }
+.guide-head { margin-bottom: 30px; }
+.guide-head h1 { margin-bottom: 8px; }
+.guide-sommaire { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-top: 18px; }
+.guide-sommaire a { display: flex; gap: 10px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; color: var(--txt); font-size: 0.9rem; }
+.guide-sommaire a:hover { border-color: var(--violet); }
+.guide-num { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--bg2); color: var(--gold); font-weight: 700; font-size: 0.78rem; display: inline-flex; align-items: center; justify-content: center; }
+.guide-section { margin-bottom: 44px; scroll-margin-top: 70px; }
+.guide-section h2 { font-size: 1.35rem; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.guide-section h3 { font-size: 1.02rem; margin: 22px 0 10px; color: var(--violet2); }
+.guide-section p { line-height: 1.75; margin-bottom: 14px; color: var(--txt); }
+.guide-section p b, .guide-liste b { color: var(--txt); }
+.guide-liste { margin: 0 0 14px 22px; }
+.guide-liste li { margin-bottom: 12px; line-height: 1.7; }
+.guide-liste li b { display: inline; }
+.guide-erreurs li::marker { color: var(--danger); font-weight: 700; }
+.guide-grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 14px 0 18px; }
+.guide-carte b { display: block; font-size: 1.05rem; color: var(--gold); margin-bottom: 6px; }
+.guide-carte p { font-size: 0.92rem; color: var(--muted); margin: 0; line-height: 1.6; }
+.guide-encadre { background: var(--bg2); border-left: 3px solid var(--gold); border-radius: 10px; padding: 14px 18px; font-size: 0.95rem; }
+.guide-citation { border-left: 3px solid var(--violet); padding: 12px 18px; margin: 14px 0; font-size: 1.08rem; font-style: italic; color: var(--txt); background: var(--bg2); border-radius: 0 10px 10px 0; }
+.guide-check { list-style: none; margin: 0 0 14px; }
+.guide-check li { position: relative; padding-left: 30px; margin-bottom: 10px; line-height: 1.6; }
+.guide-check li::before { content: "☐"; position: absolute; left: 4px; color: var(--gold); }
+.guide-faq dt { font-weight: 600; margin-top: 16px; margin-bottom: 4px; }
+.guide-faq dd { color: var(--muted); line-height: 1.7; margin-left: 0; font-size: 0.95rem; }
+.guide-pied { border-top: 1px solid var(--line); padding-top: 20px; text-align: center; color: var(--muted); }

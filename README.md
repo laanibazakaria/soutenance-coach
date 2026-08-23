@@ -71,7 +71,21 @@ tendance — *en progression*, *stable*, *en recul* — avec les valeurs brutes
 (« 12,5 → 0,8 béquilles pour 100 mots »). Stagner au bon niveau se dit « c'est acquis » ;
 stagner au mauvais, « c'est TON point de travail prioritaire ».
 
-## Et avec l'IA : pitch, questions de jury, simulation d'entretien
+## Le parcours : de « j'ai une date » à « je suis prêt »
+
+L'étudiant donne sa date de soutenance et son format (PFA 15 min, PFE 20 min). Un catalogue
+d'étapes — lire le guide, déposer ses slides, générer son pitch, première répétition, réviser
+ses fiches, répétition chronométrée, répéter avec ses slides, avis du coach, simulation
+d'entretien, trois sessions, une session dans les temps, la veille, le jour J — est réparti
+sur les jours restants. Une jauge « Prêt à X % », la liste « à faire maintenant » avec les
+retards, et une **détection automatique** : une étape prouvée par l'activité se coche seule.
+
+Autour : **répéter avec ses slides** (la diapositive à l'écran, un chrono par diapositive
+comparé au minutage du pitch, bilan prévu / réel / écart), et **le guide de la soutenance**
+(déroulé, ce que le jury note, erreurs classiques, répondre à une question qu'on ne sait pas,
+la veille, le jour J).
+
+## Et avec l'IA : pitch, questions de jury, coach, fiches, simulation d'entretien
 
 Dépose le PDF de tes slides. Seul le **texte extrait** est envoyé au modèle — jamais le fichier.
 
@@ -138,7 +152,7 @@ npm run dev        # http://localhost:3000
 L'application le dit explicitement si le navigateur ne la propose pas.
 
 ```bash
-npm test           # 175 tests unitaires (Vitest)
+npm test           # 212 tests unitaires (Vitest)
 npm run typecheck  # TypeScript strict
 npm run build      # build de production
 ```
@@ -153,11 +167,14 @@ app/
 lib/
 ├── scoring/              Les 5 métriques — fonctions pures, seuils exportés
 ├── trends/               La mémoire — pénalités normalisées, seuil minSessions
+├── parcours/             Le parcours J-X — catalogue d'étapes, répartition, détection
+├── repetition/           Temps par diapositive : prévu, réel, écarts
+├── coach/ fiches/        Consignes IA + validation stricte ; révision espacée (Leitner)
 ├── slides/ jury/ pitch/  Analyse du support, questions, pitch — consignes IA et garde-fous
 ├── sync/                 Fusion local ↔ compte (pure, testée)
 ├── storage.ts            Persistance locale, export/import JSON
 └── types.ts
-tests/unit/               175 tests, dont des fixtures de sessions réelles
+tests/unit/               212 tests, dont des fixtures de sessions réelles
 ```
 
 Le cœur (`lib/`) n'a **aucune dépendance au DOM** : il se teste sans navigateur, et les

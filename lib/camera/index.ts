@@ -78,12 +78,14 @@ export interface BilanCamera {
   stabiliteDeg: number;
   /** Assez d'images pour dire quelque chose ? */
   exploitable: boolean;
+  /** Part des images où un visage est vu — en dessous de 30 %, on ne juge ni sourire ni tenue. */
+  partVisage: number;
 }
 
 export function analyserImages(images: ImageVisage[]): BilanCamera {
   const etats = images.map(interpreter);
   const n = etats.length;
-  const vide: BilanCamera = { images: n, dureeMs: 0, partVersJury: 0, partHorsCadre: 0, decrochages: [], partSourire: 0, stabiliteDeg: 0, exploitable: false };
+  const vide: BilanCamera = { images: n, dureeMs: 0, partVersJury: 0, partHorsCadre: 0, decrochages: [], partSourire: 0, stabiliteDeg: 0, exploitable: false, partVisage: 0 };
   if (n === 0) return vide;
 
   const dureeMs = Math.max(0, (etats[n - 1]!.tMs ?? 0) - (etats[0]!.tMs ?? 0));
@@ -124,6 +126,7 @@ export function analyserImages(images: ImageVisage[]): BilanCamera {
     partSourire: pourcent(sourires),
     stabiliteDeg: Math.round(Math.sqrt(variance) * 10) / 10,
     exploitable: n >= SEUILS_CAMERA.imagesMin,
+    partVisage: pourcent(n - horsCadre),
   };
 }
 
@@ -182,6 +185,9 @@ export function constats(b: BilanCamera): ConstatCamera[] {
       phrase: `Ton visage sort du cadre ${b.partHorsCadre} % du temps. Recule un peu et cale ton portable : le jury doit te voir.`,
     });
   }
+
+  // Sans visage à l'image, on ne peut rien dire du sourire ni de la tenue de tête.
+  if (b.partVisage < 30) return liste;
 
   liste.push({
     id: "sourire",

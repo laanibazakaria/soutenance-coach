@@ -85,3 +85,22 @@ describe("caméra — bilan d'un oral", () => {
     expect(ligneContexteCamera(null)).toBeNull();
   });
 });
+
+describe("caméra — quand le visage n'est jamais vu", () => {
+  it("ne juge ni le sourire ni la tenue de tête", () => {
+    const images = Array.from({ length: 100 }, (_, i) => ({ tMs: i * 200, visage: false }));
+    const b = analyserImages(images);
+    expect(b.partVisage).toBe(0);
+    expect(b.partHorsCadre).toBe(100);
+    const c = constats(b);
+    expect(c.map((x) => x.label)).toEqual(["Regard vers le jury", "Décrochages", "Hors cadre"]);
+    expect(c.some((x) => x.label === "Tenue de tête")).toBe(false);
+  });
+
+  it("juge tout dès que le visage est vu la moitié du temps", () => {
+    const images = Array.from({ length: 100 }, (_, i) => ({ tMs: i * 200, visage: i % 2 === 0, lacetDeg: 3, sourire: 0.5 }));
+    const b = analyserImages(images);
+    expect(b.partVisage).toBe(50);
+    expect(constats(b).some((x) => x.label === "Tenue de tête")).toBe(true);
+  });
+});

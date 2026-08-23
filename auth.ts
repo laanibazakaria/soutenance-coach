@@ -44,7 +44,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
-  pages: { signIn: "/app/connexion" },
+  pages: { signIn: "/app/connexion", error: "/app/connexion", verifyRequest: "/app/connexion?envoye=1" },
   trustHost: true,
 });
 

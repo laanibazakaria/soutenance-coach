@@ -53,12 +53,15 @@ export function gabarit(titre: string, corps: string, bouton?: { libelle: string
 
 /** L'e-mail du lien de connexion (Auth.js). */
 export async function envoyerLienConnexion(a: string, url: string): Promise<void> {
-  const hote = new URL(url).host;
+  const u = new URL(url);
+  // Les messageries pré-ouvrent les liens : on passe par une page qui n'utilise
+  // le jeton qu'au clic, sinon il est consommé avant la personne.
+  const confirmation = `${u.origin}/app/connexion/confirmer?u=${encodeURIComponent(url)}`;
   const r = await envoyerEmail({
     a,
     sujet: "Ton lien de connexion à SoutenanceCoach",
-    html: gabarit("Connexion à SoutenanceCoach", `<p>Clique sur le bouton pour te connecter sur <b>${hote}</b>. Le lien est valable 24 heures et ne sert qu'une fois.</p>`, { libelle: "Me connecter", url }),
-    texte: `Connexion à SoutenanceCoach\n\nOuvre ce lien pour te connecter (valable 24 h) :\n${url}\n\nSi tu n'as rien demandé, ignore cet e-mail.`,
+    html: gabarit("Connexion à SoutenanceCoach", `<p>Clique sur le bouton pour te connecter sur <b>${u.host}</b>. Le lien est valable 24 heures et ne sert qu'une fois.</p>`, { libelle: "Me connecter", url: confirmation }),
+    texte: `Connexion à SoutenanceCoach\n\nOuvre ce lien pour te connecter (valable 24 h) :\n${confirmation}\n\nSi tu n'as rien demandé, ignore cet e-mail.`,
   });
   if (!r.ok) throw new Error(r.erreur);
 }

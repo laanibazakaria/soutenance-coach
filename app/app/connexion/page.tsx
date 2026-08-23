@@ -24,7 +24,17 @@ export default function ConnexionPage() {
   const [email, setEmail] = useState("");
   const [envoi, setEnvoi] = useState(false);
   const [lienEnvoye, setLienEnvoye] = useState(false);
+  const [erreurLien, setErreurLien] = useState<string | null>(null);
   const toast = useToast();
+
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const e = p.get("error");
+    if (e === "Verification") setErreurLien("Ce lien a expiré ou a déjà été utilisé. Demande-en un nouveau ci-dessous.");
+    else if (e) setErreurLien("La connexion n'a pas abouti. Réessaie, ou utilise Google.");
+    if (p.get("envoye") === "1") setLienEnvoye(true);
+    if (e || p.get("envoye")) window.history.replaceState(null, "", "/app/connexion");
+  }, []);
 
   async function envoyerLien() {
     setEnvoi(true);
@@ -127,6 +137,11 @@ export default function ConnexionPage() {
         </div>
       ) : (
         <div className="card connexion-carte">
+          {erreurLien && (
+            <div className="warn" role="alert">
+              {erreurLien}
+            </div>
+          )}
           <button className="btn primary big" disabled={dispo === null} onClick={() => void signIn("google", { callbackUrl: "/app" })}>
             Continuer avec Google
           </button>

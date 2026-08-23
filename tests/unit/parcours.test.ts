@@ -12,7 +12,7 @@ import {
 import { lireParcours, sauverParcours, marquerEtape, detecterContexte } from "../../lib/parcours/persistance";
 import type { SessionRecord } from "../../lib/types";
 
-const vide: Contexte = { sessions: [], deckPresent: false, pitchGenere: false, questionsGenerees: false, avisCoach: false, fichesRevisees: false };
+const vide: Contexte = { sessions: [], deckPresent: false, pitchGenere: false, questionsGenerees: false, avisCoach: false, fichesRevisees: false, blancheFaite: false };
 
 const parcours = (extra: Partial<Parcours> = {}): Parcours => ({
   dateSoutenance: "2026-09-15",
@@ -109,6 +109,7 @@ describe("construirePlan — états et détection", () => {
       questionsGenerees: true,
       avisCoach: false,
       fichesRevisees: false,
+      blancheFaite: false,
     };
     const plan = construirePlan(parcours(), ctx, "2026-09-05");
     const faite = Object.fromEntries(plan.etapes.map((e) => [e.id, e.faite]));
@@ -190,7 +191,7 @@ describe("persistance", () => {
       "sc.ia.v1:fiches-etats:x": "{}", // vide : aucune révision
     });
     const ctx = detecterContexte(st, []);
-    expect(ctx).toEqual({ sessions: [], deckPresent: false, pitchGenere: true, questionsGenerees: true, avisCoach: true, fichesRevisees: false });
+    expect(ctx).toEqual({ sessions: [], deckPresent: false, pitchGenere: true, questionsGenerees: true, avisCoach: true, fichesRevisees: false, blancheFaite: false });
     st.setItem("sc.ia.v1:fiches-etats:x", JSON.stringify({ f1: { niveau: 1 } }));
     expect(detecterContexte(st, []).fichesRevisees).toBe(true);
   });

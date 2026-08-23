@@ -8,6 +8,7 @@ import type { SessionRecord } from "@/lib/types";
 import AvisCoach from "@/app/components/AvisCoach";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
 import { useToast } from "@/app/components/Toast";
+import { lireCache } from "@/lib/ia-cache";
 import { pousserTout, supprimerDistante, surSynchronisation } from "@/lib/sync/client";
 
 function formatDuration(ms: number): string {
@@ -155,6 +156,11 @@ export default function SessionsPage() {
               </div>
               <SessionChips session={s} />
               <div className="session-excerpt">{s.transcript || "(transcription vide)"}</div>
+              {lireCache(window.localStorage, `blanche:${s.id}`) !== null && (
+                <Link href={`/app/soutenance-blanche?session=${s.id}`} className="btn small" style={{ marginTop: 8 }}>
+                  🎓 Débrief de la soutenance blanche →
+                </Link>
+              )}
               <AvisCoach session={s} compact />
             </div>
             <button className="btn danger small" onClick={() => setConfirmingId(s.id)} aria-label={`Supprimer la session du ${formatDate(s.startedAt)}`}>

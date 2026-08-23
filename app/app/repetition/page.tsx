@@ -58,6 +58,12 @@ export default function RepetitionPage() {
   const [pdfPages, setPdfPages] = useState<number | null>(null);
   const [pdfErreur, setPdfErreur] = useState<string | null>(null);
   const [transcriptOuvert, setTranscriptOuvert] = useState(false);
+  // Soutenance blanche : l'exposé est la première des trois phases ; à la fin,
+  // on enchaîne sur les questions du jury au lieu de sauvegarder.
+  const [blanche, setBlanche] = useState(false);
+  useEffect(() => {
+    setBlanche(new URLSearchParams(window.location.search).get("blanche") === "1");
+  }, []);
 
   const segmentsRef = useRef<Segment[]>([]);
   // Fixé à l'arrêt : l'avis du coach demandé avant la sauvegarde suit la session.
@@ -135,10 +141,12 @@ export default function RepetitionPage() {
     setComparaison(comparer(deck, plan.prevu, cumul));
   }
 
-  function sauvegarder() {
+  function sauvegarder(destination?: string) {
     const transcript = rec.transcript();
+    const id = idRef.current || crypto.randomUUID();
+    idRef.current = id;
     saveSession(window.localStorage, {
-      id: idRef.current || crypto.randomUUID(),
+      id,
       startedAt: new Date(rec.startedAt()).toISOString(),
       durationMs: elapsedMs,
       transcript,
@@ -148,7 +156,7 @@ export default function RepetitionPage() {
       slides: reel,
     });
     void pousserTout();
-    router.push("/app");
+    router.push(destination ? `${destination}?session=${id}` : "/app/soutenance");
   }
 
   /* ── Affichage optionnel du vrai PDF ── */
@@ -226,6 +234,12 @@ export default function RepetitionPage() {
     <div className="repetition">
       {phase === "idle" && (
         <>
+          {blanche && (
+            <div className="blanche-bandeau">
+              <span className="question-cat">Soutenance blanche · 1/3 — l&apos;exposé</span>
+              <span className="session-meta">Puis le jury enchaînera ses questions, puis le débrief.</span>
+            </div>
+          )}
           <p className="subtitle">
             Chaque diapositive s&apos;affiche, tu avances avec <kbd>→</kbd> ou <kbd>Espace</kbd>, et le coach
             chronomètre le temps passé sur chacune.
@@ -415,9 +429,15 @@ export default function RepetitionPage() {
           )}
 
           <div className="actions">
-            <button className="btn primary" onClick={sauvegarder} disabled={rec.finalText.trim() === ""}>
-              💾 Sauvegarder la session
-            </button>
+            {blanche ? (
+              <button className="btn primary big" onClick={() => sauvegarder("/app/soutenance-blanche")} disabled={rec.finalText.trim() === ""}>
+                Passer aux questions du jury →
+              </button>
+            ) : (
+              <button className="btn primary" onClick={() => sauvegarder()} disabled={rec.finalText.trim() === ""}>
+                💾 Sauvegarder la session
+              </button>
+            )}
             <button
               className="btn"
               onClick={() => {

@@ -170,6 +170,10 @@ stocke ont exactement la même forme : la synchronisation est une copie, pas une
 Tant que ces variables manquent, le bouton « Se connecter » mène à une page qui l'explique,
 et l'application fonctionne en mode local.
 
+**La soutenance blanche** : l'exposé avec les slides chronométrées, puis le jury qui enchaîne
+quatre questions (d'abord celles tirées du support) et relance, puis le débrief — temps par
+diapositive, mesures, avis du coach, avis du jury sur chaque réponse. Étape du parcours.
+
 **Et autour** : ajout de la date au calendrier (.ics, rappel la veille), **bilan** propre à
 imprimer en PDF ou à partager par un lien en lecture seule valable 30 jours (sans aucune
 transcription), application **installable** sur le téléphone (manifeste PWA).

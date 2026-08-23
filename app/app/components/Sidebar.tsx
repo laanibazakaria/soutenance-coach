@@ -138,6 +138,10 @@ export default function Sidebar() {
           <Link href="/confidentialite">Confidentialité</Link>
           <span aria-hidden="true">·</span>
           <Link href="/mentions-legales">Mentions légales</Link>
+          <span aria-hidden="true">·</span>
+          <a href="https://github.com/laanibazakaria/soutenance-coach/issues/new" target="_blank" rel="noopener noreferrer">
+            Une idée ? Un bug ?
+          </a>
         </nav>
       </div>
     </aside>

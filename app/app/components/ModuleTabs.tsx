@@ -13,13 +13,14 @@ interface Onglet {
 export const ONGLETS_MODULES: ReadonlyArray<{ id: string; racines: readonly string[]; onglets: readonly Onglet[] }> = [
   {
     id: "soutenance",
-    racines: ["/app/soutenance", "/app/slides", "/app/repetition", "/app/fiches", "/app/jury", "/app/guide"],
+    racines: ["/app/soutenance", "/app/slides", "/app/repetition", "/app/fiches", "/app/jury", "/app/guide", "/app/soutenance-blanche"],
     onglets: [
       { href: "/app/soutenance", label: "Préparer", exact: true },
       { href: "/app/slides", label: "Slides" },
       { href: "/app/repetition", label: "Répéter" },
       { href: "/app/fiches", label: "Fiches" },
       { href: "/app/jury", label: "Jury" },
+      { href: "/app/soutenance-blanche", label: "Blanche" },
       { href: "/app/guide", label: "Guide", exact: true },
     ],
   },

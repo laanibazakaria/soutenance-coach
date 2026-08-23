@@ -30,6 +30,7 @@ const ENTETES: ReadonlyArray<{ prefixe: string; exact?: boolean; entete: Entete 
   { prefixe: "/app/connexion", entete: { section: "Compte", titre: "Ton compte", sousTitre: "Retrouve tes sessions, ton support et tes fiches sur tous tes appareils." } },
   { prefixe: "/app/sessions", entete: { section: "Navigation", titre: "Mes sessions", sousTitre: "Toutes tes répétitions, tous tes oraux — avec l'avis du coach sur chacune." } },
   { prefixe: "/app/guides", entete: { section: "Navigation", titre: "Les guides", sousTitre: "Un guide par oral. Tout ce qu'on découvre d'habitude trop tard." } },
+  { prefixe: "/app/soutenance-blanche", entete: { section: "Soutenance", titre: "Soutenance blanche", sousTitre: "L'exposé avec tes slides, le jury qui enchaîne et relance, le débrief. La répétition générale." } },
   { prefixe: "/app/soutenance", entete: { section: "Soutenance", titre: "Ton parcours", sousTitre: "Chaque jour, ce qu'il faut faire — et ce que ton activité a déjà prouvé." } },
   { prefixe: "/app", exact: true, entete: { section: "Accueil", titre: "Bonjour", sousTitre: "Ce que tu prépares, où tu en es, et quoi faire maintenant." } },
 ];

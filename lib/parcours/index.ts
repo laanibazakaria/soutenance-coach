@@ -41,6 +41,8 @@ export interface Contexte {
   avisCoach: boolean;
   /** Au moins une fiche révisée. */
   fichesRevisees: boolean;
+  /** Une soutenance blanche complète (exposé + questions) a été faite. */
+  blancheFaite: boolean;
 }
 
 /** Position dans la fenêtre de préparation : fraction 0..1, ou un jour fixe. */
@@ -206,6 +208,16 @@ export const ETAPES: readonly Etape[] = [
     lien: "/app/session",
     position: 0.85,
     auto: (c) => c.sessions.some(bequillesSousControle),
+  },
+  {
+    id: "blanche",
+    titre: "Une soutenance blanche complète",
+    pourquoi:
+      "L'exposé avec tes slides, puis le jury qui enchaîne ses questions et relance, puis le débrief. La répétition générale — à faire au moins une fois avant la vraie.",
+    action: "Lancer la soutenance blanche",
+    lien: "/app/soutenance-blanche",
+    position: 0.9,
+    auto: (c) => c.blancheFaite,
   },
   {
     id: "relecture",

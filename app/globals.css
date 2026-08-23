@@ -799,3 +799,10 @@ input[type="checkbox"]:focus { box-shadow: none; outline: 2px solid var(--violet
   .bilan-carte { break-inside: avoid; }
   a { color: inherit; text-decoration: none; }
 }
+
+/* ═══════════════ Soutenance blanche ═══════════════ */
+.blanche-bandeau { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.blanche-intro .card { max-width: 720px; margin: 0 auto; }
+.blanche-intro h2 { font-size: 1.3rem; text-align: center; }
+.blanche-reponse .question-texte { font-size: 1rem; margin-bottom: 6px; }
+.blanche-debrief section { margin-bottom: 18px; }

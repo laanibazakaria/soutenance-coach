@@ -293,3 +293,12 @@ photographie lisible de la préparation, chiffres et tendances, jamais une trans
 imprimer en PDF (mise en page d'impression, pas de bibliothèque) ou à **partager** par un lien
 en lecture seule qui expire après 30 jours ; un manifeste PWA pour installer l'application
 sur le téléphone. Garde-fou : le partage est un instantané, sans identité ni contenu privé.
+
+## Étape N — La soutenance blanche (24 août 2026)
+
+La répétition générale : trois phases enchaînées sans rien réinventer — la page Répéter en
+mode blanche pour l'exposé, le jury (questions spécifiques d'abord) avec mesures et avis,
+puis un débrief qui rassemble temps par diapositive, élocution, avis du coach et chaque
+réponse. Le résultat est attaché à la session (cache IA `blanche:<id>`, synchronisé) et
+rouvrable depuis l'historique. Pas de réponse à la relance dans la blanche : on la note, elle
+tombera le jour J — et on ne double pas la consommation du quota.

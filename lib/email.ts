@@ -100,7 +100,7 @@ export async function envoyerCodeVerification(a: string, code: string): Promise<
   return envoyerEmail({
     a,
     sujet: `${code} — ton code SoutenanceCoach`,
-    html: gabarit("Vérifie ton adresse", `<p>Voici ton code de vérification. Il est valable 15 minutes.</p>${chiffres}<p>Entre-le sur la page d'inscription pour activer ton compte.</p>`),
+    html: gabarit("Vérifie ton adresse", `<p>Voici ton code de vérification. Il est valable 15 minutes et remplace tout code précédent.</p>${chiffres}<p>Entre-le sur la page d'inscription pour activer ton compte.</p>`),
     texte: `Ton code de vérification SoutenanceCoach : ${code}\nIl est valable 15 minutes.`,
   });
 }

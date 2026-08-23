@@ -253,6 +253,7 @@ export default function SessionPage() {
           {rec.mesuresAudio() && <LecteurAudio sessionId="" mesures={rec.mesuresAudio()!} />}
           <TranscriptAnnote transcript={finalText.trim()} />
           <AvisCoach
+            auto
             session={{
               id: idRef.current,
               startedAt: new Date(rec.startedAt()).toISOString(),

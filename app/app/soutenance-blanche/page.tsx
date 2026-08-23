@@ -284,7 +284,7 @@ function Debrief({ session, reponses }: { session: SessionRecord; reponses: Repo
       <section>
         <h2 className="list-title">2. L&apos;élocution</h2>
         <ScoreReportView report={computeReport({ transcript: session.transcript, durationMs: session.durationMs, confidence: session.confidence, targetDurationMs: session.targetDurationMs })} />
-        <AvisCoach session={session} />
+        <AvisCoach auto session={session} />
       </section>
 
       <section>

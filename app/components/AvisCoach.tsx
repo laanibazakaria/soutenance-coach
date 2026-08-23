@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { SessionRecord } from "@/lib/types";
 import type { AvisCoach as Avis } from "@/lib/coach";
 import { lireCache, ecrireCache } from "@/lib/ia-cache";
@@ -21,15 +21,17 @@ interface Props {
   session: SessionRecord;
   /** Dans l'historique : bouton discret, bloc replié. */
   compact?: boolean;
+  /** À la fin d'une session : l'avis part tout seul, comme chez Propulsez. */
+  auto?: boolean;
 }
 
 /**
  * L'avis du coach sur une session : oublis par rapport au support, passages
- * confus, reformulations, points forts, priorité. Demandé explicitement
- * (jamais en arrière-plan), mis en cache par session, synchronisé avec les
- * autres résultats IA.
+ * confus, reformulations, points forts, priorité. Automatique à la fin d'une
+ * session qui a de la matière (comme Propulsez), sur bouton dans l'historique ;
+ * mis en cache par session, synchronisé avec les autres résultats IA.
  */
-export default function AvisCoach({ session, compact = false }: Props) {
+export default function AvisCoach({ session, compact = false, auto = false }: Props) {
   const [avis, setAvis] = useState<Avis | null>(null);
   const [etat, setEtat] = useState<"idle" | "chargement" | "erreur">("idle");
   const [erreur, setErreur] = useState<string | null>(null);
@@ -40,6 +42,18 @@ export default function AvisCoach({ session, compact = false }: Props) {
     setAvis(lireCache<Avis>(window.localStorage, cleAvisCoach(session.id)));
     setSupportConnu(listeDeckSauvegarde(window.localStorage) !== null);
   }, [session.id]);
+
+  // Analyse automatique : une fois par session, seulement si elle a de la matière
+  // (inutile de dépenser un appel IA sur trois phrases).
+  const autoLance = useRef<string | null>(null);
+  useEffect(() => {
+    if (!auto || autoLance.current === session.id) return;
+    if (session.wordCount < 40 || session.durationMs < 30_000) return;
+    if (lireCache<Avis>(window.localStorage, cleAvisCoach(session.id)) !== null) return;
+    autoLance.current = session.id;
+    void demander();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auto, session.id]);
 
   async function demander() {
     setEtat("chargement");

@@ -150,7 +150,7 @@ export default function EcranConnexion({ lienDispo }: { lienDispo: boolean }) {
               {occupe ? "Vérification…" : "Activer mon compte"}
             </button>
             <p className="porte-bascule">
-              Rien reçu ? Regarde les indésirables, ou{" "}
+              Seul le <b>dernier</b> e-mail reçu est valable. Rien reçu ? Regarde les indésirables, ou{" "}
               <button type="button" className="link-btn" onClick={() => void renvoyerCode()} disabled={occupe}>
                 renvoie un code
               </button>

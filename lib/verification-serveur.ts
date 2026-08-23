@@ -24,7 +24,7 @@ export async function envoyerNouveauCode(email: string): Promise<{ ok: true } | 
 export async function verifierCode(email: string, code: unknown): Promise<{ ok: true } | { ok: false; erreur: string }> {
   if (!codePlausible(code)) return { ok: false, erreur: "Le code fait 6 chiffres." };
   const jeton = await prisma.verificationToken.findUnique({ where: { identifier_token: { identifier: email, token: empreinteCode(email, code.trim()) } } }).catch(() => null);
-  if (!jeton) return { ok: false, erreur: "Code incorrect. Vérifie l'e-mail, ou renvoie un code." };
+  if (!jeton) return { ok: false, erreur: "Code incorrect — attention, seul le dernier e-mail reçu compte (chaque nouvel envoi annule le précédent). Réessaie avec le plus récent, ou renvoie un code." };
   await prisma.verificationToken.delete({ where: { identifier_token: { identifier: jeton.identifier, token: jeton.token } } }).catch(() => {});
   if (jeton.expires < new Date()) return { ok: false, erreur: "Ce code a expiré. Renvoie un code." };
   await prisma.user.update({ where: { email }, data: { emailVerified: new Date() } });

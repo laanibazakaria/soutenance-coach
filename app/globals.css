@@ -999,6 +999,19 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
 .etudiant-form { display: flex; flex-direction: column; gap: 14px; text-align: left; }
 .choix .etudiant-form { max-width: 640px; margin: 0 auto; }
 
+
+/* ── La caméra pendant l'appel ── */
+.appel-camera-choix { display: flex; gap: 12px; align-items: flex-start; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; cursor: pointer; }
+.appel-camera-choix input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--violet); flex: none; }
+.appel-camera-choix span { display: flex; flex-direction: column; }
+.appel-camera-choix b { font-size: 0.92rem; }
+.appel-camera-choix small { font-size: 0.8rem; color: var(--muted); line-height: 1.45; }
+.appel-video { display: none; position: relative; margin: 0 auto 14px; width: 220px; }
+.appel-video.visible { display: block; }
+.appel-video-lanceur { width: 160px; margin-bottom: 16px; }
+.appel-video video { width: 100%; border-radius: 14px; transform: scaleX(-1); background: var(--bg2); display: block; box-shadow: var(--shadow); }
+.appel-video-etat { position: absolute; left: 8px; bottom: 8px; font-size: 0.68rem; font-weight: 700; color: #fff; background: rgba(15, 23, 42, 0.6); border-radius: 99px; padding: 2px 9px; backdrop-filter: blur(4px); }
+
 /* ═══════════════ Micro-interactions ═══════════════ */
 @keyframes pageEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 button, a[role="button"] { transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, opacity 0.15s ease; }

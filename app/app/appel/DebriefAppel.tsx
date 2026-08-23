@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { Icone, IconeBadge } from "@/app/components/Icone";
 import type { Debrief, Message, Persona } from "@/lib/appel";
+import type { BilanCamera } from "@/lib/camera";
+import ConstatsCamera from "@/app/components/ConstatsCamera";
 
 /**
  * Le débrief après l'appel : le diagnostic, ce qui a marché (avec tes mots),
@@ -16,6 +18,7 @@ export default function DebriefAppel({
   persona,
   dureeS,
   sessionId,
+  camera = null,
   onRecommencer,
 }: {
   phase: "debrief" | "fini";
@@ -25,6 +28,7 @@ export default function DebriefAppel({
   persona: Persona;
   dureeS: number;
   sessionId: string | null;
+  camera?: BilanCamera | null;
   onRecommencer: () => void;
 }) {
   const minutes = Math.round(dureeS / 60);
@@ -118,6 +122,8 @@ export default function DebriefAppel({
           )}
         </>
       )}
+
+      {camera && <ConstatsCamera bilan={camera} />}
 
       <details className="classiques">
         <summary>L&apos;échange complet ({historique.length} répliques)</summary>

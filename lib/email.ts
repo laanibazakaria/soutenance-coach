@@ -1,27 +1,55 @@
 import "server-only";
+import nodemailer from "nodemailer";
 
 /**
- * Les e-mails sortants, via Resend. Tant qu'aucun domaine n'est vérifié,
- * Resend n'autorise l'expéditeur `onboarding@resend.dev` qu'à écrire au
- * propriétaire du compte : parfait pour tester, pas pour les étudiants.
- * Dès que le domaine est vérifié, il suffit de poser EMAIL_FROM.
+ * Les e-mails sortants, sans domaine à acheter : Gmail SMTP d'abord (un
+ * compte Gmail dédié + mot de passe d'application — signé par Google,
+ * ~500 envois/jour), Resend en second (utile plus tard, avec un domaine).
  */
 export function emailConfigure(): boolean {
-  return Boolean(process.env.RESEND_API_KEY);
+  return gmailConfigure() || Boolean(process.env.RESEND_API_KEY);
+}
+
+function gmailConfigure(): boolean {
+  return Boolean(process.env.GMAIL_UTILISATEUR && process.env.GMAIL_MDP_APPLICATION);
 }
 
 export function expediteur(): string {
-  return process.env.EMAIL_FROM ?? "SoutenanceCoach <onboarding@resend.dev>";
+  if (process.env.EMAIL_FROM) return process.env.EMAIL_FROM;
+  if (gmailConfigure()) return `SoutenanceCoach <${process.env.GMAIL_UTILISATEUR}>`;
+  return "SoutenanceCoach <onboarding@resend.dev>";
+}
+
+let transport: nodemailer.Transporter | null = null;
+function transportGmail(): nodemailer.Transporter {
+  transport ??= nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: { user: process.env.GMAIL_UTILISATEUR, pass: process.env.GMAIL_MDP_APPLICATION },
+  });
+  return transport;
 }
 
 export async function envoyerEmail(args: { a: string; sujet: string; html: string; texte: string }): Promise<{ ok: true } | { ok: false; erreur: string }> {
+  if (gmailConfigure()) {
+    try {
+      await transportGmail().sendMail({ from: expediteur(), to: args.a, subject: args.sujet, html: args.html, text: args.texte });
+      return { ok: true };
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Gmail injoignable.";
+      // Identifiants refusés : inutile d'insister ; autre panne : Resend tente sa chance.
+      if (/invalid login|username and password|BadCredentials/i.test(message)) return { ok: false, erreur: "Identifiants Gmail refusés (GMAIL_MDP_APPLICATION)." };
+      if (!process.env.RESEND_API_KEY) return { ok: false, erreur: message };
+    }
+  }
   const cle = process.env.RESEND_API_KEY;
   if (!cle) return { ok: false, erreur: "E-mail non configuré." };
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${cle}` },
-      body: JSON.stringify({ from: expediteur(), to: [args.a], subject: args.sujet, html: args.html, text: args.texte }),
+      body: JSON.stringify({ from: process.env.EMAIL_FROM ?? "SoutenanceCoach <onboarding@resend.dev>", to: [args.a], subject: args.sujet, html: args.html, text: args.texte }),
       signal: AbortSignal.timeout(15_000),
     });
     if (!r.ok) {

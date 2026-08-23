@@ -21,6 +21,7 @@
     "geist": "^1.7.2",
     "next": "^16.3.2",
     "next-auth": "^5.0.0-beta.32",
+    "nodemailer": "^8.0.11",
     "pdfjs-dist": "^6.2.108",
     "pg": "^8.23.0",
     "react": "^19.2.8",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
+    "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.23.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",

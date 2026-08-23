@@ -13,7 +13,7 @@ export async function envoyerNouveauCode(email: string): Promise<{ ok: true } | 
     return {
       ok: false,
       erreur: r.erreur.includes("testing emails") || r.erreur.includes("verify a domain")
-        ? "L'envoi d'e-mails n'est pas encore ouvert à tous (domaine en cours). Utilise Google en attendant."
+        ? "L'inscription par e-mail ouvre très bientôt. En attendant, entre avec Google — c'est immédiat."
         : "Le code n'a pas pu être envoyé. Réessaie, ou utilise Google.",
     };
   }

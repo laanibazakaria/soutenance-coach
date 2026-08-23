@@ -416,7 +416,7 @@ export default function SlidesPage() {
                       <button className="btn small" onClick={genererQuestionsIA} disabled={iaEnCours !== null}>
                         {iaEnCours === "questions" ? "Génération…" : <><Icone nom="rafraichir" /> Régénérer</>}
                       </button>
-                      <Link href="/app/jury" className="btn primary small">
+                      <Link href="/app/appel?mode=soutenance" className="btn primary small">
                         <Icone nom="soutenance" /> S&apos;entraîner à répondre
                       </Link>
                     </div>

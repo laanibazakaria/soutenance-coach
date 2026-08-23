@@ -83,7 +83,7 @@ export default function LandingPage() {
       {/* ── hero ── */}
       <header className="lp-hero">
         <div className="lp-container">
-          <span className="lp-badge">Gratuit · Compte facultatif · Open source</span>
+          <span className="lp-badge">Gratuit · Open source</span>
           <h1 className="lp-title">
             Prépare ta soutenance
             <br />
@@ -274,7 +274,7 @@ export default function LandingPage() {
             <span className="lp-pill"><Icone nom="cadenas" /> Audio et PDF jamais envoyés</span>
             <span className="lp-pill"><Icone nom="flacon" /> 212 tests automatisés</span>
             <span className="lp-pill"><Icone nom="livre" /> Code source ouvert</span>
-            <span className="lp-pill">🆓 Gratuit, compte facultatif</span>
+            <span className="lp-pill"><Icone nom="valide" taille={16} /> Gratuit</span>
           </div>
         </div>
       </section>

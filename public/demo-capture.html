@@ -43,6 +43,7 @@
   ];
   const parcours = { dateSoutenance: jour(12), type: "pfa", dureeMin: 15, creeLe: jour(-7), etapesFaites: { guide: iso(-7, 10), jury: iso(-3, 17) }, misAJourLe: iso(-1, 20) };
   localStorage.clear();
+      localStorage.setItem("sc.demo.v1", "1");
   localStorage.setItem("sc.sessions.v1", JSON.stringify(sessions));
   localStorage.setItem("sc.deck.v1", JSON.stringify(deck));
   localStorage.setItem("sc.parcours.v1", JSON.stringify(parcours));

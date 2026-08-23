@@ -85,7 +85,7 @@ const ETAPES_COMMUNES = (m: { formatTitre: string; formatMinutes: number; id: Mo
   { id: "guide", titre: "Lis le guide", pourquoi: "Le déroulé, ce que ce jury évalue, les erreurs qui coûtent cher.", action: "Lire le guide", lien: "guide" },
   { id: "pitch", titre: `${m.formatTitre}, chronométré (${m.formatMinutes} min)`, pourquoi: "La structure par cœur, le temps tenu. Le coach compare ensuite ce que tu as dit à ton dossier.", action: "M'entraîner", lien: `/app/session?mode=${m.id}&format=${m.formatMinutes}`, auto: (c) => c.sessions.some((s) => s.mode === m.id) },
   { id: "questions", titre: "Lis les questions que ce jury te posera", pourquoi: "Tirées de TON dossier : les chiffres à prouver, les zones floues, les choix à justifier.", action: "Voir les questions", lien: "#questions", auto: (c) => c.questionsGenerees },
-  { id: "simulation", titre: "Simulation avec le jury IA", pourquoi: "Tu réponds au micro, il te dit ce qui manque et ce qu'il relancerait.", action: "Lancer la simulation", lien: "simulation" },
+  { id: "simulation", titre: "L'appel avec le jury IA", pourquoi: "Il parle, tu réponds au micro, il rebondit sur ce que tu viens de dire — puis le débrief.", action: "Lancer l'appel", lien: "appel" },
   { id: "preparation", titre: m.preparationTitre, pourquoi: m.preparationPourquoi, action: "Voir dans le guide", lien: m.preparationLien },
   { id: "veille", titre: "La veille : relis, prépare, dors", pourquoi: "Matériel, trajet, dossier relu, présentation dite une fois à voix haute — puis stop.", action: "La veille, dans le guide", lien: "guide#veille" },
 ];
@@ -219,6 +219,7 @@ export function lienEtape(m: ModuleOral, lien: string): string {
   if (lien.startsWith("/")) return lien;
   if (lien.startsWith("#")) return `/app/m/${m.id}${lien}`;
   if (lien.startsWith("guide")) return `${m.guide}${lien.slice(5)}`;
+  if (lien === "appel" || lien === "simulation") return `/app/appel?mode=${m.id}`;
   return `/app/m/${m.id}/${lien}`;
 }
 

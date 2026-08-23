@@ -153,7 +153,7 @@ function Hub({ m }: { m: ModuleOral }) {
           <button className="link-btn" onClick={() => setEdition(true)}>
             Modifier le profil
           </button>
-          <Link href={`/app/m/${m.id}/simulation`} className="link-btn">
+          <Link href={`/app/appel?mode=${m.id}`} className="link-btn">
             Lancer la simulation →
           </Link>
           {profil.date && (
@@ -198,7 +198,7 @@ function Hub({ m }: { m: ModuleOral }) {
             <p className="dropzone-note reassure-note">Seul le texte est envoyé — jamais le fichier.</p>
           </div>
         ) : (
-          <ListeQuestions questions={questions.map(enLigne)} lienEntrainement={`/app/m/${m.id}/simulation`} libelleEntrainement={`M'entraîner avec le ${m.persona.toLowerCase()}`} />
+          <ListeQuestions questions={questions.map(enLigne)} lienEntrainement={`/app/appel?mode=${m.id}`} libelleEntrainement={`M'entraîner avec le ${m.persona.toLowerCase()}`} />
         )}
         <details className="classiques">
           <summary>Les {m.banque.length} questions classiques d&apos;un {m.persona.toLowerCase()} — avec ce qu&apos;une bonne réponse contient</summary>

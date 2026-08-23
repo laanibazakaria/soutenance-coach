@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     template: "%s · SoutenanceCoach",
   },
   description:
-    "De « j'ai une date » à « je suis prêt » : un parcours jour par jour, tes slides, tes fiches, un coach, un jury. Mesures objectives, jamais de note inventée. Gratuit, compte facultatif.",
+    "De « j'ai une date » à « je suis prêt » : un parcours jour par jour, tes slides, tes fiches, un coach, un jury. Mesures objectives, jamais de note inventée. Gratuit.",
   keywords: ["soutenance", "PFA", "PFE", "oral", "entraînement", "ENSIAS", "prise de parole"],
   authors: [{ name: "Zakaria Laaniba", url: "https://laanibazakaria.github.io" }],
   manifest: "/manifest.webmanifest",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "SoutenanceCoach", statusBarStyle: "default" },
   openGraph: {
     title: "SoutenanceCoach — prépare ta soutenance, sérieusement",
-    description: "Un parcours jour par jour, tes slides, tes fiches, un coach, un jury. Gratuit, compte facultatif.",
+    description: "Un parcours jour par jour, tes slides, tes fiches, un coach, un jury. Gratuit.",
     type: "website",
     locale: "fr_FR",
   },

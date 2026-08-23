@@ -2,6 +2,7 @@ import { SessionProvider } from "next-auth/react";
 import Sidebar, { OngletsMobiles } from "./components/Sidebar";
 import BarreHaut from "./components/BarreHaut";
 import SyncCompte from "./components/SyncCompte";
+import Porte from "./components/Porte";
 import PageHero from "./components/PageHero";
 import ModuleTabs from "./components/ModuleTabs";
 import { ToastProvider } from "@/app/components/Toast";
@@ -27,7 +28,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <PageHero />
             <ModuleTabs />
             <main className="content" id="contenu" tabIndex={-1}>
-              <ErrorBoundary>{children}</ErrorBoundary>
+              <ErrorBoundary>
+                <Porte>{children}</Porte>
+              </ErrorBoundary>
             </main>
             <OngletsMobiles />
           </div>

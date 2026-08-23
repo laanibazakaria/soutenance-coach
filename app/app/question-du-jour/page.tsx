@@ -225,7 +225,7 @@ export default function QuestionDuJourPage() {
             <Link href="/app" className="btn primary">
               Retour à l&apos;accueil
             </Link>
-            <Link href={question.source === "soutenance" ? "/app/jury" : question.source === "entretien" ? "/app/entretien/simulation" : `/app/m/${question.source}/simulation`} className="btn">
+            <Link href={question.source === "soutenance" ? "/app/appel?mode=soutenance" : question.source === "entretien" ? "/app/entretien/simulation" : `/app/m/${question.source}/simulation`} className="btn">
               Continuer avec d&apos;autres questions →
             </Link>
           </div>

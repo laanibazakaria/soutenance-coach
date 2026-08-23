@@ -188,7 +188,7 @@ export const ETAPES: readonly Etape[] = [
     pourquoi:
       "Le jury pose, tu réponds au micro, et tu obtiens un avis sur chaque réponse — ce qui manque, ce qu'il relancerait. Répondre dans sa tête ne compte pas.",
     action: "Lancer la simulation",
-    lien: "/app/jury",
+    lien: "/app/appel?mode=soutenance",
     position: 0.6,
   },
   {

@@ -170,7 +170,7 @@ export default function EntretienPage() {
           <button className="link-btn" onClick={() => setEdition(true)}>
             Modifier le profil
           </button>
-          <Link href="/app/entretien/simulation" className="link-btn">
+          <Link href="/app/appel?mode=entretien" className="link-btn">
             Lancer la simulation →
           </Link>
           {candidature.dateEntretien && (
@@ -223,7 +223,7 @@ export default function EntretienPage() {
             <p className="dropzone-note reassure-note">Seul le texte de ton CV et de l&apos;offre est envoyé — jamais le fichier.</p>
           </div>
         ) : (
-          <ListeQuestions questions={questions.map(enLigne)} lienEntrainement="/app/entretien/simulation" libelleEntrainement="M'entraîner avec le recruteur" />
+          <ListeQuestions questions={questions.map(enLigne)} lienEntrainement="/app/appel?mode=entretien" libelleEntrainement="M'entraîner avec le recruteur" />
         )}
 
         <details className="classiques">

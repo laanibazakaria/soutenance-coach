@@ -46,7 +46,8 @@ describe("registre des modules", () => {
   it("résout les liens d'étapes vers le bon préfixe", () => {
     const m = MODULES.concours;
     expect(lienEtape(m, "#profil")).toBe("/app/m/concours#profil");
-    expect(lienEtape(m, "simulation")).toBe("/app/m/concours/simulation");
+    expect(lienEtape(m, "simulation")).toBe("/app/appel?mode=concours");
+    expect(lienEtape(m, "appel")).toBe("/app/appel?mode=concours");
     expect(lienEtape(m, "guide#veille")).toBe("/app/guide-concours#veille");
     expect(lienEtape(m, "/app/session?mode=concours&format=3")).toBe("/app/session?mode=concours&format=3");
     expect(etapesModule(m, { profil: null, sessions: [], questionsGenerees: false }).map((e) => e.href)).toContain("/app/guide-concours");

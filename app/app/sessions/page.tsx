@@ -140,9 +140,6 @@ function SessionsInner() {
           <button className="btn small" onClick={handleExport} disabled={sessions.length === 0}>
             <Icone nom="telecharger" /> Exporter
           </button>
-          <button className="btn small" onClick={() => fileRef.current?.click()}>
-            <Icone nom="importer" /> Importer
-          </button>
           <Link href="/app/bilan" className="btn small">
             <Icone nom="document" /> Bilan
           </Link>

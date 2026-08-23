@@ -157,7 +157,7 @@ export default function GuidePage() {
         <h2>4. Répondre aux questions</h2>
         <p>
           C&apos;est la partie qui fait la différence entre deux exposés équivalents — et celle qu&apos;on prépare le moins.{" "}
-          <Link href="/app/jury">La simulation d&apos;entretien</Link> sert à ça ; voici la méthode.
+          <Link href="/app/appel?mode=soutenance">L&apos;appel avec le jury IA</Link> sert à ça ; voici la méthode.
         </p>
         <h3>La méthode en quatre temps</h3>
         <ol className="guide-liste">

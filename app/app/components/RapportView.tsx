@@ -129,7 +129,7 @@ export default function RapportView() {
             <div style={{ marginTop: 10 }}>
               <ListeQuestions questions={questions.map((q) => ({ id: q.id, categorie: LIBELLES_CATEGORIES[q.categorie], question: q.question, pourquoi: q.pourquoi, priorite: true }))} libellePourquoi="Pourquoi le rapporteur la pose" />
               <p className="report-note" style={{ textAlign: "left" }}>
-                Les cinq premières sont déjà dans <Link href="/app/jury">la simulation</Link> et dans la soutenance blanche.
+                Les cinq premières sont déjà dans <Link href="/app/appel?mode=soutenance">l&apos;appel avec le jury</Link> et dans la soutenance blanche.
               </p>
             </div>
           )}

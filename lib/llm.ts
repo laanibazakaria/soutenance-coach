@@ -45,17 +45,11 @@ const FOURNISSEURS: Record<string, Fournisseur> = {
     cle: () => process.env.GROQ_API_KEY,
     modele: () => process.env.GROQ_MODEL ?? "openai/gpt-oss-120b",
   },
-  cerebras: {
-    nom: "cerebras",
-    url: "https://api.cerebras.ai/v1/chat/completions",
-    cle: () => process.env.CEREBRAS_API_KEY,
-    modele: () => process.env.CEREBRAS_MODEL ?? "gpt-oss-120b",
-  },
 };
 
 const ORDRES: Record<NonNullable<OptionsIA["priorite"]>, string[]> = {
-  qualite: ["mistral", "groq", "cerebras", "gemini"],
-  rapide: ["groq", "cerebras", "mistral", "gemini"],
+  qualite: ["mistral", "groq", "gemini"],
+  rapide: ["groq", "mistral", "gemini"],
 };
 
 /** Les fournisseurs dont la clé est présente, dans l'ordre d'essai. */

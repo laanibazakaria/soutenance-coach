@@ -1,6 +1,8 @@
 import NextAuth, { type DefaultSession } from "next-auth";
 import Google from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
+import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import { emailConfigure, expediteur, envoyerLienConnexion } from "@/lib/email";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
@@ -24,6 +26,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     ...(authConfiguree() ? [Google] : []),
+    ...(process.env.DATABASE_URL
+      ? [
+          Credentials({
+            credentials: { email: {}, mdp: {} },
+            async authorize(identifiants) {
+              const email = typeof identifiants?.email === "string" ? identifiants.email.trim().toLowerCase() : "";
+              const mdp = typeof identifiants?.mdp === "string" ? identifiants.mdp : "";
+              if (!email || !mdp) return null;
+              const u = await prisma.user.findUnique({ where: { email }, select: { id: true, name: true, email: true, image: true, motDePasse: true } });
+              if (!u?.motDePasse) return null;
+              const bon = await bcrypt.compare(mdp, u.motDePasse);
+              if (!bon) return null;
+              return { id: u.id, name: u.name, email: u.email, image: u.image };
+            },
+          }),
+        ]
+      : []),
     ...(emailConfigure() && process.env.DATABASE_URL
       ? [
           Resend({

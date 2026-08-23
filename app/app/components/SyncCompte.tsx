@@ -50,6 +50,15 @@ export async function seDeconnecterProprement(): Promise<boolean> {
   return true;
 }
 
+/** Vrai si l'appareil est en mode démonstration (captures, « voir un exemple »). */
+export function estDemo(): boolean {
+  try {
+    return window.localStorage.getItem("sc.demo.v1") === "1";
+  } catch {
+    return false;
+  }
+}
+
 export default function SyncCompte() {
   const { status } = useSession();
   useEffect(() => {

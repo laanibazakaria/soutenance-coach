@@ -84,7 +84,7 @@ export default function QuestionsReellesPage() {
         ))
       )}
       <p className="report-note" style={{ marginTop: 18 }}>
-        Ces questions viennent d&apos;étudiants qui ont raconté leur oral, anonymement, et ont été relues avant publication. Les tiennes tomberont peut-être ailleurs — mais tu sauras à quoi ressemble un vrai jury. Tu veux t&apos;y entraîner ? <Link href="/app/jury">La simulation</Link>.
+        Ces questions viennent d&apos;étudiants qui ont raconté leur oral, anonymement, et ont été relues avant publication. Les tiennes tomberont peut-être ailleurs — mais tu sauras à quoi ressemble un vrai jury. Tu veux t&apos;y entraîner ? <Link href="/app/appel">L&apos;appel avec le jury IA</Link>.
       </p>
     </div>
   );

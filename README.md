@@ -6,8 +6,9 @@ d'une session à l'autre.
 
 ### 👉 [Utiliser l'application](https://soutenance-coach.vercel.app)
 
-Aucune installation, aucun compte. Ouvre le lien dans Chrome ou Edge, autorise le micro,
-et parle. *(Tes enregistrements restent sur ton appareil.)*
+Aucune installation, compte facultatif. Ouvre le lien dans Chrome ou Edge, autorise le micro,
+et parle. *(Sans compte, tout reste sur ton appareil ; avec un compte Google, ton travail te suit
+sur tous tes appareils — jamais l'audio.)*
 
 > Hébergée sur Vercel. Chaque déploiement passe par la CI (types, 180 tests, build).
 
@@ -43,8 +44,9 @@ Donc ici :
   - un débit calculé sur une transcription qui a perdu 35 % des mots dit « je t'ai mal entendu »,
     pas « tu parles lentement » ;
   - une tendance sur deux points, c'est du bruit — il en faut **trois minimum**, sans exception.
-- **Aucune donnée ne quitte le navigateur.** Pas de compte, pas de serveur, pas d'appel réseau :
-  tout vit dans le stockage local. Vérifiable dans l'onglet Réseau.
+- **Sans compte, aucune donnée ne quitte le navigateur** : tout vit dans le stockage local,
+  vérifiable dans l'onglet Réseau. Le compte est une copie facultative (voir *Comptes*), et les
+  fonctions IA n'envoient que le texte extrait des slides.
 
 ## En pratique
 
@@ -132,7 +134,7 @@ npm run dev        # http://localhost:3000
 L'application le dit explicitement si le navigateur ne la propose pas.
 
 ```bash
-npm test           # 81 tests unitaires (Vitest)
+npm test           # 180 tests unitaires (Vitest)
 npm run typecheck  # TypeScript strict
 npm run build      # build de production
 ```
@@ -141,15 +143,17 @@ npm run build      # build de production
 
 ```
 app/
-├── page.tsx              Tableau de bord : tendances, historique, export/import
-├── session/page.tsx      Enregistrement, transcription temps réel, rapport
-└── components/           Présentation pure (aucun calcul)
+├── page.tsx              Page d'accueil
+├── app/                  Tableau de bord, session, support (pitch + jury), simulation, connexion
+└── api/                  Routes serveur : IA (Gemini), comptes (Auth.js), synchronisation
 lib/
 ├── scoring/              Les 5 métriques — fonctions pures, seuils exportés
 ├── trends/               La mémoire — pénalités normalisées, seuil minSessions
+├── slides/ jury/ pitch/  Analyse du support, questions, pitch — consignes IA et garde-fous
+├── sync/                 Fusion local ↔ compte (pure, testée)
 ├── storage.ts            Persistance locale, export/import JSON
 └── types.ts
-tests/unit/               81 tests, dont des fixtures de sessions réelles
+tests/unit/               180 tests, dont des fixtures de sessions réelles
 ```
 
 Le cœur (`lib/`) n'a **aucune dépendance au DOM** : il se teste sans navigateur, et les

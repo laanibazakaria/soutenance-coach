@@ -1,4 +1,5 @@
 import NextAuth, { type DefaultSession } from "next-auth";
+import { CredentialsSignin } from "next-auth";
 import Google from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
 import Credentials from "next-auth/providers/credentials";
@@ -22,6 +23,11 @@ declare module "next-auth" {
   }
 }
 
+/** Levée quand le compte existe mais que l'adresse n'a pas été vérifiée. */
+class EmailNonVerifie extends CredentialsSignin {
+  code = "email_non_verifie";
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -34,10 +40,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               const email = typeof identifiants?.email === "string" ? identifiants.email.trim().toLowerCase() : "";
               const mdp = typeof identifiants?.mdp === "string" ? identifiants.mdp : "";
               if (!email || !mdp) return null;
-              const u = await prisma.user.findUnique({ where: { email }, select: { id: true, name: true, email: true, image: true, motDePasse: true } });
+              const u = await prisma.user.findUnique({ where: { email }, select: { id: true, name: true, email: true, image: true, motDePasse: true, emailVerified: true } });
               if (!u?.motDePasse) return null;
               const bon = await bcrypt.compare(mdp, u.motDePasse);
               if (!bon) return null;
+              // Pas d'entrée sans adresse vérifiée — exactement comme Propulsez.
+              if (!u.emailVerified) throw new EmailNonVerifie();
               return { id: u.id, name: u.name, email: u.email, image: u.image };
             },
           }),

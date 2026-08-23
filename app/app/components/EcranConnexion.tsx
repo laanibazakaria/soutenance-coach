@@ -12,11 +12,13 @@ import { Marque } from "./Sidebar";
  * sans la coquille — c'est la première impression de l'application.
  */
 export default function EcranConnexion({ lienDispo }: { lienDispo: boolean }) {
-  const [mode, setMode] = useState<"creer" | "connexion">("creer");
+  const [mode, setMode] = useState<"creer" | "connexion" | "code">("creer");
   const [nom, setNom] = useState("");
   const [email, setEmail] = useState("");
   const [mdp, setMdp] = useState("");
   const [occupe, setOccupe] = useState(false);
+  const [code, setCode] = useState("");
+  const [info, setInfo] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [lienEnvoye, setLienEnvoye] = useState(false);
 
@@ -27,14 +29,63 @@ export default function EcranConnexion({ lienDispo }: { lienDispo: boolean }) {
     try {
       if (mode === "creer") {
         const r = await fetch("/api/auth/inscription", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ nom, email, mdp }) });
-        const j = (await r.json()) as { erreur?: string };
+        const j = (await r.json()) as { erreur?: string; verifier?: boolean };
         if (!r.ok) throw new Error(j.erreur ?? "Inscription impossible.");
+        setMode("code");
+        setInfo(`Un code à 6 chiffres vient de partir vers ${email}.`);
+        return;
       }
       const res = await signIn("credentials", { email, mdp, redirect: false });
-      if (res?.error) throw new Error(mode === "creer" ? "Compte créé mais connexion impossible. Réessaie." : "Adresse ou mot de passe incorrect.");
+      if (res?.error) {
+        if (res.code === "email_non_verifie") {
+          await fetch("/api/auth/verifier", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ email }) });
+          setMode("code");
+          setInfo(`Ton adresse n'est pas encore vérifiée : un nouveau code vient de partir vers ${email}.`);
+          return;
+        }
+        throw new Error("Adresse ou mot de passe incorrect.");
+      }
       window.location.assign("/app");
     } catch (err) {
       setErreur(err instanceof Error ? err.message : "Ça n'a pas marché. Réessaie.");
+    } finally {
+      setOccupe(false);
+    }
+  }
+
+  async function validerCode(e: React.FormEvent) {
+    e.preventDefault();
+    setOccupe(true);
+    setErreur(null);
+    try {
+      const r = await fetch("/api/auth/verifier", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, code }) });
+      const j = (await r.json()) as { erreur?: string };
+      if (!r.ok) throw new Error(j.erreur ?? "Code refusé.");
+      const res = await signIn("credentials", { email, mdp, redirect: false });
+      if (res?.error) {
+        // Vérifié mais pas de mot de passe en mémoire (retour plus tard) : direction connexion.
+        setMode("connexion");
+        setInfo("Adresse vérifiée. Connecte-toi.");
+        return;
+      }
+      window.location.assign("/app");
+    } catch (err) {
+      setErreur(err instanceof Error ? err.message : "Code refusé.");
+    } finally {
+      setOccupe(false);
+    }
+  }
+
+  async function renvoyerCode() {
+    setOccupe(true);
+    setErreur(null);
+    try {
+      const r = await fetch("/api/auth/verifier", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ email }) });
+      const j = (await r.json()) as { erreur?: string };
+      if (!r.ok) throw new Error(j.erreur ?? "Envoi impossible.");
+      setInfo(`Nouveau code envoyé à ${email}.`);
+    } catch (err) {
+      setErreur(err instanceof Error ? err.message : "Envoi impossible.");
     } finally {
       setOccupe(false);
     }
@@ -64,12 +115,53 @@ export default function EcranConnexion({ lienDispo }: { lienDispo: boolean }) {
         <div className="porte-marque">
           <Marque taille={26} />
         </div>
-        <h1>{mode === "creer" ? "Crée ton compte" : "Content de te revoir"}</h1>
+        <h1>{mode === "creer" ? "Crée ton compte" : mode === "code" ? "Vérifie ton adresse" : "Content de te revoir"}</h1>
         <p className="porte-sous">
           {mode === "creer"
             ? "Ta préparation te suit sur tous tes appareils : sessions, mesures, appels avec le jury, débriefs."
-            : "Reprends ta préparation là où tu l'as laissée."}
+            : mode === "code"
+              ? info ?? `Entre le code reçu à ${email}.`
+              : "Reprends ta préparation là où tu l'as laissée."}
         </p>
+
+        {mode === "code" ? (
+          <form onSubmit={(e) => void validerCode(e)} className="porte-champs">
+            <label className="champ">
+              <span>Le code reçu par e-mail</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="\d{6}"
+                maxLength={6}
+                required
+                className="porte-code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                placeholder="123456"
+              />
+            </label>
+            {erreur && (
+              <p className="warn" role="alert">
+                {erreur}
+              </p>
+            )}
+            <button className="btn primary big" type="submit" disabled={occupe || code.length !== 6}>
+              {occupe ? "Vérification…" : "Activer mon compte"}
+            </button>
+            <p className="porte-bascule">
+              Rien reçu ? Regarde les indésirables, ou{" "}
+              <button type="button" className="link-btn" onClick={() => void renvoyerCode()} disabled={occupe}>
+                renvoie un code
+              </button>
+              {" "}·{" "}
+              <button type="button" className="link-btn" onClick={() => { setMode("creer"); setErreur(null); }}>
+                changer d&apos;adresse
+              </button>
+            </p>
+          </form>
+        ) : (
+          <>
 
         <button type="button" className="btn porte-google" onClick={() => void signIn("google", { callbackUrl: "/app" })}>
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.5-.3-2.2H12v4.1h6.5c-.1 1.1-.8 2.7-2.4 3.8l3.6 2.8c2.2-2 3.8-5 3.8-8.5z"/><path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.7-2.9c-1 .7-2.4 1.2-4.2 1.2-3.2 0-5.9-2.1-6.9-5.1l-3.8 2.9C3.3 21.3 7.3 24 12 24z"/><path fill="#FBBC05" d="M5.1 14.3c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3L1.3 6.8C.5 8.4 0 10.1 0 12s.5 3.6 1.3 5.2l3.8-2.9z"/><path fill="#EA4335" d="M12 4.7c1.8 0 3 .8 3.7 1.4l3.3-3.2C17.9 1.1 15.2 0 12 0 7.3 0 3.3 2.7 1.3 6.8l3.8 2.9c1-3 3.7-5 6.9-5z"/></svg>
@@ -111,6 +203,10 @@ export default function EcranConnexion({ lienDispo }: { lienDispo: boolean }) {
           </form>
         )}
 
+        </>
+        )}
+
+        {mode !== "code" && (
         <p className="porte-bascule">
           {mode === "creer" ? (
             <>
@@ -136,6 +232,7 @@ export default function EcranConnexion({ lienDispo }: { lienDispo: boolean }) {
             </>
           )}
         </p>
+        )}
         <p className="porte-legal">
           En continuant, tu acceptes la <Link href="/confidentialite">politique de confidentialité</Link>. Ton audio ne quitte jamais ton appareil.
         </p>

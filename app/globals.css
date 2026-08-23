@@ -987,6 +987,7 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
 .porte-champs .champ small { color: var(--dim); font-weight: 400; }
 .porte-bascule { font-size: 0.88rem; color: var(--muted); margin-top: 16px; }
 .porte-legal { font-size: 0.76rem; color: var(--dim); margin-top: 14px; }
+.porte-code { font-size: 1.6rem !important; letter-spacing: 0.4em; text-align: center; font-variant-numeric: tabular-nums; font-weight: 700; }
 .porte-visuel { background: linear-gradient(150deg, #0f766e 0%, #115e59 55%, #0f3d3a 100%); border-radius: 20px; color: #fff; padding: 38px 34px; display: flex; align-items: center; position: relative; overflow: hidden; }
 .porte-visuel::after { content: ""; position: absolute; right: -70px; bottom: -80px; width: 260px; height: 260px; border-radius: 50%; background: rgba(245, 158, 11, 0.2); }
 .porte-visuel-titre { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.3px; line-height: 1.25; margin-bottom: 22px; color: #fff; }

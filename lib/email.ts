@@ -65,3 +65,14 @@ export async function envoyerLienConnexion(a: string, url: string): Promise<void
   });
   if (!r.ok) throw new Error(r.erreur);
 }
+
+/** L'e-mail du code de vérification à l'inscription. */
+export async function envoyerCodeVerification(a: string, code: string): Promise<{ ok: true } | { ok: false; erreur: string }> {
+  const chiffres = `<p style="font-size:34px;font-weight:800;letter-spacing:10px;font-variant-numeric:tabular-nums;margin:18px 0;color:#0f766e">${code}</p>`;
+  return envoyerEmail({
+    a,
+    sujet: `${code} — ton code SoutenanceCoach`,
+    html: gabarit("Vérifie ton adresse", `<p>Voici ton code de vérification. Il est valable 15 minutes.</p>${chiffres}<p>Entre-le sur la page d'inscription pour activer ton compte.</p>`),
+    texte: `Ton code de vérification SoutenanceCoach : ${code}\nIl est valable 15 minutes.`,
+  });
+}

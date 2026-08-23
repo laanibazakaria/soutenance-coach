@@ -118,3 +118,18 @@ describe("accueil", () => {
     expect(debit(session({ durationMs: 60_000, wordCount: 130 }))).toBe(130);
   });
 });
+
+describe("vérification d'adresse", () => {
+  it("génère des codes à 6 chiffres et des empreintes stables liées à l'adresse", async () => {
+    const { genererCode, empreinteCode, codePlausible, expirationCode } = await import("../../lib/verification");
+    for (let i = 0; i < 20; i++) expect(genererCode()).toMatch(/^\d{6}$/);
+    expect(empreinteCode("a@b.fr", "123456")).toBe(empreinteCode("A@B.FR", "123456"));
+    expect(empreinteCode("a@b.fr", "123456")).not.toBe(empreinteCode("a@b.fr", "123457"));
+    expect(empreinteCode("a@b.fr", "123456")).toMatch(/^code:[0-9a-f]{64}$/);
+    expect(codePlausible("042042")).toBe(true);
+    expect(codePlausible("42")).toBe(false);
+    expect(codePlausible(42)).toBe(false);
+    const exp = expirationCode(new Date("2026-08-23T10:00:00Z"));
+    expect(exp.toISOString()).toBe("2026-08-23T10:15:00.000Z");
+  });
+});

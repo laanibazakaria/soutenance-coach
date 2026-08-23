@@ -15,6 +15,7 @@ import { useUsage } from "@/lib/usage-client";
 import { useToast } from "@/app/components/Toast";
 import { Icone, IconeBadge, type NomIcone } from "@/app/components/Icone";
 import CarteQuotidien from "./components/CarteQuotidien";
+import FormulaireEtudiant from "./components/FormulaireEtudiant";
 import LigneSession from "./components/LigneSession";
 import EtatVide from "@/app/components/EtatVide";
 
@@ -33,6 +34,7 @@ function AccueilInner() {
   const [sessions, setSessions] = useState<SessionRecord[] | null>(null);
   const [actifs, setActifs] = useState<ModuleActif[] | null | undefined>(undefined);
   const [choisir, setChoisir] = useState(false);
+  const [etapeProfil, setEtapeProfil] = useState(false);
   const [resumes, setResumes] = useState<ResumeModule[]>([]);
   const [serie, setSerie] = useState<Serie | null>(null);
   const [maintenant, setMaintenant] = useState<Date | null>(null);
@@ -57,10 +59,12 @@ function AccueilInner() {
   if (actifs === undefined || sessions === null || maintenant === null) return null;
 
   function enregistrer(liste: ModuleActif[]) {
+    const premiereFois = !actifs;
     sauverModulesActifs(window.localStorage, liste);
     setActifs(liste);
     setResumes(resumerModules(window.localStorage, sessions ?? [], liste));
     setChoisir(false);
+    if (premiereFois) setEtapeProfil(true);
     signalerSynchronisation();
     void pousserTout();
     window.history.replaceState(null, "", "/app");
@@ -68,6 +72,16 @@ function AccueilInner() {
 
   if (!actifs || choisir) {
     return <Choix initial={actifs ?? []} premiereFois={!actifs} sansSessions={sessions.length === 0} onValider={enregistrer} onAnnuler={actifs ? () => setChoisir(false) : undefined} />;
+  }
+
+  if (etapeProfil) {
+    return (
+      <div className="choix">
+        <h2 className="onboarding-title">Fais connaissance avec ton jury</h2>
+        <p className="onboarding-lead">Dis-lui d&apos;où tu parles : un jury de l&apos;ENSIAS en IA ne pose pas les mêmes questions qu&apos;un jury de médecine.</p>
+        <FormulaireEtudiant onFait={() => setEtapeProfil(false)} libelleValider="C'est parti" />
+      </div>
+    );
   }
 
   const inactifs = TOUS_LES_MODULES.filter((m) => !actifs.includes(m.id));

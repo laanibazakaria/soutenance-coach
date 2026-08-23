@@ -13,6 +13,7 @@ import { lireProfil } from "@/lib/modules/persistance";
 import { MODULES, estModuleId } from "@/lib/modules";
 import { estRapport } from "@/lib/rapport";
 import { lireLangue, courte, type LangueCourte } from "@/lib/langue";
+import { lireProfilEtudiant, ligneContexteEtudiant } from "@/lib/etudiant";
 import { lireModulesActifs } from "@/lib/preferences";
 import { saveSession, countWords } from "@/lib/storage";
 import { pousserTout, signalerSynchronisation } from "@/lib/sync/client";
@@ -36,26 +37,28 @@ function getRecognitionCtor(): (new () => SpeechRecognition) | null {
 /** Lit tout ce qu'on sait du candidat pour ce type d'oral. */
 function contexteDepuisAppareil(mode: ModeAppel): string {
   const st = window.localStorage;
+  const etudiant = ligneContexteEtudiant(lireProfilEtudiant(st));
+  const avec = (contexte: string) => (etudiant ? (contexte ? `${etudiant}\n\n${contexte}` : etudiant) : contexte);
   if (mode === "soutenance") {
     const deck = listeDeckSauvegarde(st);
     const rapport = lireCache<unknown>(st, CLE_RAPPORT);
-    return assemblerContexte([
+    return avec(assemblerContexte([
       { titre: "Slides de la soutenance", texte: deck ? deck.slides.map((s, i) => `[${i + 1}] ${s.texte}`).join("\n") : null },
       { titre: "Extrait du mémoire", texte: estRapport(rapport) ? rapport.texte : null },
-    ]);
+    ]));
   }
   if (mode === "entretien") {
     const c = lireCandidature(st);
-    return c ? assemblerContexte([{ titre: `Poste visé : ${c.poste}${c.entreprise ? ` chez ${c.entreprise}` : ""}`, texte: c.offre }, { titre: "CV du candidat", texte: c.cvTexte }]) : "";
+    return avec(c ? assemblerContexte([{ titre: `Poste visé : ${c.poste}${c.entreprise ? ` chez ${c.entreprise}` : ""}`, texte: c.offre }, { titre: "CV du candidat", texte: c.cvTexte }]) : "");
   }
   if (estModuleId(mode)) {
     const p = lireProfil(st, mode);
-    if (!p) return "";
+    if (!p) return avec("");
     const m = MODULES[mode];
-    return assemblerContexte([
+    return avec(assemblerContexte([
       ...m.champs.map((ch) => ({ titre: ch.titreContexte, texte: p.champs[ch.id] })),
       { titre: "Dossier", texte: p.documentTexte },
-    ]);
+    ]));
   }
   return "";
 }

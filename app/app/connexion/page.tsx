@@ -9,6 +9,7 @@ import { viderDonneesLocales } from "@/lib/sync/merge";
 import { toutEffacerAudio } from "@/lib/audio/stockage";
 import { Icone } from "@/app/components/Icone";
 import { seDeconnecterProprement } from "../components/SyncCompte";
+import FormulaireEtudiant from "../components/FormulaireEtudiant";
 
 /**
  * Page de connexion. Le compte est optionnel : on le dit, et on dit ce qu'il
@@ -110,6 +111,8 @@ export default function ConnexionPage() {
               </button>
             </div>
           </div>
+          <h2 className="list-title">Mon profil étudiant</h2>
+          <FormulaireEtudiant />
           <div className="card compte-danger">
             <b>Supprimer mon compte</b>
             <p>

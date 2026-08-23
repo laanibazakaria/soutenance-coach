@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LIBELLES_TYPE_ORAL, type TypeOral } from "@/lib/retours";
 import { useToast } from "@/app/components/Toast";
+import { lireProfilEtudiant } from "@/lib/etudiant";
 import { Icone } from "@/app/components/Icone";
 
 /** Après l'oral : « comment ça s'est passé ? » — les vraies questions, pour les suivants. */
@@ -13,6 +14,14 @@ export default function RetourOralForm({ type, ecoleInitiale = "", niveauInitial
   const [ecole, setEcole] = useState(ecoleInitiale);
   const [filiere, setFiliere] = useState("");
   const [niveau, setNiveau] = useState(niveauInitial);
+
+  useEffect(() => {
+    const p = lireProfilEtudiant(window.localStorage);
+    if (!p) return;
+    setEcole((v) => v || p.ecole);
+    setFiliere((v) => v || p.filiere);
+    setNiveau((v) => v || p.niveau);
+  }, []);
   const [questions, setQuestions] = useState("");
   const [ressenti, setRessenti] = useState("");
   const [conseil, setConseil] = useState("");

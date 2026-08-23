@@ -996,6 +996,9 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
 .porte-visuel li .icone { flex: none; margin-top: 2px; color: var(--gold-vif); }
 @media (max-width: 860px) { .porte { grid-template-columns: 1fr; } .porte-visuel { display: none; } .porte-formulaire { padding: 24px 20px; } }
 
+.etudiant-form { display: flex; flex-direction: column; gap: 14px; text-align: left; }
+.choix .etudiant-form { max-width: 640px; margin: 0 auto; }
+
 /* ═══════════════ Micro-interactions ═══════════════ */
 @keyframes pageEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 button, a[role="button"] { transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, opacity 0.15s ease; }

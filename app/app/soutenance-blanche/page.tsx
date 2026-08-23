@@ -16,6 +16,7 @@ import { computeReport } from "@/lib/scoring";
 import type { Pitch } from "@/lib/pitch";
 import ScoreReportView from "@/app/components/ScoreReportView";
 import AvisCoach from "@/app/components/AvisCoach";
+import ExempleReponse from "@/app/components/ExempleReponse";
 import { pousserTout } from "@/lib/sync/client";
 import { useToast } from "@/app/components/Toast";
 
@@ -306,6 +307,7 @@ function Debrief({ session, reponses }: { session: SessionRecord; reponses: Repo
             ) : (
               <p className="report-note">Avis du jury indisponible pour cette réponse.</p>
             )}
+            <ExempleReponse question={r.question.question} pourquoi={r.question.pourquoi} contexte={deck?.slides.map((x) => x.texte).join(" ")} persona="Jury de soutenance" reponseEtudiant={r.transcript} />
           </article>
         ))}
       </section>

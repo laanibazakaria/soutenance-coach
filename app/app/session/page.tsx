@@ -7,6 +7,8 @@ import { computeReport } from "@/lib/scoring";
 import ScoreReportView from "@/app/components/ScoreReportView";
 import AvisCoach from "@/app/components/AvisCoach";
 import LecteurAudio from "@/app/components/LecteurAudio";
+import TranscriptAnnote from "@/app/components/TranscriptAnnote";
+import JaugeDebit from "@/app/components/JaugeDebit";
 import { sauverAudio } from "@/lib/audio/stockage";
 import { pousserTout } from "@/lib/sync/client";
 import { useEnregistrement } from "../hooks/useEnregistrement";
@@ -165,6 +167,8 @@ export default function SessionPage() {
         {targetMs !== undefined && <span className="timer-target"> / {targetMinutes}:00</span>}
       </div>
 
+      {phase === "recording" && <JaugeDebit texte={`${finalText} ${interimText}`} elapsedMs={elapsedMs} />}
+
       {phase === "recording" && targetMs !== undefined && (
         <div
           className="progress"
@@ -218,6 +222,7 @@ export default function SessionPage() {
             })}
           />
           {rec.mesuresAudio() && <LecteurAudio sessionId="" mesures={rec.mesuresAudio()!} />}
+          <TranscriptAnnote transcript={finalText.trim()} />
           <AvisCoach
             session={{
               id: idRef.current,
@@ -233,16 +238,18 @@ export default function SessionPage() {
         </>
       )}
 
-      <div className="transcript" aria-live="polite">
-        {finalText === "" && interimText === "" ? (
-          <span className="transcript-placeholder">Ta transcription apparaîtra ici pendant que tu parles…</span>
-        ) : (
-          <>
-            {finalText}
-            <span className="interim">{interimText}</span>
-          </>
-        )}
-      </div>
+      {phase !== "stopped" && (
+        <div className="transcript" aria-live="polite">
+          {finalText === "" && interimText === "" ? (
+            <span className="transcript-placeholder">Ta transcription apparaîtra ici pendant que tu parles…</span>
+          ) : (
+            <>
+              {finalText}
+              <span className="interim">{interimText}</span>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

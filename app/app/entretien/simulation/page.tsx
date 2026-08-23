@@ -9,6 +9,7 @@ import { lireCandidature, marquerEtapeEntretien, cleQuestionsEntretien } from "@
 import { analyserReponse, type AvisModele } from "@/lib/jury/evaluation";
 import { lireCache } from "@/lib/ia-cache";
 import { pousserTout } from "@/lib/sync/client";
+import ExempleReponse from "@/app/components/ExempleReponse";
 
 type Etape = "attente" | "reponse" | "evaluation";
 
@@ -247,6 +248,14 @@ export default function SimulationEntretienPage() {
                   </article>
                 </div>
               )}
+              <ExempleReponse
+                question={question.question}
+                pourquoi={`${question.pourquoi} Une bonne réponse : ${question.attendu}`}
+                contexte={candidature ? `POSTE : ${candidature.poste} — ${candidature.entreprise}\nOFFRE : ${candidature.offre.slice(0, 2500)}\nCV : ${candidature.cvTexte.slice(0, 3000)}` : undefined}
+                persona={LIBELLES_ROLE[role]}
+                reponseEtudiant={reponseFinale}
+              />
+
               <div className="actions">
                 <button className="btn primary" onClick={suivante}>
                   Question suivante →

@@ -327,3 +327,11 @@ Entretiens et oraux en anglais sont fréquents pour les lauréats. Une préfére
 la langue de reconnaissance, la liste des béquilles s'enrichit des anglaises, et les jurys IA
 répondent en anglais quand l'oral est en anglais. Le reste de l'interface reste en français :
 c'est l'oral qui change de langue, pas le coach.
+
+## Étape R — Le retour visible, tout de suite (24 août 2026)
+
+Ce qui fait dire « cette app m'a vraiment aidé » : voir ses mots avec ses béquilles surlignées
+(même détection que le comptage, une seule source de vérité, testée), une jauge de débit qui
+réagit pendant qu'on parle, et, après une réponse au jury, l'exemple de ce qu'un excellent
+candidat aurait dit — sur son dossier, jamais un corrigé générique, avec les faits manquants
+marqués « à compléter » plutôt qu'inventés. Un exemple par question, en cache, synchronisé.

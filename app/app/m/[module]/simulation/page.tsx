@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { lireLangue, courte, type Langue } from "@/lib/langue";
 import { useEnregistrement } from "../../../hooks/useEnregistrement";
-import { MODULES, estModuleId, questionsClassiquesModule, type ModuleOral, type ProfilModule } from "@/lib/modules";
+import { MODULES, estModuleId, questionsClassiquesModule, contexteProfil, type ModuleOral, type ProfilModule } from "@/lib/modules";
+import ExempleReponse from "@/app/components/ExempleReponse";
 import { lireProfil, marquerEtapeModule, cleQuestionsModule } from "@/lib/modules/persistance";
 import { LIBELLES_CATEGORIES_ENTRETIEN, type QuestionEntretien } from "@/lib/entretien";
 import { analyserReponse, type AvisModele } from "@/lib/jury/evaluation";
@@ -231,6 +232,14 @@ function Simulation({ m }: { m: ModuleOral }) {
                   </article>
                 </div>
               )}
+              <ExempleReponse
+                question={question.question}
+                pourquoi={`${question.pourquoi} Une bonne réponse : ${question.attendu}`}
+                contexte={profil ? contexteProfil(m, profil) : undefined}
+                persona={m.persona}
+                reponseEtudiant={reponseFinale}
+              />
+
               <div className="actions">
                 <button className="btn primary" onClick={suivante}>
                   Question suivante →

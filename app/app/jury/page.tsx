@@ -10,6 +10,7 @@ import { lireCache } from "@/lib/ia-cache";
 import { marquerEtape } from "@/lib/parcours/persistance";
 import { surSynchronisation } from "@/lib/sync/client";
 import { lireLangue, courte } from "@/lib/langue";
+import ExempleReponse from "@/app/components/ExempleReponse";
 import type { JuryQuestion } from "@/lib/slides/types";
 
 type Etape = "attente" | "reponse" | "evaluation";
@@ -279,6 +280,8 @@ export default function JuryPage() {
                   </article>
                 </div>
               )}
+
+              <ExempleReponse question={question.question} pourquoi={question.pourquoi} contexte={contexte} persona="Jury de soutenance" reponseEtudiant={transcript} />
 
               <div className="actions">
                 <button className="btn primary" onClick={questionSuivante}>

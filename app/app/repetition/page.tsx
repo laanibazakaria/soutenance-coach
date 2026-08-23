@@ -17,6 +17,8 @@ import type { SlideTiming } from "@/lib/types";
 import ScoreReportView from "@/app/components/ScoreReportView";
 import AvisCoach from "@/app/components/AvisCoach";
 import LecteurAudio from "@/app/components/LecteurAudio";
+import TranscriptAnnote from "@/app/components/TranscriptAnnote";
+import JaugeDebit from "@/app/components/JaugeDebit";
 import { sauverAudio } from "@/lib/audio/stockage";
 import { pousserTout } from "@/lib/sync/client";
 
@@ -332,6 +334,8 @@ export default function RepetitionPage() {
             </div>
           </div>
 
+          <JaugeDebit texte={`${rec.finalText} ${rec.interimText}`} elapsedMs={elapsedMs} />
+
           <div className="rep-scene">
             {pdfRef.current ? (
               <canvas ref={canvasRef} className="rep-canvas" aria-label={`Diapositive ${slide.numero}`} />
@@ -422,6 +426,7 @@ export default function RepetitionPage() {
                 })}
               />
               {rec.mesuresAudio() && <LecteurAudio sessionId="" mesures={rec.mesuresAudio()!} />}
+              <TranscriptAnnote transcript={rec.finalText.trim()} />
               <AvisCoach
                 session={{
                   id: idRef.current,

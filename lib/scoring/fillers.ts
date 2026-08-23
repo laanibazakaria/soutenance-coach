@@ -13,7 +13,7 @@
  */
 
 /** Expressions multi-mots, détectées en priorité. La clé est la forme canonique. */
-const MULTI_WORD: ReadonlyArray<readonly [canonical: string, words: readonly string[]]> = [
+export const MULTI_WORD: ReadonlyArray<readonly [canonical: string, words: readonly string[]]> = [
   ["et voilà", ["et", "voilà"]],
   ["du coup", ["du", "coup"]],
   ["en fait", ["en", "fait"]],
@@ -32,7 +32,7 @@ const MULTI_WORD: ReadonlyArray<readonly [canonical: string, words: readonly str
 ];
 
 /** Mots simples. La clé est la forme rencontrée, la valeur la forme canonique. */
-const SINGLE_WORD: ReadonlyMap<string, string> = new Map([
+export const SINGLE_WORD: ReadonlyMap<string, string> = new Map([
   // Anglais
   ["um", "um"],
   ["umm", "um"],

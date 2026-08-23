@@ -7,6 +7,7 @@ import { computeReport } from "@/lib/scoring";
 import type { SessionRecord } from "@/lib/types";
 import AvisCoach from "@/app/components/AvisCoach";
 import LecteurAudio from "@/app/components/LecteurAudio";
+import TranscriptAnnote from "@/app/components/TranscriptAnnote";
 import { supprimerAudio } from "@/lib/audio/stockage";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
 import { useToast } from "@/app/components/Toast";
@@ -159,6 +160,12 @@ export default function SessionsPage() {
               </div>
               <SessionChips session={s} />
               <div className="session-excerpt">{s.transcript || "(transcription vide)"}</div>
+              {s.transcript && (
+                <details className="annote-details">
+                  <summary>Transcription annotée</summary>
+                  <TranscriptAnnote transcript={s.transcript} titre="" />
+                </details>
+              )}
               {lireCache(window.localStorage, `blanche:${s.id}`) !== null && (
                 <Link href={`/app/soutenance-blanche?session=${s.id}`} className="btn small" style={{ marginTop: 8 }}>
                   🎓 Débrief de la soutenance blanche →

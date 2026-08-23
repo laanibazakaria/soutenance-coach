@@ -170,6 +170,12 @@ stocke ont exactement la même forme : la synchronisation est une copie, pas une
 Tant que ces variables manquent, le bouton « Se connecter » mène à une page qui l'explique,
 et l'application fonctionne en mode local.
 
+**Le retour visible, tout de suite** : la **transcription annotée** (chaque béquille surlignée
+là où elle a été dite — même détection que le comptage), la **jauge de débit en direct**
+pendant qu'on parle, et « **voici comment un excellent candidat répondrait** » après chaque
+réponse au jury, au recruteur ou au jury de module — un exemple sur *son* dossier, avec
+l'interdiction d'inventer un fait (les manques sont marqués « à compléter »).
+
 **En anglais aussi** : la langue de l'oral (français / anglais) règle la reconnaissance vocale,
 les béquilles comptées (« um », « like », « you know »…) et la langue des avis des jurys IA.
 

@@ -10,6 +10,7 @@ import LecteurAudio from "@/app/components/LecteurAudio";
 import { sauverAudio } from "@/lib/audio/stockage";
 import { pousserTout } from "@/lib/sync/client";
 import { useEnregistrement } from "../hooks/useEnregistrement";
+import { lireLangue, sauverLangue, LANGUES, type Langue } from "@/lib/langue";
 import { MODULES, estModuleId } from "@/lib/modules";
 
 /**
@@ -29,7 +30,9 @@ const FORMATS: ReadonlyArray<{ label: string; hint?: string; minutes: number | n
 
 export default function SessionPage() {
   const router = useRouter();
-  const rec = useEnregistrement();
+  const [langue, setLangue] = useState<Langue>("fr-FR");
+  useEffect(() => setLangue(lireLangue(window.localStorage)), []);
+  const rec = useEnregistrement(langue);
   const [targetMinutes, setTargetMinutes] = useState<number | null>(null);
   const [mode, setMode] = useState<"soutenance" | "entretien" | "pitch" | "concours">("soutenance");
 
@@ -116,6 +119,26 @@ export default function SessionPage() {
           </b>
           <p>{MODULES[mode].formatConsigne} Le coach comparera ensuite ta présentation à ton dossier.</p>
         </div>
+      )}
+
+      {phase === "idle" && (
+        <fieldset className="formats formats-langue">
+          <legend>Langue de l&apos;oral</legend>
+          {LANGUES.map((l) => (
+            <button
+              key={l.id}
+              type="button"
+              className={`format-btn${langue === l.id ? " active" : ""}`}
+              aria-pressed={langue === l.id}
+              onClick={() => {
+                setLangue(l.id);
+                sauverLangue(window.localStorage, l.id);
+              }}
+            >
+              {l.label}
+            </button>
+          ))}
+        </fieldset>
       )}
 
       {phase === "idle" && (

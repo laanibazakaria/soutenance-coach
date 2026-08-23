@@ -11,6 +11,7 @@
 import type { ScoreReport } from "../scoring/types";
 import type { Slide } from "../slides/types";
 import type { SlideTiming } from "../types";
+import { consigneLangue, type LangueCourte } from "../langue";
 
 export interface DemandeCoach {
   transcript: string;
@@ -24,6 +25,7 @@ export interface DemandeCoach {
   candidature?: { poste: string; entreprise: string; offre: string; cvTexte: string };
   /** Modules pitch / concours : la présentation est comparée au dossier. */
   dossier?: { nom: string; persona: string; consigne: string; contexte: string };
+  langue?: LangueCourte;
 }
 
 export interface Reformulation {
@@ -119,7 +121,7 @@ Règles impératives :
 - "reformulations" : 1 à 3 — "avant" reprend une phrase réellement dite, "apres" la version que ce jury retient : courte, concrète, un fait.
 - "points_forts" : 1 à 3 choses qui tiennent vraiment.
 - "priorite" : une seule phrase — la chose à travailler avant le jour J.
-- Français, tutoiement, phrases courtes, concret. Exigeant mais bienveillant.`;
+- Français, tutoiement, phrases courtes, concret. Exigeant mais bienveillant.${consigneLangue(demande.langue)}`;
   }
 
   if (demande.candidature) {
@@ -156,7 +158,7 @@ Règles impératives :
 - "reformulations" : 1 à 3 — "avant" reprend une phrase réellement dite, "apres" la version qu'un recruteur retient : courte, concrète, orientée résultat.
 - "points_forts" : 1 à 3 choses qui tiennent vraiment.
 - "priorite" : une seule phrase — la chose à travailler avant l'entretien. Rappelle la structure présent / passé / futur si elle manque, et la durée (deux minutes).
-- Français, tutoiement, phrases courtes, concret. Exigeant mais bienveillant.`;
+- Français, tutoiement, phrases courtes, concret. Exigeant mais bienveillant.${consigneLangue(demande.langue)}`;
   }
 
   return `Tu es un coach de soutenance (école d'ingénieurs, Maroc/France). Un étudiant vient de répéter sa présentation à voix haute. La transcription est automatique : ignore les fautes de transcription, juge le fond et la clarté.
@@ -188,7 +190,7 @@ Règles impératives :
 - "reformulations" : 1 à 3 — "avant" reprend une phrase réellement dite (citation), "apres" la version à dire, courte et nette.
 - "points_forts" : 1 à 3 choses qui tiennent vraiment (pas de compliment vide).
 - "priorite" : une seule phrase — la chose à travailler avant la prochaine répétition.
-- Français, tutoiement, phrases courtes, concret. Exigeant mais bienveillant.`;
+- Français, tutoiement, phrases courtes, concret. Exigeant mais bienveillant.${consigneLangue(demande.langue)}`;
 }
 
 function listeDeTextes(v: unknown, max: number): string[] | null {

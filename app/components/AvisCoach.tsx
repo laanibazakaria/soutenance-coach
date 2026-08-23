@@ -9,6 +9,7 @@ import { lireCandidature } from "@/lib/entretien/persistance";
 import { MODULES, estModuleId, contexteProfil } from "@/lib/modules";
 import { lireProfil } from "@/lib/modules/persistance";
 import { pousserTout } from "@/lib/sync/client";
+import { lireLangue, courte } from "@/lib/langue";
 
 /** Clé de cache d'un avis : une session, un avis — on ne redemande pas. */
 export function cleAvisCoach(sessionId: string): string {
@@ -61,6 +62,7 @@ export default function AvisCoach({ session, compact = false }: Props) {
             ? { poste: candidature.poste, entreprise: candidature.entreprise, offre: candidature.offre, cvTexte: candidature.cvTexte }
             : undefined,
           dossier,
+          langue: courte(lireLangue(window.localStorage)),
         }),
       });
       const data = (await res.json()) as { avis?: Avis; erreur?: string };

@@ -818,3 +818,5 @@ input[type="checkbox"]:focus { box-shadow: none; outline: 2px solid var(--violet
 .lecteur-audio { height: 36px; max-width: 100%; }
 .lecteur-compact { margin-top: 8px; }
 .lecteur-compact .lecteur-audio { height: 32px; width: 280px; }
+
+.formats-langue { margin-bottom: 10px; }

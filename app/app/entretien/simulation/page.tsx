@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { lireLangue, courte, type Langue } from "@/lib/langue";
 import { useEnregistrement } from "../../hooks/useEnregistrement";
 import { questionsClassiques, LIBELLES_CATEGORIES_ENTRETIEN, LIBELLES_ROLE, type Candidature, type QuestionEntretien, type RoleRecruteur } from "@/lib/entretien";
 import { lireCandidature, marquerEtapeEntretien, cleQuestionsEntretien } from "@/lib/entretien/persistance";
@@ -21,7 +22,9 @@ function composer(candidature: Candidature | null, role: RoleRecruteur, ia: Ques
 
 /** Simulation d'entretien : le recruteur pose, tu réponds au micro, il relance. */
 export default function SimulationEntretienPage() {
-  const rec = useEnregistrement();
+  const [langue, setLangue] = useState<Langue>("fr-FR");
+  useEffect(() => setLangue(lireLangue(window.localStorage)), []);
+  const rec = useEnregistrement(langue);
   const [candidature, setCandidature] = useState<Candidature | null | undefined>(undefined);
   const [role, setRole] = useState<RoleRecruteur>("rh");
   const [questions, setQuestions] = useState<QuestionEntretien[]>([]);
@@ -77,6 +80,7 @@ export default function SimulationEntretienPage() {
           reponse,
           latenceMs: Date.now() - questionAfficheeRef.current,
           role,
+          langue: courte(langue),
           candidature: candidature ? { poste: candidature.poste, entreprise: candidature.entreprise, offre: candidature.offre, cvTexte: candidature.cvTexte } : undefined,
         }),
       });

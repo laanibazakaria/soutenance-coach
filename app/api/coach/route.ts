@@ -20,6 +20,7 @@ function estDemande(v: unknown): v is DemandeCoach {
   if (o.slidesTiming !== undefined && !Array.isArray(o.slidesTiming)) return false;
   if (o.candidature !== undefined && (typeof o.candidature !== "object" || o.candidature === null)) return false;
   if (o.dossier !== undefined && (typeof o.dossier !== "object" || o.dossier === null)) return false;
+  if (o.langue !== undefined && o.langue !== "fr" && o.langue !== "en") return false;
   return true;
 }
 

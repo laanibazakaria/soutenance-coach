@@ -13,6 +13,7 @@
 
 import { countFillers, totalFillers } from "../scoring/fillers";
 import type { JuryQuestion } from "../slides/types";
+import { consigneLangue, type LangueCourte } from "../langue";
 
 export const SEUILS_REPONSE = {
   /** En dessous, la réponse est trop courte pour être évaluée honnêtement. */
@@ -145,6 +146,7 @@ export interface DemandeEvaluation {
   reponse: string;
   /** Contexte du support, pour que l'avis colle au projet réel. */
   contexteSlides?: string;
+  langue?: LangueCourte;
 }
 
 export interface AvisModele {
@@ -196,7 +198,7 @@ Règles impératives :
 - 1 à 3 éléments par liste, une phrase chacun, en français, en tutoyant l'étudiant.
 - "attendu" : ce qu'un jury espérait entendre sur cette question précise.
 - "relance" : la question de relance qu'un jury poserait après cette réponse.
-- Sois exigeant mais bienveillant : l'objectif est de progresser avant la vraie soutenance.`;
+- Sois exigeant mais bienveillant : l'objectif est de progresser avant la vraie soutenance.${consigneLangue(demande.langue)}`;
 }
 
 /**

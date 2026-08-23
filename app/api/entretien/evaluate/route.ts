@@ -15,6 +15,7 @@ interface Corps {
   latenceMs?: number;
   role?: RoleRecruteur;
   candidature?: { poste?: string; entreprise?: string; offre?: string; cvTexte?: string };
+  langue?: string;
 }
 
 export async function POST(request: Request) {
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
   // Quota vérifié avant le modèle, consommé seulement après succès : ni une requête invalide ni une panne du fournisseur ne coûtent un appel.
   const quota = await verifierQuota(request);
   if (!quota.ok) return quota.reponse;
-  const resultat = await appelerGemini(construirePromptEvaluationEntretien({ question, reponse, role, candidature }, analyse), {
+  const resultat = await appelerGemini(construirePromptEvaluationEntretien({ question, reponse, role, candidature, langue: corps.langue === "en" ? "en" : undefined }, analyse), {
     maxOutputTokens: 3000,
     temperature: 0.4,
   });

@@ -320,3 +320,10 @@ part avec la session, à la déconnexion, à la suppression du compte. Pendant l
 l'intensité est échantillonnée (Web Audio) ; les mesures — blancs longs, part de silence,
 dynamique de la voix — sont du code pur et testé, avec un seuil de silence adaptatif au bruit
 de fond. Le hook accepte désormais une langue de reconnaissance.
+
+## Étape Q — L'oral en anglais (24 août 2026)
+
+Entretiens et oraux en anglais sont fréquents pour les lauréats. Une préférence locale règle
+la langue de reconnaissance, la liste des béquilles s'enrichit des anglaises, et les jurys IA
+répondent en anglais quand l'oral est en anglais. Le reste de l'interface reste en français :
+c'est l'oral qui change de langue, pas le coach.

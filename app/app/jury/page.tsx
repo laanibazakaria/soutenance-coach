@@ -9,6 +9,7 @@ import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCache } from "@/lib/ia-cache";
 import { marquerEtape } from "@/lib/parcours/persistance";
 import { surSynchronisation } from "@/lib/sync/client";
+import { lireLangue, courte } from "@/lib/langue";
 import type { JuryQuestion } from "@/lib/slides/types";
 
 type Etape = "attente" | "reponse" | "evaluation";
@@ -78,7 +79,7 @@ export default function JuryPage() {
     questionAfficheeRef.current = Date.now();
 
     const rec = new Ctor();
-    rec.lang = "fr-FR";
+    rec.lang = lireLangue(window.localStorage);
     rec.continuous = true;
     rec.interimResults = true;
     rec.onresult = (ev) => {
@@ -129,6 +130,7 @@ export default function JuryPage() {
           reponse,
           latenceMs: Date.now() - questionAfficheeRef.current,
           contexteSlides: contexte,
+          langue: courte(lireLangue(window.localStorage)),
         }),
       });
       const data = await res.json();

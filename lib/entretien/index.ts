@@ -10,6 +10,7 @@
 
 import type { AnalyseReponse } from "../jury/evaluation";
 import type { SessionRecord } from "../types";
+import { consigneLangue, type LangueCourte } from "../langue";
 
 export type RoleRecruteur = "rh" | "technique";
 export type TypeEntretien = "rh" | "technique" | "mixte";
@@ -225,6 +226,7 @@ export interface DemandeEvaluationEntretien {
   reponse: string;
   role: RoleRecruteur;
   candidature?: Pick<Candidature, "poste" | "entreprise" | "offre" | "cvTexte">;
+  langue?: LangueCourte;
 }
 
 export function construirePromptEvaluationEntretien(d: DemandeEvaluationEntretien, analyse: AnalyseReponse): string {
@@ -266,7 +268,7 @@ Règles impératives :
 - 1 à 3 éléments par liste, une phrase chacun, en français, en tutoyant le candidat.
 - "attendu" : ce que tu espérais entendre, en t'appuyant sur le CV et l'offre si tu les as.
 - "relance" : la question que tu poserais juste après cette réponse — celle qui creuse là où c'est flou.
-- Exigeant mais bienveillant : l'objectif est d'être prêt le jour de l'entretien.`;
+- Exigeant mais bienveillant : l'objectif est d'être prêt le jour de l'entretien.${consigneLangue(d.langue)}`;
 }
 
 /* ── Checklist du module ── */

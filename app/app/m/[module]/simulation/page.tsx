@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { lireLangue, courte, type Langue } from "@/lib/langue";
 import { useEnregistrement } from "../../../hooks/useEnregistrement";
 import { MODULES, estModuleId, questionsClassiquesModule, type ModuleOral, type ProfilModule } from "@/lib/modules";
 import { lireProfil, marquerEtapeModule, cleQuestionsModule } from "@/lib/modules/persistance";
@@ -28,7 +29,9 @@ export default function SimulationModulePage() {
 
 /** Simulation générique : le jury du module pose, tu réponds au micro, il relance. */
 function Simulation({ m }: { m: ModuleOral }) {
-  const rec = useEnregistrement();
+  const [langue, setLangue] = useState<Langue>("fr-FR");
+  useEffect(() => setLangue(lireLangue(window.localStorage)), []);
+  const rec = useEnregistrement(langue);
   const [profil, setProfil] = useState<ProfilModule | null | undefined>(undefined);
   const [questions, setQuestions] = useState<QuestionEntretien[]>([]);
   const [index, setIndex] = useState(0);
@@ -75,6 +78,7 @@ function Simulation({ m }: { m: ModuleOral }) {
           question,
           reponse,
           latenceMs: Date.now() - questionAfficheeRef.current,
+          langue: courte(langue),
           profil: profil ? { champs: profil.champs, documentTexte: profil.documentTexte } : undefined,
         }),
       });

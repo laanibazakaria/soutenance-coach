@@ -11,6 +11,7 @@
 import type { AnalyseReponse } from "../jury/evaluation";
 import type { SessionRecord } from "../types";
 import type { QuestionEntretien, CategorieEntretien } from "../entretien";
+import { consigneLangue, type LangueCourte } from "../langue";
 
 export type ModuleId = "pitch" | "concours";
 
@@ -264,6 +265,7 @@ export interface DemandeEvaluationModule {
   question: QuestionEntretien;
   reponse: string;
   profil?: Pick<ProfilModule, "champs" | "documentTexte">;
+  langue?: LangueCourte;
 }
 
 export function construirePromptEvaluationModule(m: ModuleOral, d: DemandeEvaluationModule, analyse: AnalyseReponse): string {
@@ -301,7 +303,7 @@ Règles impératives :
 - 1 à 3 éléments par liste, une phrase chacun, en français, en tutoyant le candidat.
 - "attendu" : ce que tu espérais entendre, en t'appuyant sur le dossier si tu l'as.
 - "relance" : la question que tu poserais juste après — celle qui creuse là où c'est flou.
-- Exigeant mais bienveillant : l'objectif est d'être prêt le jour J.`;
+- Exigeant mais bienveillant : l'objectif est d'être prêt le jour J.${consigneLangue(d.langue)}`;
 }
 
 export interface EtapeModuleEtat extends EtapeModule {

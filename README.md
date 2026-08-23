@@ -170,6 +170,9 @@ stocke ont exactement la même forme : la synchronisation est une copie, pas une
 Tant que ces variables manquent, le bouton « Se connecter » mène à une page qui l'explique,
 et l'application fonctionne en mode local.
 
+**En anglais aussi** : la langue de l'oral (français / anglais) règle la reconnaissance vocale,
+les béquilles comptées (« um », « like », « you know »…) et la langue des avis des jurys IA.
+
 **Réécoute-toi** : l'audio est enregistré sur l'appareil (IndexedDB — jamais envoyé, jamais
 synchronisé, effacé avec la session), réécoutable depuis l'historique ; le son est mesuré
 pendant l'enregistrement — blancs de plus de 1,5 s, part de silence, dynamique de la voix — par

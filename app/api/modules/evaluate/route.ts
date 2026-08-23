@@ -11,6 +11,7 @@ interface Corps {
   reponse?: string;
   latenceMs?: number;
   profil?: { champs?: Record<string, string>; documentTexte?: string };
+  langue?: string;
 }
 
 /** Avis du jury du module sur une réponse orale — mesures d'abord, jamais de note. */
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
   // Quota vérifié avant le modèle, consommé seulement après succès : ni une requête invalide ni une panne du fournisseur ne coûtent un appel.
   const quota = await verifierQuota(request);
   if (!quota.ok) return quota.reponse;
-  const resultat = await appelerGemini(construirePromptEvaluationModule(m, { question, reponse, profil }, analyse), { maxOutputTokens: 3000, temperature: 0.4 });
+  const resultat = await appelerGemini(construirePromptEvaluationModule(m, { question, reponse, profil, langue: corps.langue === "en" ? "en" : undefined }, analyse), { maxOutputTokens: 3000, temperature: 0.4 });
   if (resultat.ok) await quota.confirmer();
   if (!resultat.ok) {
     return NextResponse.json({ erreur: `${resultat.erreur} Les mesures automatiques restent disponibles.`, code: resultat.code, analyse }, { status: resultat.code === "cle_absente" ? 503 : 502 });

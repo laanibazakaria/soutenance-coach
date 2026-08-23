@@ -15,6 +15,7 @@ interface CorpsRequete {
   reponse?: string;
   latenceMs?: number;
   contexteSlides?: string;
+  langue?: string;
 }
 
 export async function POST(request: Request) {
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
   }
 
   const { question, reponse, latenceMs, contexteSlides } = corps;
+  const langue = corps.langue === "en" ? "en" : undefined;
   if (!question?.question || typeof reponse !== "string") {
     return NextResponse.json({ erreur: "Question ou réponse manquante." }, { status: 400 });
   }
@@ -35,7 +37,7 @@ export async function POST(request: Request) {
   const quota = await verifierQuota(request);
   if (!quota.ok) return quota.reponse;
   const resultat = await appelerGemini(
-    construirePrompt({ question, reponse, contexteSlides }, analyse),
+    construirePrompt({ question, reponse, contexteSlides, langue }, analyse),
     { maxOutputTokens: 3000, temperature: 0.4 },
   );
   if (resultat.ok) await quota.confirmer();

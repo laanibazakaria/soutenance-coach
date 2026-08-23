@@ -24,10 +24,28 @@ const MULTI_WORD: ReadonlyArray<readonly [canonical: string, words: readonly str
   ["grosso modo", ["grosso", "modo"]],
   ["au final", ["au", "final"]],
   ["pour le coup", ["pour", "le", "coup"]],
+  // Anglais — pour les oraux et entretiens en anglais.
+  ["you know", ["you", "know"]],
+  ["i mean", ["i", "mean"]],
+  ["kind of", ["kind", "of"]],
+  ["sort of", ["sort", "of"]],
 ];
 
 /** Mots simples. La clé est la forme rencontrée, la valeur la forme canonique. */
 const SINGLE_WORD: ReadonlyMap<string, string> = new Map([
+  // Anglais
+  ["um", "um"],
+  ["umm", "um"],
+  ["uh", "um"],
+  ["uhm", "um"],
+  ["er", "um"],
+  ["erm", "um"],
+  ["hmm", "um"],
+  ["basically", "basically"],
+  ["actually", "actually"],
+  ["literally", "literally"],
+  ["like", "like"],
+  ["okay", "okay"],
   ["euh", "euh"],
   ["heu", "euh"],
   ["hem", "euh"],

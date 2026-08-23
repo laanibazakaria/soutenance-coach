@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { lireLangue, courte, type Langue } from "@/lib/langue";
 import { useEnregistrement } from "../hooks/useEnregistrement";
 import { listSessions } from "@/lib/storage";
 import type { SessionRecord } from "@/lib/types";
@@ -46,7 +47,9 @@ function mmss(ms: number): string {
  * réponse avec l'avis du jury.
  */
 export default function SoutenanceBlanchePage() {
-  const rec = useEnregistrement();
+  const [langue, setLangue] = useState<Langue>("fr-FR");
+  useEffect(() => setLangue(lireLangue(window.localStorage)), []);
+  const rec = useEnregistrement(langue);
   const toast = useToast();
   const [session, setSession] = useState<SessionRecord | null | undefined>(undefined);
   const [questions, setQuestions] = useState<JuryQuestion[]>([]);
@@ -99,7 +102,7 @@ export default function SoutenanceBlanchePage() {
         const res = await fetch("/api/jury/evaluate", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ question, reponse: transcript, latenceMs: Date.now() - affichageRef.current, contexteSlides: contexte }),
+          body: JSON.stringify({ question, reponse: transcript, latenceMs: Date.now() - affichageRef.current, contexteSlides: contexte, langue: courte(langue) }),
         });
         const data = (await res.json()) as { avis?: AvisModele; erreur?: string };
         if (res.ok && data.avis) avis = data.avis;

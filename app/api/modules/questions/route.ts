@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { appelerGemini } from "@/lib/gemini";
+import { consommerQuota } from "@/lib/quota-serveur";
 import { MODULES, estProfilModule, construirePromptQuestionsModule } from "@/lib/modules";
 import { parseQuestionsEntretien } from "@/lib/entretien";
 
@@ -17,6 +18,9 @@ export async function POST(request: Request) {
   if (!profil.documentTexte.trim() && !Object.values(profil.champs).some((v) => v.trim())) {
     return NextResponse.json({ erreur: "Décris ton projet ou dépose ton dossier pour personnaliser les questions." }, { status: 400 });
   }
+  // Un appel au modèle = un appel du quota. La requête est déjà validée : une requête invalide ne coûte rien.
+  const quota = await consommerQuota(request);
+  if (!quota.ok) return quota.reponse;
   const resultat = await appelerGemini(construirePromptQuestionsModule(m, profil), { maxOutputTokens: 5000, temperature: 0.6 });
   if (!resultat.ok) {
     return NextResponse.json({ erreur: resultat.erreur, code: resultat.code }, { status: resultat.code === "cle_absente" ? 503 : 502 });

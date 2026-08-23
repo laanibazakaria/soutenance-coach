@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { appelerGemini } from "@/lib/gemini";
+import { consommerQuota } from "@/lib/quota-serveur";
 import { construirePromptQuestions, parseQuestionsGenerees } from "@/lib/jury/generation";
 import { decouperSlide } from "@/lib/slides/analyse";
 import type { Deck } from "@/lib/slides/types";
@@ -31,6 +32,9 @@ export async function POST(request: Request) {
   }
   const deck: Deck = { nomFichier: corps.nomFichier ?? "support.pdf", slides };
 
+  // Un appel au modèle = un appel du quota. La requête est déjà validée : une requête invalide ne coûte rien.
+  const quota = await consommerQuota(request);
+  if (!quota.ok) return quota.reponse;
   const resultat = await appelerGemini(
     construirePromptQuestions(deck, { nombre: 10, dureeMinutes: corps.dureeMinutes }),
     { maxOutputTokens: 5000, temperature: 0.6 },

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AccountBar from "./AccountBar";
+import UsageBadge from "./UsageBadge";
 import { moduleDuChemin } from "./ModuleTabs";
 import { lireModulesActifs, TOUS_LES_MODULES, type ModuleActif } from "@/lib/preferences";
 import { surSynchronisation } from "@/lib/sync/client";
@@ -36,6 +37,12 @@ const I = {
   ),
   compte: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M20 21c0-3.87-3.58-7-8-7s-8 3.13-8 7" /></svg>
+  ),
+  forfaits: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
+  ),
+  admin: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
   ),
   micro: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" /></svg>
@@ -89,6 +96,7 @@ function LienNav({ href, label, icone, actif }: { href: string; label: string; i
 export default function Sidebar() {
   const chemin = usePathname();
   const actifs = useModulesActifs();
+  const [admin, setAdmin] = useState(false);
   const moduleCourant = moduleDuChemin(chemin)?.id;
   const modules = TOUS_LES_MODULES.filter((m) => actifs.includes(m.id));
 
@@ -114,6 +122,8 @@ export default function Sidebar() {
 
       <div className="sidebar-section">Compte</div>
       <LienNav href="/app/connexion" label="Mon compte" icone={I.compte} actif={chemin.startsWith("/app/connexion")} />
+      <LienNav href="/app/forfaits" label="Forfaits" icone={I.forfaits} actif={chemin.startsWith("/app/forfaits")} />
+      {admin && <LienNav href="/app/admin" label="Admin" icone={I.admin} actif={chemin.startsWith("/app/admin")} />}
 
       <div className="sidebar-bas">
         <Link href="/app/session" className="btn primary sidebar-cta">
@@ -122,6 +132,7 @@ export default function Sidebar() {
         </Link>
         <div className="sidebar-account">
           <AccountBar />
+          <UsageBadge onAdmin={setAdmin} />
         </div>
         <nav className="sidebar-legal" aria-label="Informations légales">
           <Link href="/confidentialite">Confidentialité</Link>

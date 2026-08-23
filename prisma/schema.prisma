@@ -160,3 +160,18 @@ model ProfilModule {
 
   @@id([userId, module])
 }
+
+/// Compteur d'appels IA par appelant (compte ou empreinte d'adresse) et par mois civil.
+model Usage {
+  cle    String
+  mois   String
+  appels Int    @default(0)
+
+  @@id([cle, mois])
+}
+
+/// Liste d'attente de l'offre Pro.
+model Interet {
+  email  String   @id
+  creeLe DateTime @default(now())
+}

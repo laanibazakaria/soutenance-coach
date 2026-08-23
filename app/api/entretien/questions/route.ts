@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { appelerGemini } from "@/lib/gemini";
+import { consommerQuota } from "@/lib/quota-serveur";
 import { construirePromptQuestionsEntretien, parseQuestionsEntretien, estCandidature } from "@/lib/entretien";
 
 /**
@@ -21,6 +22,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ erreur: "Il faut au moins l'offre ou le CV pour personnaliser les questions." }, { status: 400 });
   }
 
+  // Un appel au modèle = un appel du quota. La requête est déjà validée : une requête invalide ne coûte rien.
+  const quota = await consommerQuota(request);
+  if (!quota.ok) return quota.reponse;
   const resultat = await appelerGemini(construirePromptQuestionsEntretien(candidature), { maxOutputTokens: 5000, temperature: 0.6 });
   if (!resultat.ok) {
     return NextResponse.json({ erreur: resultat.erreur, code: resultat.code }, { status: resultat.code === "cle_absente" ? 503 : 502 });

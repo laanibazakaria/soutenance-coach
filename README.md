@@ -170,6 +170,11 @@ stocke ont exactement la même forme : la synchronisation est une copie, pas une
 Tant que ces variables manquent, le bouton « Se connecter » mène à une page qui l'explique,
 et l'application fonctionne en mode local.
 
+**Quotas IA** : 20 appels par mois sans compte (par empreinte d'adresse — jamais l'adresse
+elle-même), 80 avec un compte, surchargeables par `QUOTA_ANONYME` / `QUOTA_COMPTE` ; compteur
+visible dans la barre latérale, page **Forfaits** (Gratuit / Pro bientôt, liste d'attente),
+tableau de bord **admin** (`ADMIN_EMAIL`) sans aucune transcription.
+
 Avec un compte : **suppression du compte** en un clic (tout est effacé, serveur et appareil),
 [politique de confidentialité](https://soutenance-coach.vercel.app/confidentialite) et
 [mentions légales](https://soutenance-coach.vercel.app/mentions-legales) écrites pour être lues,

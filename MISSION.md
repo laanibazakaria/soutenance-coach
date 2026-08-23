@@ -269,3 +269,19 @@ Les profils sont synchronisés (table `ProfilModule`, clé utilisateur + module)
 spécifiques ou rien ; mesures par du code, jamais de note ; faiblesses pointées avec respect.
 Le module Entretien, construit avant le moteur, garde sa propre implémentation — à migrer un
 jour sur le moteur, sans urgence : il marche.
+
+## Étape L — Les fondations du payant (24 août 2026)
+
+**Le manque.** Un palier gratuit partagé ne survit pas à un utilisateur enthousiaste : le quota
+Gemini a été atteint une fois pendant les tests. Et vendre un jour suppose de savoir qui
+utilise quoi, et qui est prêt à payer.
+
+**Ce qui est construit.** Quotas par mois civil — par compte, ou par empreinte d'adresse sans
+compte (l'adresse n'est jamais stockée) — consommés juste avant chaque appel au modèle, après
+validation de la requête ; message clair à la limite, qui invite à créer un compte. Compteur
+dans la barre latérale. Page Forfaits : Gratuit aujourd'hui, Pro bientôt avec liste d'attente.
+Tableau de bord admin : comptes, sessions, appels IA, liste d'attente — jamais une transcription.
+
+**Garde-fous.** L'administrateur n'a pas de quota mais pas non plus d'accès aux contenus ; une
+requête invalide ne consomme rien ; sans base configurée, rien n'est compté (un déploiement
+local reste simple).

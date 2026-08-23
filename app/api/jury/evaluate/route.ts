@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { appelerGemini } from "@/lib/gemini";
+import { consommerQuota } from "@/lib/quota-serveur";
 import { analyserReponse, construirePrompt, parseAvis } from "@/lib/jury/evaluation";
 import type { JuryQuestion } from "@/lib/slides/types";
 
@@ -30,6 +31,9 @@ export async function POST(request: Request) {
   }
 
   const analyse = analyserReponse(reponse, latenceMs);
+  // Un appel au modèle = un appel du quota. La requête est déjà validée : une requête invalide ne coûte rien.
+  const quota = await consommerQuota(request);
+  if (!quota.ok) return quota.reponse;
   const resultat = await appelerGemini(
     construirePrompt({ question, reponse, contexteSlides }, analyse),
     { maxOutputTokens: 3000, temperature: 0.4 },

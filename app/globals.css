@@ -855,3 +855,18 @@ mark.beq { background: rgba(255, 215, 0, 0.45); color: var(--heading); border-ra
 .fiche { touch-action: pan-y; user-select: none; }
 .fiche-oui { box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.35), var(--shadow-lg); }
 .fiche-non { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.35), var(--shadow-lg); }
+
+/* ═══════════════ Ami-jury, vraies questions ═══════════════ */
+.ami-carte { border-left: 3px solid var(--ok); }
+.ami-lien { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+.ami-lien-tete { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; word-break: break-all; }
+.ami-intro h1 { color: var(--heading); }
+.ami-cases { display: flex; flex-direction: column; gap: 8px; }
+.ami-cases label { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
+.ami-cases input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--violet); }
+.ami-chrono { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--muted); }
+.ami-chrono-depasse { color: var(--danger); }
+.reelles-carte { display: block; margin-bottom: 16px; border-left: 3px solid var(--gold); color: var(--txt); }
+.reelles-groupe { margin-bottom: 14px; }
+.reelles-liste { margin: 10px 0 8px 22px; line-height: 1.7; }
+.retour-oral { margin-top: 12px; }

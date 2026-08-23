@@ -170,6 +170,12 @@ stocke ont exactement la même forme : la synchronisation est une copie, pas une
 Tant que ces variables manquent, le bouton « Se connecter » mène à une page qui l'explique,
 et l'application fonctionne en mode local.
 
+**L'app sociale** : **répéter avec un ami** — un lien lui ouvre « tu es le jury » (les questions
+à poser, un chrono, trois cases par réponse, une remarque) et son retour revient dans la
+préparation ; **les vraies questions des vrais jurys** — après l'oral, l'étudiant raconte
+anonymement les questions qu'on lui a réellement posées, relues avant publication, regroupées
+par école et filière.
+
 **Ce qui fait revenir** : la **question du jour** (une question de son jury, tirée de ses
 modules actifs, 60 secondes au micro, un retour, l'exemple d'une excellente réponse) et une
 **série** honnête ; des **rappels** par notification (web push, une tâche planifiée par jour :

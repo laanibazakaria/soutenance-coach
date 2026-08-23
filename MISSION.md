@@ -345,3 +345,12 @@ phrase ne reproche jamais). Des rappels push — un par jour, le soir, par une t
 protégée par secret : l'échéance la plus proche, sinon la question du jour ; les abonnements
 morts sont supprimés ; activables et désactivables d'un clic, jamais demandés sans un geste.
 Les fiches se swipent. Tout ceci est ce que l'application mobile reprendra tel quel.
+
+## Étape T — L'app sociale (24 août 2026)
+
+Un étudiant répète avec un ami : le lien lui donne les bonnes questions (spécifiques d'abord),
+ce qu'un bon jury vérifie, un chrono, trois cases et une remarque — sans compte ; le retour
+revient dans la préparation, synthétisé par question. Et après l'oral, deux minutes pour
+raconter les vraies questions : anonymes, modérées par l'administrateur avant publication,
+regroupées par école et filière — l'actif que personne d'autre n'a, et qui grandit avec chaque
+promotion.

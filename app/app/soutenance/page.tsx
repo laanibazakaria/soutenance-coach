@@ -8,6 +8,11 @@ import type { SessionRecord } from "@/lib/types";
 import TrendsView from "@/app/components/TrendsView";
 import ParcoursView from "../components/ParcoursView";
 import RapportView from "../components/RapportView";
+import RepeterAvecAmi from "../components/RepeterAvecAmi";
+import { lireCache } from "@/lib/ia-cache";
+import { listeDeckSauvegarde } from "@/lib/slides/persistance";
+import { genererQuestions, selectionnerPourEntrainement } from "@/lib/jury";
+import type { JuryQuestion } from "@/lib/slides/types";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 
 /** Le module Soutenance : le parcours, puis la progression mesurée. */
@@ -22,6 +27,10 @@ export default function SoutenancePage() {
 
   if (sessions === null) return null;
 
+  const deck = listeDeckSauvegarde(window.localStorage);
+  const specifiques = lireCache<JuryQuestion[]>(window.localStorage, "questions-courantes") ?? [];
+  const questionsAmi = [...specifiques, ...selectionnerPourEntrainement(genererQuestions(deck ?? { nomFichier: "", slides: [] }), 4)].slice(0, 8);
+
   const trends = sessions.length > 0 ? buildTrendReport(sessions) : null;
   const anyTrendUnlocked = trends?.some((t) => t.trend !== "absent") ?? false;
   const remaining = Math.max(0, SEUILS_TENDANCES.minSessions - sessions.length);
@@ -30,6 +39,7 @@ export default function SoutenancePage() {
     <>
       <ParcoursView sessions={sessions} onChange={() => void pousserTout()} />
       <RapportView />
+      <RepeterAvecAmi titre="Ma soutenance" persona="Jury de soutenance" dureeS={60} cle="sc.amis.soutenance" questions={questionsAmi.map((q) => ({ question: q.question, pourquoi: q.pourquoi }))} />
 
       <div className="list-head">
         <h2 className="list-title">Tes sessions de soutenance</h2>

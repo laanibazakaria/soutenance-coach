@@ -18,6 +18,8 @@ import { extraireDeckPDF, ExtractionError } from "@/lib/slides/extract";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import { useToast } from "@/app/components/Toast";
 import { telechargerIcs } from "@/lib/ics";
+import RepeterAvecAmi from "../components/RepeterAvecAmi";
+import RetourOralForm from "../components/RetourOralForm";
 
 const TYPES: ReadonlyArray<{ id: TypeEntretien; label: string; hint: string }> = [
   { id: "rh", label: "RH", hint: "motivation, parcours" },
@@ -186,6 +188,21 @@ export default function EntretienPage() {
           )}
         </div>
       </section>
+
+      {jours !== null && jours < 0 && (
+        <section className="card">
+          <h2 className="list-title" style={{ marginTop: 0 }}>L&apos;entretien est passé</h2>
+          <RetourOralForm type="entretien" ecoleInitiale={candidature.entreprise} niveauInitial={candidature.poste} />
+        </section>
+      )}
+
+      <RepeterAvecAmi
+        titre={`Entretien ${[candidature.poste, candidature.entreprise].filter(Boolean).join(" — ")}`}
+        persona="Recruteur"
+        dureeS={60}
+        cle="sc.amis.entretien"
+        questions={[...(questions ?? []), ...classiques].slice(0, 8).map((q) => ({ question: q.question, pourquoi: q.pourquoi, attendu: q.attendu }))}
+      />
 
       <section id="questions">
         <div className="list-head">

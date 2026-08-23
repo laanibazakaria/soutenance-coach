@@ -14,6 +14,7 @@ import {
 import { lireParcours, sauverParcours, marquerEtape, detecterContexte } from "@/lib/parcours/persistance";
 import { surSynchronisation } from "@/lib/sync/client";
 import { telechargerIcs } from "@/lib/ics";
+import RetourOralForm from "./RetourOralForm";
 import type { SessionRecord } from "@/lib/types";
 
 function versDate(d: string): Date {
@@ -91,7 +92,8 @@ export default function ParcoursView({ sessions, onChange }: Props) {
           🎓 Ta soutenance {libelle} était le {dateLongue(parcours.dateSoutenance)}.
         </h2>
         <p>Bravo d&apos;être allé au bout. Tes sessions restent ici pour la prochaine.</p>
-        <button className="btn small" onClick={() => setEdition(true)}>
+        <RetourOralForm type="soutenance" niveauInitial={libelle} />
+        <button className="btn small" onClick={() => setEdition(true)} style={{ marginTop: 12 }}>
           Préparer une nouvelle soutenance
         </button>
       </section>

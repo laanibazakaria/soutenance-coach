@@ -195,3 +195,20 @@ model PushAbonnement {
 
   @@index([userId])
 }
+
+/// Un oral raconté après coup : les vraies questions, anonymes, modérées.
+model RetourOral {
+  id        String   @id @default(cuid())
+  type      String
+  ecole     String
+  filiere   String
+  niveau    String
+  annee     Int
+  questions Json
+  ressenti  String?
+  conseil   String?
+  approuve  Boolean  @default(false)
+  creeLe    DateTime @default(now())
+
+  @@index([approuve, type])
+}

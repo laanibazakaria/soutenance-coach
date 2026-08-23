@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { synchroniser, marquerDeconnecte } from "@/lib/sync/client";
+import { synchroniser, marquerDeconnecte, deconnexionPropre } from "@/lib/sync/client";
 
 /**
  * Coin compte de la barre supérieure : état de connexion, synchronisation,
@@ -12,6 +12,23 @@ import { synchroniser, marquerDeconnecte } from "@/lib/sync/client";
 export default function AccountBar() {
   const { data: session, status } = useSession();
   const [etat, setEtat] = useState<"idle" | "sync" | "ok" | "erreur">("idle");
+  const [quitte, setQuitte] = useState(false);
+
+  async function seDeconnecter() {
+    setQuitte(true);
+    const resultat = await deconnexionPropre();
+    if (
+      resultat === "conserve" &&
+      !window.confirm(
+        "Le serveur est injoignable : tes dernières modifications ne sont pas encore sur ton compte. " +
+          "Se déconnecter quand même ? Elles resteront visibles sur cet appareil.",
+      )
+    ) {
+      setQuitte(false);
+      return;
+    }
+    await signOut({ callbackUrl: "/app" });
+  }
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -50,8 +67,8 @@ export default function AccountBar() {
         <img src={session.user.image} alt="" className="avatar" width={28} height={28} />
       ) : null}
       <span className="account-name">{prenom}</span>
-      <button className="btn small" onClick={() => void signOut({ callbackUrl: "/app" })}>
-        Déconnexion
+      <button className="btn small" onClick={() => void seDeconnecter()} disabled={quitte}>
+        {quitte ? "Déconnexion…" : "Déconnexion"}
       </button>
     </span>
   );

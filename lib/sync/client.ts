@@ -7,7 +7,7 @@
 
 import { listSessions, remplacerSessions } from "../storage";
 import { listeDeckSauvegarde, sauverDeck } from "../slides/persistance";
-import { fusionnerSessions, sessionsAPousser, fusionnerDeck, fusionnerIa } from "./merge";
+import { fusionnerSessions, sessionsAPousser, fusionnerDeck, fusionnerIa, viderDonneesLocales } from "./merge";
 import type { SessionRecord } from "../types";
 import type { Deck } from "../slides/types";
 
@@ -123,6 +123,23 @@ export async function pousserTout(): Promise<void> {
   } catch {
     /* réessayé à la prochaine synchronisation */
   }
+}
+
+/**
+ * Avant de se déconnecter : un dernier envoi, puis l'appareil est vidé — le
+ * travail reste sur le compte. Si le serveur est injoignable, on ne vide
+ * rien ("conserve") : perdre une session serait pire que la laisser ici.
+ */
+export async function deconnexionPropre(): Promise<"vide" | "conserve"> {
+  const ls = window.localStorage;
+  try {
+    const ok = await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa() });
+    if (!ok) return "conserve";
+  } catch {
+    return "conserve";
+  }
+  viderDonneesLocales(ls);
+  return "vide";
 }
 
 /** Après une suppression locale : la répercute sur le compte. */

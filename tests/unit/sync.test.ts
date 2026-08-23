@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { fusionnerSessions, sessionsAPousser, fusionnerDeck, fusionnerIa } from "../../lib/sync/merge";
+import { fusionnerSessions, sessionsAPousser, fusionnerDeck, fusionnerIa, viderDonneesLocales } from "../../lib/sync/merge";
 import type { SessionRecord } from "../../lib/types";
 
 const s = (id: string, startedAt: string, transcript = "x"): SessionRecord => ({
@@ -60,5 +60,35 @@ describe("fusionnerDeck", () => {
 describe("fusionnerIa", () => {
   it("union des clés, le local l'emporte en cas de conflit", () => {
     expect(fusionnerIa({ a: 1, c: "local" }, { b: 2, c: "distant" })).toEqual({ a: 1, b: 2, c: "local" });
+  });
+});
+
+describe("viderDonneesLocales", () => {
+  function faux(entrees: Record<string, string>) {
+    const m = new Map(Object.entries(entrees));
+    return {
+      m,
+      get length() { return m.size; },
+      key: (i: number) => [...m.keys()][i] ?? null,
+      removeItem: (k: string) => { m.delete(k); },
+    };
+  }
+
+  it("efface sessions, support, cache IA et drapeau — et rien d'autre", () => {
+    const st = faux({
+      "sc.sessions.v1": "[]",
+      "sc.deck.v1": "{}",
+      "sc.connecte": "1",
+      "sc.ia.v1:pitch:abc": "{}",
+      "sc.ia.v1:questions:def": "{}",
+      "sc.reglages.v1": "{\"theme\":\"sombre\"}",
+      "autre-application": "x",
+    });
+    expect(viderDonneesLocales(st)).toBe(5);
+    expect([...st.m.keys()]).toEqual(["sc.reglages.v1", "autre-application"]);
+  });
+
+  it("sur un stockage vide, ne fait rien", () => {
+    expect(viderDonneesLocales(faux({}))).toBe(0);
   });
 });

@@ -10,7 +10,7 @@ Aucune installation, compte facultatif. Ouvre le lien dans Chrome ou Edge, autor
 et parle. *(Sans compte, tout reste sur ton appareil ; avec un compte Google, ton travail te suit
 sur tous tes appareils — jamais l'audio.)*
 
-> Hébergée sur Vercel. Chaque déploiement passe par la CI (types, 173 tests, build).
+> Hébergée sur Vercel. Chaque déploiement passe par la CI (types, 175 tests, build).
 
 > Construit en août 2026 par [Zakaria Laaniba](https://laanibazakaria.github.io), élève-ingénieur
 > en IA à l'ENSIAS, après un stage passé à fiabiliser une application d'IA en production.
@@ -98,7 +98,9 @@ En local : dans `.env.local` (ignoré par git). Sur Vercel : *Settings → Envir
 
 Sans compte, tout reste dans le navigateur. Avec un compte Google, les sessions, le support
 et les résultats IA sont copiés sur le serveur et fusionnés d'un appareil à l'autre — **jamais
-l'audio, jamais le PDF**, et chaque session reste supprimable.
+l'audio, jamais le PDF**, et chaque session reste supprimable. À la déconnexion, l'appareil est
+vidé après un dernier envoi (sur un ordinateur partagé, la personne suivante ne voit rien) ; si le
+serveur est injoignable, rien n'est effacé et l'utilisateur est prévenu.
 
 Pile : [Auth.js](https://authjs.dev) (v5) + [Prisma](https://www.prisma.io) 7 + PostgreSQL
 ([Neon](https://neon.tech)). Ce que le navigateur stocke localement et ce que le serveur
@@ -134,7 +136,7 @@ npm run dev        # http://localhost:3000
 L'application le dit explicitement si le navigateur ne la propose pas.
 
 ```bash
-npm test           # 173 tests unitaires (Vitest)
+npm test           # 175 tests unitaires (Vitest)
 npm run typecheck  # TypeScript strict
 npm run build      # build de production
 ```
@@ -153,7 +155,7 @@ lib/
 ├── sync/                 Fusion local ↔ compte (pure, testée)
 ├── storage.ts            Persistance locale, export/import JSON
 └── types.ts
-tests/unit/               173 tests, dont des fixtures de sessions réelles
+tests/unit/               175 tests, dont des fixtures de sessions réelles
 ```
 
 Le cœur (`lib/`) n'a **aucune dépendance au DOM** : il se teste sans navigateur, et les

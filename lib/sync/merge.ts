@@ -48,3 +48,30 @@ export function fusionnerIa(
 ): Record<string, unknown> {
   return { ...distant, ...local };
 }
+
+/** Le sous-ensemble de Storage nécessaire pour effacer : localStorage le satisfait. */
+export interface StorageEffacable {
+  readonly length: number;
+  key(index: number): string | null;
+  removeItem(key: string): void;
+}
+
+/** Clés locales appartenant au travail de l'utilisateur (pas les réglages). */
+export const CLES_DONNEES = ["sc.sessions.v1", "sc.deck.v1", "sc.connecte"] as const;
+export const PREFIXE_IA = "sc.ia.v1:";
+
+/**
+ * Efface sessions, support, résultats IA et drapeau de connexion. À n'appeler
+ * qu'après un envoi réussi au compte : sur un appareil partagé, la personne
+ * suivante ne doit rien voir du travail de la précédente. Renvoie le nombre
+ * de clés effacées.
+ */
+export function viderDonneesLocales(storage: StorageEffacable): number {
+  const cles: string[] = [];
+  for (let i = 0; i < storage.length; i++) {
+    const k = storage.key(i);
+    if (k && ((CLES_DONNEES as readonly string[]).includes(k) || k.startsWith(PREFIXE_IA))) cles.push(k);
+  }
+  for (const k of cles) storage.removeItem(k);
+  return cles.length;
+}

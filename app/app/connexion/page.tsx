@@ -61,6 +61,10 @@ export default function ConnexionPage() {
           ↔️ <b>Ce que tu as déjà fait sans compte</b> sera fusionné avec ton compte à la première
           connexion — rien n&apos;est perdu.
         </p>
+        <p>
+          🚪 <b>À la déconnexion, cet appareil est vidé</b> — ton travail reste sur ton compte.
+          Sur un ordinateur partagé, la personne suivante ne voit rien de toi.
+        </p>
       </div>
     </div>
   );

@@ -60,6 +60,7 @@ export function detecterContexte(storage: StorageEnumerable, sessions: SessionRe
   let avisCoach = false;
   let fichesRevisees = false;
   let blancheFaite = false;
+  let rapportDepose = false;
   for (let i = 0; i < storage.length; i++) {
     const k = storage.key(i) ?? "";
     if (k.startsWith("sc.ia.v1:pitch:")) pitchGenere = true;
@@ -67,6 +68,7 @@ export function detecterContexte(storage: StorageEnumerable, sessions: SessionRe
     if (k.startsWith("sc.ia.v1:coach:")) avisCoach = true;
     if (k.startsWith("sc.ia.v1:fiches-etats:") && (storage.getItem(k) ?? "{}").length > 2) fichesRevisees = true;
     if (k.startsWith("sc.ia.v1:blanche:")) blancheFaite = true;
+    if (k === "sc.ia.v1:rapport:texte") rapportDepose = true;
   }
-  return { sessions, deckPresent: listeDeckSauvegarde(storage) !== null, pitchGenere, questionsGenerees, avisCoach, fichesRevisees, blancheFaite };
+  return { sessions, deckPresent: listeDeckSauvegarde(storage) !== null, pitchGenere, questionsGenerees, avisCoach, fichesRevisees, blancheFaite, rapportDepose };
 }

@@ -302,3 +302,12 @@ puis un débrief qui rassemble temps par diapositive, élocution, avis du coach 
 réponse. Le résultat est attaché à la session (cache IA `blanche:<id>`, synchronisé) et
 rouvrable depuis l'historique. Pas de réponse à la relance dans la blanche : on la note, elle
 tombera le jour J — et on ne double pas la consommation du quota.
+
+## Étape O — Le mémoire en entrée (24 août 2026)
+
+Pour un PFE ou une thèse, le jury interroge sur le document, pas sur les slides. Le mémoire
+est déposé en PDF, lu dans le navigateur, son texte conservé (borné) et synchronisé avec les
+résultats IA. Le rapporteur IA en tire dix questions — citant un passage, un chiffre, une
+absence — qui rejoignent les questions courantes. Quand le document dépasse la borne d'envoi,
+on transmet le début et la fin (problématique, méthode / résultats, limites, conclusion), et
+on le dit dans la consigne.

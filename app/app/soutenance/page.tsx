@@ -7,6 +7,7 @@ import { buildTrendReport, SEUILS_TENDANCES } from "@/lib/trends";
 import type { SessionRecord } from "@/lib/types";
 import TrendsView from "@/app/components/TrendsView";
 import ParcoursView from "../components/ParcoursView";
+import RapportView from "../components/RapportView";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 
 /** Le module Soutenance : le parcours, puis la progression mesurée. */
@@ -28,6 +29,7 @@ export default function SoutenancePage() {
   return (
     <>
       <ParcoursView sessions={sessions} onChange={() => void pousserTout()} />
+      <RapportView />
 
       <div className="list-head">
         <h2 className="list-title">Ta progression</h2>

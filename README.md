@@ -170,6 +170,11 @@ stocke ont exactement la même forme : la synchronisation est une copie, pas une
 Tant que ces variables manquent, le bouton « Se connecter » mène à une page qui l'explique,
 et l'application fonctionne en mode local.
 
+**Le mémoire, le rapport, la thèse** : déposé en PDF (lu localement, texte seul conservé —
+jusqu'à 120 000 caractères, le début et la fin sont envoyés au modèle si le document dépasse
+la borne), il donne **les questions du rapporteur** — celles qui citent un passage, un chiffre,
+une absence — et elles rejoignent la simulation et la soutenance blanche.
+
 **La soutenance blanche** : l'exposé avec les slides chronométrées, puis le jury qui enchaîne
 quatre questions (d'abord celles tirées du support) et relance, puis le débrief — temps par
 diapositive, mesures, avis du coach, avis du jury sur chaque réponse. Étape du parcours.

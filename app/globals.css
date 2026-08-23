@@ -806,3 +806,7 @@ input[type="checkbox"]:focus { box-shadow: none; outline: 2px solid var(--violet
 .blanche-intro h2 { font-size: 1.3rem; text-align: center; }
 .blanche-reponse .question-texte { font-size: 1rem; margin-bottom: 6px; }
 .blanche-debrief section { margin-bottom: 18px; }
+
+/* ═══════════════ Mémoire / rapport ═══════════════ */
+.rapport { border-left: 3px solid var(--violet-deep); }
+.rapport .question { margin-bottom: 8px; }

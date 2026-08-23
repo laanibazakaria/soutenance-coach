@@ -43,6 +43,8 @@ export interface Contexte {
   fichesRevisees: boolean;
   /** Une soutenance blanche complète (exposé + questions) a été faite. */
   blancheFaite: boolean;
+  /** Le mémoire / rapport a été déposé. */
+  rapportDepose: boolean;
 }
 
 /** Position dans la fenêtre de préparation : fraction 0..1, ou un jour fixe. */
@@ -119,6 +121,16 @@ export const ETAPES: readonly Etape[] = [
     lien: "/app/session",
     position: 0.15,
     auto: (c) => c.sessions.length >= 1,
+  },
+  {
+    id: "rapport",
+    titre: "Dépose ton mémoire : les questions du rapporteur",
+    pourquoi:
+      "Le rapporteur n'interroge pas sur les slides, il interroge sur le document qu'il a lu de près. Ses questions rejoignent la simulation et la soutenance blanche.",
+    action: "Déposer mon mémoire",
+    lien: "/app/soutenance#rapport",
+    position: 0.25,
+    auto: (c) => c.rapportDepose,
   },
   {
     id: "questions",

@@ -194,3 +194,24 @@ l'historique. Un avis par session, mis en cache et synchronisé.
 - *Ce qui est envoyé est borné* (7 000 caractères de transcription, 5 000 de slides) et
   ne contient jamais l'audio ni le PDF.
 - *Identifiant fixé à l'arrêt* : l'avis demandé avant la sauvegarde reste attaché à la session.
+
+## Étape H — Les fiches à mémoriser (fiche écrite avant le code, 23 août 2026)
+
+**Le manque.** Le moment le plus visible d'une soutenance ratée : l'étudiant qui sèche sur
+*son propre* chiffre, ou qui ne sait pas définir le sigle écrit sur *sa* diapositive 4.
+
+**Ce qui est construit.** Des fiches recto/verso générées depuis le support : chiffres clés,
+définitions, choix à justifier, questions pièges — chacune rattachée à sa diapositive. Une
+révision « je savais / je ne savais pas », avec rappel espacé (boîtes de Leitner : 1, 3, 7,
+14 jours) ; une fiche ratée revient le jour même et en fin de séance. Une liste complète avec
+niveau par fiche et « tes fiches difficiles ». Progression synchronisée avec les résultats IA.
+
+**Garde-fous.**
+- *Interdit d'inventer* : la consigne exige que chaque chiffre vienne du support ; un choix
+  dont la raison n'est pas dans les slides devient « À préparer : le support ne le dit pas ».
+- *La mémoire est du code* : intervalles exportés et testés, aucun modèle dans la boucle de
+  révision.
+- *Identifiants stables* (dérivés du recto) : régénérer des fiches identiques ne perd pas la
+  progression.
+- *Répondre à voix haute avant de retourner* : rappelé à chaque fiche — c'est l'oral qu'on
+  prépare, pas un QCM.

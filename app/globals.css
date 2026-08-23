@@ -465,3 +465,35 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
 .coach-reformulation { display: flex; flex-direction: column; gap: 2px; }
 .coach-avant { color: var(--muted); font-style: italic; }
 .coach-apres { color: var(--txt); }
+
+/* ── Navigation de l'application ── */
+.appnav { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; padding: 10px 16px 0; border-bottom: 1px solid var(--line); background: var(--bg); position: sticky; top: 0; z-index: 40; }
+.appnav-lien { color: var(--muted); font-size: 0.9rem; padding: 8px 14px 10px; border-bottom: 2px solid transparent; border-radius: 6px 6px 0 0; }
+.appnav-lien:hover { color: var(--txt); background: var(--bg2); }
+.appnav-lien.active { color: var(--txt); border-bottom-color: var(--gold); font-weight: 600; }
+.appnav-lien:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+
+/* ── Fiches ── */
+.fiches-tabs { margin: 0; border-bottom: none; }
+.fiche-scene { max-width: 640px; margin: 0 auto; text-align: center; }
+.fiche-progress { font-size: 0.82rem; color: var(--muted); margin-bottom: 12px; }
+.fiche { border-left: 3px solid var(--violet); padding: 28px 30px; text-align: left; }
+.fiche-chiffre { border-left-color: var(--gold); }
+.fiche-definition { border-left-color: var(--violet2); }
+.fiche-choix { border-left-color: var(--ok); }
+.fiche-piege { border-left-color: var(--danger); }
+.fiche-recto { font-size: 1.25rem; line-height: 1.5; margin: 6px 0 18px; }
+.fiche-verso { font-size: 1.02rem; line-height: 1.65; color: var(--txt); background: var(--bg2); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; }
+.fiche-actions { margin-top: 4px; }
+.fiches-fin { padding: 30px; }
+.fiches-difficiles ul { margin: 8px 0 0 18px; font-size: 0.92rem; }
+.fiches-difficiles li { margin-bottom: 6px; }
+.fiches-groupe { margin-top: 10px; }
+.fiche-ligne { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.fiche-ligne-corps b { display: block; font-size: 0.95rem; margin-bottom: 4px; }
+.fiche-ligne-corps p { font-size: 0.88rem; color: var(--muted); line-height: 1.55; }
+.fiche-acquise { opacity: 0.7; }
+.fiche-niveau { flex: none; display: flex; gap: 4px; align-items: center; }
+.fiche-point { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.fiche-point.on { background: var(--ok); }
+.fiche-niveau .question-slide { margin: 0 0 0 8px; }

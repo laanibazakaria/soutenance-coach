@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SessionProvider } from "next-auth/react";
 import AccountBar from "./components/AccountBar";
+import AppNav from "./components/AppNav";
 
 /** Layout de l'application : barre supérieure commune, état du compte. */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </Link>
         <AccountBar />
       </header>
+      <AppNav />
       <main className="content">{children}</main>
     </SessionProvider>
   );

@@ -39,6 +39,8 @@ export interface Contexte {
   questionsGenerees: boolean;
   /** Au moins un avis du coach demandé sur une session. */
   avisCoach: boolean;
+  /** Au moins une fiche révisée. */
+  fichesRevisees: boolean;
 }
 
 /** Position dans la fenêtre de préparation : fraction 0..1, ou un jour fixe. */
@@ -118,6 +120,16 @@ export const ETAPES: readonly Etape[] = [
     auto: (c) => c.questionsGenerees,
   },
   {
+    id: "fiches",
+    titre: "Mémorise tes chiffres et tes définitions",
+    pourquoi:
+      "Des fiches tirées de tes slides — chiffres clés, définitions, choix à justifier, questions pièges. Sécher sur son propre chiffre devant le jury, c'est ce qui se voit le plus.",
+    action: "Réviser mes fiches",
+    lien: "/app/fiches",
+    position: 0.4,
+    auto: (c) => c.fichesRevisees,
+  },
+  {
     id: "session-chrono",
     titre: "Répétition chronométrée au format réel",
     pourquoi:
@@ -190,12 +202,13 @@ export const ETAPES: readonly Etape[] = [
     id: "relecture",
     titre: "La veille : relis, ne répète plus",
     pourquoi:
-      "Relis ton pitch et tes questions, puis arrête. Une dernière répétition la veille au soir fatigue plus qu'elle ne rassure.",
+      "Relis ton pitch, tes fiches et tes questions, puis arrête. Une dernière répétition la veille au soir fatigue plus qu'elle ne rassure.",
     action: "Relire mon pitch",
     lien: "/app/slides",
     position: "veille",
     details: [
       "Pitch relu une fois, à voix basse",
+      "Fiches révisées une dernière fois — surtout les difficiles",
       "Questions du jury relues — surtout celles sur les faiblesses",
       "Ordinateur chargé, slides sur une clé USB et en ligne",
       "Tenue prête, réveil réglé, couché tôt",

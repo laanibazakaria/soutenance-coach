@@ -58,11 +58,13 @@ export function detecterContexte(storage: StorageEnumerable, sessions: SessionRe
   let pitchGenere = false;
   let questionsGenerees = false;
   let avisCoach = false;
+  let fichesRevisees = false;
   for (let i = 0; i < storage.length; i++) {
     const k = storage.key(i) ?? "";
     if (k.startsWith("sc.ia.v1:pitch:")) pitchGenere = true;
     if (k.startsWith("sc.ia.v1:questions")) questionsGenerees = true;
     if (k.startsWith("sc.ia.v1:coach:")) avisCoach = true;
+    if (k.startsWith("sc.ia.v1:fiches-etats:") && (storage.getItem(k) ?? "{}").length > 2) fichesRevisees = true;
   }
-  return { sessions, deckPresent: listeDeckSauvegarde(storage) !== null, pitchGenere, questionsGenerees, avisCoach };
+  return { sessions, deckPresent: listeDeckSauvegarde(storage) !== null, pitchGenere, questionsGenerees, avisCoach, fichesRevisees };
 }

@@ -12,6 +12,8 @@ import type { SessionRecord } from "../types";
 import type { Deck } from "../slides/types";
 import { fusionnerParcours, type Parcours } from "../parcours";
 import { lireParcours, sauverParcours } from "../parcours/persistance";
+import { fusionnerCandidature, type Candidature } from "../entretien";
+import { lireCandidature, sauverCandidature } from "../entretien/persistance";
 
 const FLAG = "sc.connecte";
 const PREFIXE_IA = "sc.ia.v1:";
@@ -67,6 +69,7 @@ interface Distant {
   deck: Deck | null;
   ia: Record<string, unknown>;
   parcours?: Parcours | null;
+  candidature?: Candidature | null;
 }
 
 async function envoyer(corps: {
@@ -74,6 +77,7 @@ async function envoyer(corps: {
   deck?: Deck | null;
   ia?: Record<string, unknown>;
   parcours?: Parcours | null;
+  candidature?: Candidature | null;
 }) {
   const res = await fetch("/api/sync", {
     method: "PUT",
@@ -111,12 +115,15 @@ export async function synchroniser(): Promise<{ ok: boolean; sessions: number }>
 
     const parcours = fusionnerParcours(lireParcours(ls), distant.parcours ?? null);
     if (parcours) sauverParcours(ls, parcours);
+    const candidature = fusionnerCandidature(lireCandidature(ls), distant.candidature ?? null);
+    if (candidature) sauverCandidature(ls, candidature);
 
     await envoyer({
       sessions: sessionsAPousser(locales, distant.sessions ?? []),
       deck: deckLocal,
       ia: iaLocal,
       parcours,
+      candidature,
     });
     ls.setItem(FLAG, "1");
     window.dispatchEvent(new Event(EVENEMENT));
@@ -131,7 +138,7 @@ export async function pousserTout(): Promise<void> {
   if (!estConnecte()) return;
   try {
     const ls = window.localStorage;
-    await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa(), parcours: lireParcours(ls) });
+    await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa(), parcours: lireParcours(ls), candidature: lireCandidature(ls) });
   } catch {
     /* réessayé à la prochaine synchronisation */
   }
@@ -145,7 +152,7 @@ export async function pousserTout(): Promise<void> {
 export async function deconnexionPropre(): Promise<"vide" | "conserve"> {
   const ls = window.localStorage;
   try {
-    const ok = await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa(), parcours: lireParcours(ls) });
+    const ok = await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa(), parcours: lireParcours(ls), candidature: lireCandidature(ls) });
     if (!ok) return "conserve";
   } catch {
     return "conserve";

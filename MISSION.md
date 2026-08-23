@@ -232,3 +232,23 @@ guide » ouvre le parcours.
 **Garde-fou.** Les durées et compositions de jury sont données comme des ordres de grandeur
 avec le rappel explicite que le règlement de l'école fait foi — on ne promet pas ce qu'on
 ne contrôle pas.
+
+## Étape J — Le module Entretien d'embauche (fiche écrite avant le code, 23 août 2026)
+
+**Le manque.** Après la soutenance vient l'entretien — même enjeu, même solitude. Un lauréat
+répète « présentez-vous » devant son miroir et découvre les questions le jour J.
+
+**Ce qui est construit.** Un module à côté de la soutenance, comme les modules d'une plateforme
+de coaching commercial : profil de candidature (poste, offre, CV en texte), questions
+spécifiques tirées du CV et de l'offre (écarts, affirmations à prouver) avec « ce qu'il vérifie »
+et « ce qu'une bonne réponse contient », banque de vingt classiques, simulation RH ou technique
+qui relance, pitch de 2 minutes avec coach comparant au CV, guide, checklist avec détection.
+
+**Garde-fous.**
+- *Le CV reste dans le navigateur* : seul son texte est conservé et envoyé.
+- *Jamais de note* : mêmes mesures déterministes que le jury (`analyserReponse`), même contrat
+  de réponse (`parseAvis`), même refus d'un avis hors format.
+- *Spécifique ou rien* : la consigne interdit les questions posables à n'importe quel candidat ;
+  la banque classique porte, elle, l'« attendu » rédigé à la main.
+- *Les écarts sont posés avec respect* : la consigne le dit explicitement — on prépare, on ne
+  humilie pas.

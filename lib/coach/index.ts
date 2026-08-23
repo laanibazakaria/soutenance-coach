@@ -20,6 +20,8 @@ export interface DemandeCoach {
   slides?: Pick<Slide, "numero" | "titre" | "texte">[];
   /** Temps par diapositive, si la session était une répétition avec le support. */
   slidesTiming?: SlideTiming[];
+  /** Module Entretien : le pitch « présentez-vous » est comparé au CV et à l'offre. */
+  candidature?: { poste: string; entreprise: string; offre: string; cvTexte: string };
 }
 
 export interface Reformulation {
@@ -80,6 +82,43 @@ export function construirePromptCoach(demande: DemandeCoach, rapport: ScoreRepor
       : "";
 
   const support = demande.slides && demande.slides.length > 0 ? slidesEnTexte(demande.slides) : null;
+
+  if (demande.candidature) {
+    const c = demande.candidature;
+    return `Tu es un coach en entretien d'embauche. Un candidat vient de s'entraîner à répondre à « Présentez-vous » (ou à se présenter pour ce poste) à voix haute. La transcription est automatique : ignore les fautes de transcription, juge le fond et la clarté.
+
+${temps}
+
+POSTE VISÉ : ${c.poste || "(non précisé)"} — ENTREPRISE : ${c.entreprise || "(non précisée)"}
+OFFRE D'EMPLOI :
+${c.offre.trim().slice(0, 3000) || "(non fournie)"}
+CV DU CANDIDAT (texte extrait) :
+${c.cvTexte.trim().slice(0, 4000) || "(non fourni)"}
+
+TRANSCRIPTION DU PITCH :
+${demande.transcript.slice(0, LIMITES_COACH.transcriptChars)}
+
+MESURES DÉJÀ CALCULÉES (ne les recalcule pas, ne les contredis pas) :
+${faits || "- aucune"}
+
+Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sans balises Markdown, de la forme :
+{
+  "oublis": ["..."],
+  "confus": ["..."],
+  "reformulations": [{"avant": "...", "apres": "..."}],
+  "points_forts": ["..."],
+  "priorite": "..."
+}
+
+Règles impératives :
+- N'attribue AUCUNE note, AUCUN score, AUCUN pourcentage. Tu conseilles, tu ne notes pas.
+- "oublis" : 0 à 4 éléments — des expériences ou compétences du CV pertinentes pour l'offre et jamais citées, ou des exigences de l'offre jamais adressées. Cite-les précisément. Vide si tout y est.
+- "confus" : 0 à 3 passages peu clairs, en citant les mots exacts entre guillemets, puis pourquoi.
+- "reformulations" : 1 à 3 — "avant" reprend une phrase réellement dite, "apres" la version qu'un recruteur retient : courte, concrète, orientée résultat.
+- "points_forts" : 1 à 3 choses qui tiennent vraiment.
+- "priorite" : une seule phrase — la chose à travailler avant l'entretien. Rappelle la structure présent / passé / futur si elle manque, et la durée (deux minutes).
+- Français, tutoiement, phrases courtes, concret. Exigeant mais bienveillant.`;
+  }
 
   return `Tu es un coach de soutenance (école d'ingénieurs, Maroc/France). Un étudiant vient de répéter sa présentation à voix haute. La transcription est automatique : ignore les fautes de transcription, juge le fond et la clarté.
 

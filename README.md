@@ -87,6 +87,15 @@ comparé au minutage du pitch, bilan prévu / réel / écart), et **le guide de 
 (déroulé, ce que le jury note, erreurs classiques, répondre à une question qu'on ne sait pas,
 la veille, le jour J).
 
+## Le module Entretien d'embauche
+
+Pour les lauréats, les stages, l'alternance — même discipline, autre situation : un profil de
+candidature (poste, offre collée, CV lu dans le navigateur), **les questions que ce recruteur
+posera** (tirées du CV et de l'offre : écarts, affirmations à prouver), « présentez-vous » en
+2 minutes chronométré avec l'avis du coach comparé au CV, une **simulation RH ou technique**
+où le recruteur IA relance, la méthode STAR, un guide (déroulé, erreurs qui éliminent,
+questions à poser, salaire, l'après) et une checklist jusqu'à la date de l'entretien.
+
 ## Et avec l'IA : pitch, questions de jury, coach, fiches, simulation d'entretien
 
 Dépose le PDF de tes slides. Seul le **texte extrait** est envoyé au modèle — jamais le fichier.

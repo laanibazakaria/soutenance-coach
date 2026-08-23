@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveSession, countWords } from "@/lib/storage";
 import { computeReport } from "@/lib/scoring";
@@ -16,6 +16,7 @@ import { useEnregistrement } from "../hooks/useEnregistrement";
  */
 const FORMATS: ReadonlyArray<{ label: string; hint?: string; minutes: number | null }> = [
   { label: "Libre", minutes: null },
+  { label: "2 min", hint: "présentez-vous", minutes: 2 },
   { label: "5 min", hint: "pitch", minutes: 5 },
   { label: "10 min", hint: "stage", minutes: 10 },
   { label: "15 min", hint: "PFA", minutes: 15 },
@@ -26,6 +27,17 @@ export default function SessionPage() {
   const router = useRouter();
   const rec = useEnregistrement();
   const [targetMinutes, setTargetMinutes] = useState<number | null>(null);
+  const [mode, setMode] = useState<"soutenance" | "entretien">("soutenance");
+
+  // Préréglage par l'URL (module Entretien : « présentez-vous » en 2 minutes).
+  // Lu dans un effet plutôt qu'avec useSearchParams, qui imposerait une
+  // frontière Suspense à toute la page.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "entretien") setMode("entretien");
+    const format = Number(params.get("format"));
+    if (FORMATS.some((f) => f.minutes === format)) setTargetMinutes(format);
+  }, []);
   // L'identifiant est fixé à l'arrêt : l'avis du coach demandé avant la
   // sauvegarde reste attaché à la session une fois sauvegardée.
   const idRef = useRef("");
@@ -43,9 +55,10 @@ export default function SessionPage() {
       wordCount: countWords(transcript),
       confidence: rec.confidence(),
       targetDurationMs: targetMs,
+      ...(mode === "entretien" ? { mode } : {}),
     });
     void pousserTout();
-    router.push("/app");
+    router.push(mode === "entretien" ? "/app/entretien" : "/app");
   }
 
   function discard() {
@@ -74,6 +87,16 @@ export default function SessionPage() {
       {error && (
         <div className="warn" role="alert">
           {error}
+        </div>
+      )}
+
+      {mode === "entretien" && phase === "idle" && (
+        <div className="card jury-intro" style={{ textAlign: "left" }}>
+          <b>💼 « Présentez-vous. »</b>
+          <p>
+            Présent (qui tu es) → passé (deux expériences qui le prouvent) → futur (pourquoi ce poste). Deux minutes. Le coach
+            comparera ensuite ton pitch à ton CV et à l&apos;offre.
+          </p>
         </div>
       )}
 
@@ -162,6 +185,7 @@ export default function SessionPage() {
               wordCount: countWords(finalText.trim()),
               confidence: rec.confidence(),
               targetDurationMs: targetMs,
+              ...(mode === "entretien" ? { mode } : {}),
             }}
           />
         </>

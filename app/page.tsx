@@ -9,6 +9,7 @@ const OUTILS = [
   { icone: "🗂️", titre: "Les fiches à mémoriser", texte: "Chiffres, définitions, choix à justifier, questions pièges — tirés de tes slides, révisés avec rappel espacé." },
   { icone: "💬", titre: "L'avis du coach", texte: "Ce que tu as oublié de tes diapositives, ce qui était confus, quoi dire autrement. Des conseils, jamais une note." },
   { icone: "🎓", titre: "Le jury qui t'interroge", texte: "Des questions propres à ton projet, tu réponds au micro, et un avis de jury sur chaque réponse." },
+  { icone: "💼", titre: "L'entretien d'embauche", texte: "Ton CV et l'offre : les questions que ce recruteur te posera, « présentez-vous » en 2 minutes, une simulation RH ou technique qui relance, la méthode STAR." },
   { icone: "📖", titre: "Le guide de la soutenance", texte: "Comment ça se passe, ce que le jury note vraiment, et comment répondre à une question dont tu n'as pas la réponse." },
 ] as const;
 

@@ -155,6 +155,7 @@ export function estSessionRecord(value: unknown): value is SessionRecord {
     typeof v.wordCount === "number" &&
     (v.confidence === undefined || typeof v.confidence === "number") &&
     (v.targetDurationMs === undefined || typeof v.targetDurationMs === "number") &&
+    (v.mode === undefined || v.mode === "soutenance" || v.mode === "entretien") &&
     (v.slides === undefined ||
       (Array.isArray(v.slides) &&
         v.slides.every(

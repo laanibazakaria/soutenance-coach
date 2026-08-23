@@ -17,6 +17,7 @@ function estDemande(v: unknown): v is DemandeCoach {
   if (o.targetDurationMs !== undefined && typeof o.targetDurationMs !== "number") return false;
   if (o.slides !== undefined && !Array.isArray(o.slides)) return false;
   if (o.slidesTiming !== undefined && !Array.isArray(o.slidesTiming)) return false;
+  if (o.candidature !== undefined && (typeof o.candidature !== "object" || o.candidature === null)) return false;
   return true;
 }
 

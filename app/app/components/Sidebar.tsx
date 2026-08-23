@@ -24,6 +24,9 @@ const I = {
   guide: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
   ),
+  entretien: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" /></svg>
+  ),
   micro: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" /></svg>
   ),
@@ -37,8 +40,14 @@ const NAV: ReadonlyArray<{ href: string; label: string; icone: React.ReactNode; 
   { href: "/app/jury", label: "Jury", icone: I.jury },
 ];
 
+const ENTRETIEN: ReadonlyArray<{ href: string; label: string; icone: React.ReactNode; exact?: boolean }> = [
+  { href: "/app/entretien", label: "Mon entretien", icone: I.entretien, exact: true },
+  { href: "/app/entretien/simulation", label: "Simulation", icone: I.jury },
+  { href: "/app/guide-entretien", label: "Guide entretien", icone: I.guide },
+];
+
 const RESSOURCES: ReadonlyArray<{ href: string; label: string; icone: React.ReactNode }> = [
-  { href: "/app/guide", label: "Le guide", icone: I.guide },
+  { href: "/app/guide", label: "Guide soutenance", icone: I.guide },
 ];
 
 function estActif(chemin: string, href: string, exact?: boolean): boolean {
@@ -75,8 +84,19 @@ export default function Sidebar() {
         <Marque taille={26} />
       </div>
 
-      <div className="sidebar-section">Préparer</div>
+      <div className="sidebar-section">Soutenance</div>
       {NAV.map((l) => {
+        const actif = estActif(chemin, l.href, l.exact);
+        return (
+          <Link key={l.href} href={l.href} className={`sidebar-link${actif ? " active" : ""}`} aria-current={actif ? "page" : undefined}>
+            <span className="sidebar-icone">{l.icone}</span>
+            {l.label}
+          </Link>
+        );
+      })}
+
+      <div className="sidebar-section">Entretien d&apos;embauche</div>
+      {ENTRETIEN.map((l) => {
         const actif = estActif(chemin, l.href, l.exact);
         return (
           <Link key={l.href} href={l.href} className={`sidebar-link${actif ? " active" : ""}`} aria-current={actif ? "page" : undefined}>

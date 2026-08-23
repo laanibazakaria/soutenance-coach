@@ -6,6 +6,7 @@ import type { SessionRecord, SlideTiming } from "@/lib/types";
 import type { Deck } from "@/lib/slides/types";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { estParcours, type Parcours } from "@/lib/parcours";
+import { estCandidature, type Candidature } from "@/lib/entretien";
 
 /**
  * Synchronisation des données d'un compte.
@@ -33,6 +34,7 @@ function versRecord(s: {
   confidence: number | null;
   targetDurationMs: number | null;
   slides?: unknown;
+  mode?: string | null;
 }): SessionRecord {
   return {
     id: s.id,
@@ -43,6 +45,7 @@ function versRecord(s: {
     ...(s.confidence !== null ? { confidence: s.confidence } : {}),
     ...(s.targetDurationMs !== null ? { targetDurationMs: s.targetDurationMs } : {}),
     ...(Array.isArray(s.slides) ? { slides: s.slides as SlideTiming[] } : {}),
+    ...(s.mode === "entretien" || s.mode === "soutenance" ? { mode: s.mode } : {}),
   };
 }
 
@@ -50,11 +53,12 @@ export async function GET() {
   const userId = await utilisateurCourant();
   if (!userId) return NextResponse.json({ erreur: "Non connecté." }, { status: 401 });
 
-  const [sessions, deck, ia, parcours] = await Promise.all([
+  const [sessions, deck, ia, parcours, candidature] = await Promise.all([
     prisma.trainingSession.findMany({ where: { userId }, orderBy: { startedAt: "desc" } }),
     prisma.deck.findUnique({ where: { userId } }),
     prisma.iaResult.findMany({ where: { userId } }),
     prisma.parcours.findUnique({ where: { userId } }),
+    prisma.candidature.findUnique({ where: { userId } }),
   ]);
 
   return NextResponse.json({
@@ -72,6 +76,19 @@ export async function GET() {
           misAJourLe: parcours.misAJourLe.toISOString(),
         } satisfies Parcours)
       : null,
+    candidature: candidature
+      ? ({
+          poste: candidature.poste,
+          entreprise: candidature.entreprise,
+          typeEntretien: candidature.typeEntretien as Candidature["typeEntretien"],
+          ...(candidature.dateEntretien ? { dateEntretien: candidature.dateEntretien } : {}),
+          offre: candidature.offre,
+          cvTexte: candidature.cvTexte,
+          ...(candidature.cvNomFichier ? { cvNomFichier: candidature.cvNomFichier } : {}),
+          etapesFaites: candidature.etapesFaites as Record<string, string>,
+          misAJourLe: candidature.misAJourLe.toISOString(),
+        } satisfies Candidature)
+      : null,
   });
 }
 
@@ -80,6 +97,7 @@ interface CorpsPut {
   deck?: Deck | null;
   ia?: Record<string, unknown>;
   parcours?: unknown;
+  candidature?: unknown;
 }
 
 export async function PUT(request: Request) {
@@ -107,6 +125,7 @@ export async function PUT(request: Request) {
         confidence: s.confidence,
         targetDurationMs: s.targetDurationMs,
         slides: s.slides ? (s.slides as unknown as Prisma.InputJsonValue) : undefined,
+        mode: s.mode,
       })),
       skipDuplicates: true,
     });
@@ -145,6 +164,22 @@ export async function PUT(request: Request) {
       misAJourLe: new Date(p.misAJourLe),
     };
     await prisma.parcours.upsert({ where: { userId }, create: { userId, ...donnees }, update: donnees });
+  }
+
+  if (estCandidature(corps.candidature)) {
+    const c = corps.candidature;
+    const donnees = {
+      poste: c.poste,
+      entreprise: c.entreprise,
+      typeEntretien: c.typeEntretien,
+      dateEntretien: c.dateEntretien ?? null,
+      offre: c.offre,
+      cvTexte: c.cvTexte,
+      cvNomFichier: c.cvNomFichier ?? null,
+      etapesFaites: c.etapesFaites as Prisma.InputJsonValue,
+      misAJourLe: new Date(c.misAJourLe),
+    };
+    await prisma.candidature.upsert({ where: { userId }, create: { userId, ...donnees }, update: donnees });
   }
 
   return NextResponse.json({ ok: true, sessionsAjoutees: ajoutees });

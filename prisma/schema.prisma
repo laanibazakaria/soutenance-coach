@@ -30,6 +30,7 @@ model User {
   deck             Deck?
   iaResults        IaResult[]
   parcours         Parcours?
+  candidature      Candidature?
 }
 
 model Account {
@@ -82,6 +83,8 @@ model TrainingSession {
   targetDurationMs Int?
   /// Temps par diapositive (répétition avec le support), même forme qu'en local.
   slides           Json?
+  /// "soutenance" (défaut) ou "entretien".
+  mode             String?
   createdAt        DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -121,6 +124,22 @@ model Parcours {
   creeLe         String
   etapesFaites   Json
   misAJourLe     DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Le module Entretien : poste, offre, texte du CV (jamais le fichier), checklist.
+model Candidature {
+  userId        String   @id
+  poste         String
+  entreprise    String
+  typeEntretien String
+  dateEntretien String?
+  offre         String
+  cvTexte       String
+  cvNomFichier  String?
+  etapesFaites  Json
+  misAJourLe    DateTime
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

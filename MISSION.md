@@ -335,3 +335,13 @@ Ce qui fait dire « cette app m'a vraiment aidé » : voir ses mots avec ses bé
 réagit pendant qu'on parle, et, après une réponse au jury, l'exemple de ce qu'un excellent
 candidat aurait dit — sur son dossier, jamais un corrigé générique, avec les faits manquants
 marqués « à compléter » plutôt qu'inventés. Un exemple par question, en cache, synchronisé.
+
+## Étape S — Ce qui fait revenir (24 août 2026)
+
+La question du jour : choisie de façon déterministe pour la date parmi les questions des
+modules actifs (spécifiques d'abord), soixante secondes au micro, le jury adapté, l'exemple
+d'une excellente réponse. Une série qui compte les jours d'affilée sans culpabiliser (la
+phrase ne reproche jamais). Des rappels push — un par jour, le soir, par une tâche planifiée
+protégée par secret : l'échéance la plus proche, sinon la question du jour ; les abonnements
+morts sont supprimés ; activables et désactivables d'un clic, jamais demandés sans un geste.
+Les fiches se swipent. Tout ceci est ce que l'application mobile reprendra tel quel.

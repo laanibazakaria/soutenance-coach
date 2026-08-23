@@ -183,3 +183,15 @@ model Partage {
   creeLe  DateTime @default(now())
   expire  DateTime
 }
+
+/// Un abonnement aux notifications push — lié au compte s'il y en a un.
+model PushAbonnement {
+  endpoint String   @id
+  p256dh   String
+  auth     String
+  userId   String?
+  fuseau   String?
+  creeLe   DateTime @default(now())
+
+  @@index([userId])
+}

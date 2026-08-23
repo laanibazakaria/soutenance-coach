@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCache, ecrireCache, cleCache } from "@/lib/ia-cache";
@@ -27,6 +27,9 @@ export default function FichesPage() {
   const [chargement, setChargement] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const aujourdhui = dateDuJour();
+  // Geste mobile : glisser la fiche retournée à droite (je savais) ou à gauche (je ne savais pas).
+  const [dx, setDx] = useState(0);
+  const dragRef = useRef({ x0: 0, actif: false });
 
   useEffect(() => {
     const d = listeDeckSauvegarde(window.localStorage);
@@ -153,7 +156,29 @@ export default function FichesPage() {
             <p className="fiche-progress">
               {fileDuJour.length} restante{fileDuJour.length > 1 ? "s" : ""} · {faitesCetteSeance} faite{faitesCetteSeance > 1 ? "s" : ""} cette séance
             </p>
-            <div className={`card fiche fiche-${courante.type}`}>
+            <div
+              className={`card fiche fiche-${courante.type}${dx > 60 ? " fiche-oui" : dx < -60 ? " fiche-non" : ""}`}
+              style={{ transform: dx ? `translateX(${dx}px) rotate(${dx / 30}deg)` : undefined, transition: dx ? "none" : "transform 0.2s ease" }}
+              onPointerDown={(e) => {
+                if (!retourne || (e.target as HTMLElement).closest("button")) return;
+                dragRef.current = { x0: e.clientX, actif: true };
+              }}
+              onPointerMove={(e) => {
+                if (dragRef.current.actif) setDx(e.clientX - dragRef.current.x0);
+              }}
+              onPointerUp={() => {
+                if (!dragRef.current.actif) return;
+                dragRef.current.actif = false;
+                const d = dx;
+                setDx(0);
+                if (d > 120) repondre("su");
+                else if (d < -120) repondre("pas-su");
+              }}
+              onPointerCancel={() => {
+                dragRef.current.actif = false;
+                setDx(0);
+              }}
+            >
               <span className="question-cat">
                 {LIBELLES_TYPE[courante.type]}
                 {courante.slide > 0 && ` · diapositive ${courante.slide}`}
@@ -180,7 +205,9 @@ export default function FichesPage() {
                 </div>
               )}
             </div>
-            <p className="report-note">Réponds à voix haute avant de retourner la fiche — c&apos;est comme ça que le jury t&apos;entendra.</p>
+            <p className="report-note">
+              {retourne ? "Glisse la fiche à droite si tu savais, à gauche sinon — ou utilise les boutons." : "Réponds à voix haute avant de retourner la fiche — c'est comme ça que le jury t'entendra."}
+            </p>
           </div>
         ) : (
           <div className="card teaser fiches-fin">

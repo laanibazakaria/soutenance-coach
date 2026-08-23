@@ -28,6 +28,7 @@ const ENTETES: ReadonlyArray<{ prefixe: string; exact?: boolean; entete: Entete 
   { prefixe: "/app/forfaits", entete: { section: "Compte", titre: "Forfaits", sousTitre: "Ce qui est gratuit, ce que Pro apportera, et où tu en es ce mois." } },
   { prefixe: "/app/admin", entete: { section: "Administration", titre: "Tableau de bord", sousTitre: "L'usage réel de la plateforme — sans aucune transcription." } },
   { prefixe: "/app/connexion", entete: { section: "Compte", titre: "Ton compte", sousTitre: "Retrouve tes sessions, ton support et tes fiches sur tous tes appareils." } },
+  { prefixe: "/app/question-du-jour", entete: { section: "Chaque jour", titre: "La question du jour", sousTitre: "Une question de ton jury, une minute au micro, un retour. Cinq minutes bien placées." } },
   { prefixe: "/app/sessions", entete: { section: "Navigation", titre: "Mes sessions", sousTitre: "Toutes tes répétitions, tous tes oraux — avec l'avis du coach sur chacune." } },
   { prefixe: "/app/guides", entete: { section: "Navigation", titre: "Les guides", sousTitre: "Un guide par oral. Tout ce qu'on découvre d'habitude trop tard." } },
   { prefixe: "/app/soutenance-blanche", entete: { section: "Soutenance", titre: "Soutenance blanche", sousTitre: "L'exposé avec tes slides, le jury qui enchaîne et relance, le débrief. La répétition générale." } },

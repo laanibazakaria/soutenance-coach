@@ -844,3 +844,14 @@ mark.beq { background: rgba(255, 215, 0, 0.45); color: var(--heading); border-ra
 .exemple { border-left-color: var(--gold); background: var(--gold-50); text-align: left; margin-top: 14px; }
 .exemple-reponse { font-size: 1rem; line-height: 1.7; margin: 8px 0 10px; color: var(--heading); }
 .exemple-pourquoi { margin: 0 0 8px 18px; font-size: 0.9rem; }
+
+/* ═══════════════ Question du jour, rappels, swipe ═══════════════ */
+.accueil-quotidien { margin-bottom: 18px; border-left: 3px solid var(--violet); }
+.accueil-quotidien-principal { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.accueil-quotidien-principal > div { flex: 1; min-width: 180px; }
+.accueil-quotidien-push { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.qdj-serie { display: flex; align-items: center; gap: 14px; }
+.qdj-flamme { font-size: 1.6rem; }
+.fiche { touch-action: pan-y; user-select: none; }
+.fiche-oui { box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.35), var(--shadow-lg); }
+.fiche-non { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.35), var(--shadow-lg); }

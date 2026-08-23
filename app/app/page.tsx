@@ -7,6 +7,7 @@ import type { SessionRecord } from "@/lib/types";
 import { TOUS_LES_MODULES, lireModulesActifs, sauverModulesActifs, resumerModules, type ModuleActif, type ResumeModule } from "@/lib/preferences";
 import { pousserTout, surSynchronisation, signalerSynchronisation } from "@/lib/sync/client";
 import { useToast } from "@/app/components/Toast";
+import CarteQuotidien from "./components/CarteQuotidien";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
@@ -58,6 +59,7 @@ export default function AccueilPage() {
 
   return (
     <div className="accueil">
+      <CarteQuotidien />
       {urgent && (
         <div className="card accueil-prochaine">
           <div>

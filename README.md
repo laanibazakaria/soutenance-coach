@@ -170,6 +170,11 @@ stocke ont exactement la même forme : la synchronisation est une copie, pas une
 Tant que ces variables manquent, le bouton « Se connecter » mène à une page qui l'explique,
 et l'application fonctionne en mode local.
 
+**Ce qui fait revenir** : la **question du jour** (une question de son jury, tirée de ses
+modules actifs, 60 secondes au micro, un retour, l'exemple d'une excellente réponse) et une
+**série** honnête ; des **rappels** par notification (web push, une tâche planifiée par jour :
+J-X, la veille, la question du jour — désactivables en un clic) ; les fiches à **swiper**.
+
 **Le retour visible, tout de suite** : la **transcription annotée** (chaque béquille surlignée
 là où elle a été dite — même détection que le comptage), la **jauge de débit en direct**
 pendant qu'on parle, et « **voici comment un excellent candidat répondrait** » après chaque

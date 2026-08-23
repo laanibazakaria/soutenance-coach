@@ -120,6 +120,9 @@ export default function SessionsPage() {
           <button className="btn small" onClick={() => fileRef.current?.click()}>
             ⬆ Importer
           </button>
+          <Link href="/app/bilan" className="btn small">
+            📄 Bilan
+          </Link>
           <Link href="/app/session" className="btn small primary">
             🎤 Nouvelle session
           </Link>

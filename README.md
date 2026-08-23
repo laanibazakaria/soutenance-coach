@@ -170,6 +170,10 @@ stocke ont exactement la même forme : la synchronisation est une copie, pas une
 Tant que ces variables manquent, le bouton « Se connecter » mène à une page qui l'explique,
 et l'application fonctionne en mode local.
 
+**Et autour** : ajout de la date au calendrier (.ics, rappel la veille), **bilan** propre à
+imprimer en PDF ou à partager par un lien en lecture seule valable 30 jours (sans aucune
+transcription), application **installable** sur le téléphone (manifeste PWA).
+
 **Quotas IA** : 20 appels par mois sans compte (par empreinte d'adresse — jamais l'adresse
 elle-même), 80 avec un compte, surchargeables par `QUOTA_ANONYME` / `QUOTA_COMPTE` ; compteur
 visible dans la barre latérale, page **Forfaits** (Gratuit / Pro bientôt, liste d'attente),

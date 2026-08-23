@@ -24,6 +24,7 @@ const ENTETES: ReadonlyArray<{ prefixe: string; exact?: boolean; entete: Entete 
   { prefixe: "/app/guide-entretien", entete: { section: "Entretien d'embauche", titre: "Le guide de l'entretien", sousTitre: "Le déroulé, ce que le recruteur évalue, la méthode STAR, les erreurs qui éliminent." } },
   { prefixe: "/app/guide", entete: { section: "Ressources", titre: "Le guide de la soutenance", sousTitre: "Tout ce qu'on découvre d'habitude trop tard. Dix minutes à lire, cinq à relire la veille." } },
   { prefixe: "/app/session", exact: true, entete: { section: "Entraînement", titre: "Session d'entraînement", sousTitre: "Parle comme si le jury était en face. La transcription suit en direct." } },
+  { prefixe: "/app/bilan", entete: { section: "Navigation", titre: "Mon bilan", sousTitre: "Une photographie de ta préparation — à imprimer, ou à partager avec ton encadrant." } },
   { prefixe: "/app/forfaits", entete: { section: "Compte", titre: "Forfaits", sousTitre: "Ce qui est gratuit, ce que Pro apportera, et où tu en es ce mois." } },
   { prefixe: "/app/admin", entete: { section: "Administration", titre: "Tableau de bord", sousTitre: "L'usage réel de la plateforme — sans aucune transcription." } },
   { prefixe: "/app/connexion", entete: { section: "Compte", titre: "Ton compte", sousTitre: "Retrouve tes sessions, ton support et tes fiches sur tous tes appareils." } },

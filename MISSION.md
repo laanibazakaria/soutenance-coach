@@ -285,3 +285,11 @@ Tableau de bord admin : comptes, sessions, appels IA, liste d'attente — jamais
 **Garde-fous.** L'administrateur n'a pas de quota mais pas non plus d'accès aux contenus ; une
 requête invalide ne consomme rien ; sans base configurée, rien n'est compté (un déploiement
 local reste simple).
+
+## Étape M — Calendrier, bilan, partage, application installable (24 août 2026)
+
+Ce qui fait revenir : la date dans l'agenda (.ics, rappel la veille) ; un **bilan** — une
+photographie lisible de la préparation, chiffres et tendances, jamais une transcription — à
+imprimer en PDF (mise en page d'impression, pas de bibliothèque) ou à **partager** par un lien
+en lecture seule qui expire après 30 jours ; un manifeste PWA pour installer l'application
+sur le téléphone. Garde-fou : le partage est un instantané, sans identité ni contenu privé.

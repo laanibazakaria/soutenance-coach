@@ -117,6 +117,9 @@ export default function AccueilPage() {
       <div className="list-head">
         <h2 className="list-title">Dernières sessions</h2>
         <div className="list-actions">
+          <Link href="/app/bilan" className="btn small">
+            📄 Mon bilan
+          </Link>
           <Link href="/app/sessions" className="btn small">
             Tout l&apos;historique
           </Link>

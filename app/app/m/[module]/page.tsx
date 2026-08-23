@@ -12,6 +12,7 @@ import { dateDuJour, joursEntre } from "@/lib/parcours";
 import { extraireDeckPDF, ExtractionError } from "@/lib/slides/extract";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import { useToast } from "@/app/components/Toast";
+import { telechargerIcs } from "@/lib/ics";
 
 function dateLongue(d: string): string {
   const [a, m, j] = d.split("-").map(Number);
@@ -151,6 +152,16 @@ function Hub({ m }: { m: ModuleOral }) {
           <Link href={`/app/m/${m.id}/simulation`} className="link-btn">
             Lancer la simulation →
           </Link>
+          {profil.date && (
+            <button
+              className="link-btn"
+              onClick={() =>
+                telechargerIcs({ titre: `${m.nom} — ${titreProfil || m.nom}`, date: profil.date!, description: "Préparé avec SoutenanceCoach.", url: `https://soutenance-coach.vercel.app/app/m/${m.id}` })
+              }
+            >
+              📅 Ajouter au calendrier
+            </button>
+          )}
         </div>
       </section>
 

@@ -13,6 +13,7 @@ import {
 } from "@/lib/parcours";
 import { lireParcours, sauverParcours, marquerEtape, detecterContexte } from "@/lib/parcours/persistance";
 import { surSynchronisation } from "@/lib/sync/client";
+import { telechargerIcs } from "@/lib/ics";
 import type { SessionRecord } from "@/lib/types";
 
 function versDate(d: string): Date {
@@ -161,6 +162,19 @@ export default function ParcoursView({ sessions, onChange }: Props) {
         </button>
         <button className="link-btn" onClick={() => setEdition(true)}>
           Modifier la date
+        </button>
+        <button
+          className="link-btn"
+          onClick={() =>
+            telechargerIcs({
+              titre: `Soutenance ${libelle}`,
+              date: parcours.dateSoutenance,
+              description: `${parcours.dureeMin} minutes d'exposé. Préparée avec SoutenanceCoach.`,
+              url: "https://soutenance-coach.vercel.app/app/soutenance",
+            })
+          }
+        >
+          📅 Ajouter au calendrier
         </button>
       </div>
 

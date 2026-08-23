@@ -17,6 +17,7 @@ import { dateDuJour, joursEntre } from "@/lib/parcours";
 import { extraireDeckPDF, ExtractionError } from "@/lib/slides/extract";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import { useToast } from "@/app/components/Toast";
+import { telechargerIcs } from "@/lib/ics";
 
 const TYPES: ReadonlyArray<{ id: TypeEntretien; label: string; hint: string }> = [
   { id: "rh", label: "RH", hint: "motivation, parcours" },
@@ -168,6 +169,21 @@ export default function EntretienPage() {
           <Link href="/app/entretien/simulation" className="link-btn">
             Lancer la simulation →
           </Link>
+          {candidature.dateEntretien && (
+            <button
+              className="link-btn"
+              onClick={() =>
+                telechargerIcs({
+                  titre: `Entretien ${[candidature.poste, candidature.entreprise].filter(Boolean).join(" — ")}`,
+                  date: candidature.dateEntretien!,
+                  description: "Préparé avec SoutenanceCoach.",
+                  url: "https://soutenance-coach.vercel.app/app/entretien",
+                })
+              }
+            >
+              📅 Ajouter au calendrier
+            </button>
+          )}
         </div>
       </section>
 

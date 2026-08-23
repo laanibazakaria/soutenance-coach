@@ -175,3 +175,11 @@ model Interet {
   email  String   @id
   creeLe DateTime @default(now())
 }
+
+/// Un bilan partagé en lecture seule — sans transcription, expire.
+model Partage {
+  id      String   @id
+  contenu Json
+  creeLe  DateTime @default(now())
+  expire  DateTime
+}

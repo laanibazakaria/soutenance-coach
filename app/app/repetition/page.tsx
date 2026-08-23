@@ -226,7 +226,6 @@ export default function RepetitionPage() {
     <div className="repetition">
       {phase === "idle" && (
         <>
-          <h1>🎞️ Répéter avec mes slides</h1>
           <p className="subtitle">
             Chaque diapositive s&apos;affiche, tu avances avec <kbd>→</kbd> ou <kbd>Espace</kbd>, et le coach
             chronomètre le temps passé sur chacune.

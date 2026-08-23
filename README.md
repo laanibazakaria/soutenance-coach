@@ -10,7 +10,9 @@ Aucune installation, compte facultatif. Ouvre le lien dans Chrome ou Edge, autor
 et parle. *(Sans compte, tout reste sur ton appareil ; avec un compte Google, ton travail te suit
 sur tous tes appareils — jamais l'audio.)*
 
-> Hébergée sur Vercel. Chaque déploiement passe par la CI (types, 175 tests, build).
+> Hébergée sur Vercel. Chaque déploiement passe par la CI (types, 212 tests, build).
+> Système de design inspiré de [Propulsez Coach IA](https://coach.propulsez.fr), avec l'accord de Propulsez :
+> palette, typographie Geist, coquille à barre latérale, composants accessibles (modale, toasts, squelettes).
 
 > Construit en août 2026 par [Zakaria Laaniba](https://laanibazakaria.github.io), élève-ingénieur
 > en IA à l'ENSIAS, après un stage passé à fiabiliser une application d'IA en production.
@@ -140,6 +142,11 @@ stocke ont exactement la même forme : la synchronisation est une copie, pas une
 
 Tant que ces variables manquent, le bouton « Se connecter » mène à une page qui l'explique,
 et l'application fonctionne en mode local.
+
+Avec un compte : **suppression du compte** en un clic (tout est effacé, serveur et appareil),
+[politique de confidentialité](https://soutenance-coach.vercel.app/confidentialite) et
+[mentions légales](https://soutenance-coach.vercel.app/mentions-legales) écrites pour être lues,
+et `/api/health` pour savoir si la base, l'IA et les comptes répondent.
 
 ## Démarrer
 

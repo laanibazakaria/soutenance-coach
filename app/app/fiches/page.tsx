@@ -132,8 +132,7 @@ export default function FichesPage() {
     <div className="fiches">
       <div className="toolbar">
         <div>
-          <h1>🗂️ Fiches à mémoriser</h1>
-          <p className="subtitle">
+          <p className="subtitle" style={{ marginBottom: 0 }}>
             {b.total} fiches · <b>{b.dues} à revoir</b> · {b.acquises} acquise{b.acquises > 1 ? "s" : ""}
             {b.nouvelles > 0 && ` · ${b.nouvelles} jamais vue${b.nouvelles > 1 ? "s" : ""}`}
           </p>

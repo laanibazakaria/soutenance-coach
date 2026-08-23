@@ -1,0 +1,55 @@
+<!doctype html>
+<!-- Page utilitaire, non reliée : remplit le stockage local avec des données réalistes
+     pour les captures d'écran du README, puis ouvre l'application. -->
+<meta charset="utf-8" />
+<title>Préparation des captures</title>
+<script>
+  const jour = (n) => {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const iso = (n, h) => {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    d.setHours(h, 12, 0, 0);
+    return d.toISOString();
+  };
+  const texte = (k) =>
+    [
+      "Bonjour à tous, merci de m'accueillir. Je vais vous présenter mon projet de fin d'année en trois parties : le contexte, la méthode, et les résultats.",
+      "Le contexte, c'est une application de transcription utilisée en production par des commerciaux. Le problème : valider un nouveau modèle sans régression.",
+      "La méthode : une validation A/B sur douze fichiers audio, avec le taux d'erreur par mot comme métrique. Par exemple, sur les appels bruités, l'écart est le plus net.",
+      "Les résultats : 45 pull requests, 505 tests automatisés, et un taux d'erreur qui passe de 8,2 à 6,9 pour cent. Pour conclure, le modèle est validé et la migration peut se faire. Merci de votre attention.",
+    ]
+      .slice(0, k)
+      .join(" ");
+  const deck = {
+    nomFichier: "soutenance-PFA-transcription.pdf",
+    slides: [
+      { numero: 1, titre: "Fiabiliser une application d'IA en production", texte: "Fiabiliser une application d'IA en production\nStage chez Propulsez — mai à août 2026", motsCount: 13 },
+      { numero: 2, titre: "Contexte", texte: "Contexte\nUne application de transcription utilisée par des commerciaux\nProblème : valider un nouveau modèle sans régression", motsCount: 17 },
+      { numero: 3, titre: "Méthode", texte: "Méthode\nValidation A/B : universal-3-pro vs universal-2\n12 fichiers audio, métrique WER", motsCount: 12 },
+      { numero: 4, titre: "Résultats", texte: "Résultats\n45 pull requests, 505 tests automatisés\nWER : 8,2 % → 6,9 %", motsCount: 11 },
+      { numero: 5, titre: "Limites et suite", texte: "Limites et suite\nAudio bruité peu testé\nMesurer le coût par minute", motsCount: 11 },
+      { numero: 6, titre: "Conclusion", texte: "Conclusion\nModèle validé, migration avant le 2 septembre\nMerci — questions ?", motsCount: 11 },
+    ],
+  };
+  const sessions = [
+    { id: "d1", startedAt: iso(-6, 18), durationMs: 412000, transcript: "Euh bonjour, du coup je vais vous présenter euh mon projet. Du coup le contexte c'est une application de transcription, euh, et il fallait la fiabiliser. Du coup j'ai fait des tests. Voilà, merci.", wordCount: 38, confidence: 0.86, targetDurationMs: 900000 },
+    { id: "d2", startedAt: iso(-4, 19), durationMs: 705000, transcript: texte(3) + " Voilà, merci.", wordCount: 88, confidence: 0.9, targetDurationMs: 900000 },
+    { id: "d3", startedAt: iso(-2, 18), durationMs: 846000, transcript: texte(4), wordCount: 112, confidence: 0.92, targetDurationMs: 900000, slides: [ { numero: 1, dureeMs: 62000 }, { numero: 2, dureeMs: 150000 }, { numero: 3, dureeMs: 214000 }, { numero: 4, dureeMs: 238000 }, { numero: 5, dureeMs: 96000 }, { numero: 6, dureeMs: 86000 } ] },
+    { id: "d4", startedAt: iso(-1, 20), durationMs: 872000, transcript: texte(4), wordCount: 112, confidence: 0.93, targetDurationMs: 900000 },
+  ];
+  const parcours = { dateSoutenance: jour(12), type: "pfa", dureeMin: 15, creeLe: jour(-7), etapesFaites: { guide: iso(-7, 10), jury: iso(-3, 17) }, misAJourLe: iso(-1, 20) };
+  localStorage.clear();
+  localStorage.setItem("sc.sessions.v1", JSON.stringify(sessions));
+  localStorage.setItem("sc.deck.v1", JSON.stringify(deck));
+  localStorage.setItem("sc.parcours.v1", JSON.stringify(parcours));
+  localStorage.setItem("sc.ia.v1:questions-courantes", JSON.stringify([
+    { id: "q1", question: "Pourquoi avoir choisi le WER comme métrique, et pas une évaluation humaine ?", pourquoi: "Le jury veut savoir si tu mesures ou si tu crois.", categorie: "methode", slide: 3 },
+    { id: "q2", question: "12 fichiers audio, est-ce suffisant pour conclure ?", pourquoi: "Tester ta conscience des limites statistiques.", categorie: "limites", slide: 3 },
+    { id: "q3", question: "Que se passe-t-il si le nouveau modèle dégrade un cas que vos 12 fichiers ne couvrent pas ?", pourquoi: "Le risque de production.", categorie: "technique", slide: 4 },
+  ]));
+  location.replace(new URLSearchParams(location.search).get("vers") || "/app");
+</script>

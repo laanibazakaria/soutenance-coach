@@ -26,10 +26,6 @@ export default function GuidePage() {
   return (
     <article className="guide">
       <header className="guide-head">
-        <h1>📖 Le guide de la soutenance</h1>
-        <p className="subtitle">
-          Tout ce qu&apos;on découvre d&apos;habitude trop tard. Dix minutes à lire maintenant, cinq à relire la veille.
-        </p>
         <nav className="guide-sommaire" aria-label="Sommaire">
           {SECTIONS.map((s, i) => (
             <a key={s.id} href={`#${s.id}`}>

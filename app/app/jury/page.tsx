@@ -156,12 +156,7 @@ export default function JuryPage() {
   return (
     <>
       <div className="toolbar">
-        <div>
-          <h1>Simulation d&apos;entretien</h1>
-          <p className="subtitle">
-            Le jury pose une question, tu réponds à voix haute. Comme le jour J.
-          </p>
-        </div>
+        <div />
         <Link href="/app/slides" className="btn small">
           📄 Mes slides
         </Link>

@@ -51,10 +51,10 @@ export default function LandingPage() {
                 <path
                   d="M0,-62 L11,-15 L44,-44 L15,-11 L62,0 L15,11 L44,44 L11,15 L0,62 L-11,15 L-44,44 L-15,11 L-62,0 L-15,-11 L-44,-44 L-11,-15 Z"
                   fill="none"
-                  stroke="#D4AF37"
+                  stroke="#6f00ff"
                   strokeWidth="7"
                 />
-                <circle r="8" fill="#D4AF37" />
+                <circle r="8" fill="#ffd700" />
               </g>
             </svg>
             SoutenanceCoach
@@ -309,6 +309,8 @@ export default function LandingPage() {
             <a href="https://www.linkedin.com/in/laaniba-zakaria" target="_blank" rel="noopener">
               LinkedIn
             </a>
+            <Link href="/confidentialite">Confidentialité</Link>
+            <Link href="/mentions-legales">Mentions légales</Link>
           </p>
         </div>
       </footer>

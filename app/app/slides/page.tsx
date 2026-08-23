@@ -169,13 +169,7 @@ export default function SlidesPage() {
   return (
     <>
       <div className="toolbar">
-        <div>
-          <h1>Ton support de présentation</h1>
-          <p className="subtitle">
-            Dépose tes slides : analyse, script de présentation, et les questions que ce jury-là te
-            posera.
-          </p>
-        </div>
+        <div />
         <Link href="/app" className="btn small">
           ← Mes sessions
         </Link>

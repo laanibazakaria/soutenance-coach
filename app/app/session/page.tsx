@@ -64,8 +64,6 @@ export default function SessionPage() {
 
   return (
     <div className="rec-panel">
-      <h1>Session d&apos;entraînement</h1>
-      <p className="subtitle">Parle comme si le jury était en face. La transcription suit en direct.</p>
 
       {!supported && (
         <div className="warn" role="alert">

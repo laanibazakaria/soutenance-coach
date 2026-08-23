@@ -9,6 +9,8 @@ import type { SessionRecord } from "@/lib/types";
 import TrendsView from "@/app/components/TrendsView";
 import ParcoursView from "./components/ParcoursView";
 import AvisCoach from "@/app/components/AvisCoach";
+import ConfirmDialog from "@/app/components/ConfirmDialog";
+import { useToast } from "@/app/components/Toast";
 import { pousserTout, supprimerDistante, surSynchronisation } from "@/lib/sync/client";
 
 function formatDuration(ms: number): string {
@@ -62,8 +64,9 @@ function SessionChips({ session }: { session: SessionRecord }) {
 
 export default function HomePage() {
   const [sessions, setSessions] = useState<SessionRecord[] | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const toast = useToast();
+  const setNotice = (message: string) => toast.info(message);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -76,7 +79,7 @@ export default function HomePage() {
     setSessions(removeSession(window.localStorage, id));
     void supprimerDistante(id);
     setConfirmingId(null);
-    setNotice("Session supprimée.");
+    toast.success("Session supprimée.");
   }
 
   function handleExport() {
@@ -115,10 +118,9 @@ export default function HomePage() {
 
       {sessions !== null && sessions.length > 0 && (
         <div className="toolbar">
-          <div>
-            <h1>Tes sessions</h1>
-            <p className="subtitle">Enregistre-toi, relis-toi, progresse.</p>
-          </div>
+          <h2 className="list-title" style={{ margin: 0 }}>
+            Tes sessions
+          </h2>
           <div className="list-actions">
             <Link href="/app/slides" className="btn">
               📄 Mes slides
@@ -233,11 +235,6 @@ export default function HomePage() {
               </button>
             </div>
           </div>
-          {notice && (
-            <p className="notice" role="status">
-              {notice}
-            </p>
-          )}
           {sessions.map((s) => (
             <div key={s.id} className="card session-row">
               <div>
@@ -248,31 +245,28 @@ export default function HomePage() {
                 <div className="session-excerpt">{s.transcript || "(transcription vide)"}</div>
                 <AvisCoach session={s} compact />
               </div>
-              {confirmingId === s.id ? (
-                // Pattern hérité de la mission 6 : sur une action destructive,
-                // l'action sûre est en premier dans le DOM — elle reçoit le
-                // focus, et une pression sur Entrée ne supprime jamais rien.
-                <div className="confirm" role="group" aria-label="Confirmer la suppression">
-                  <button className="btn small" autoFocus onClick={() => setConfirmingId(null)}>
-                    Annuler
-                  </button>
-                  <button className="btn small danger" onClick={() => handleRemove(s.id)}>
-                    Confirmer
-                  </button>
-                </div>
-              ) : (
-                <button
-                  className="btn danger"
-                  onClick={() => setConfirmingId(s.id)}
-                  aria-label={`Supprimer la session du ${formatDate(s.startedAt)}`}
-                >
-                  Supprimer
-                </button>
-              )}
+              <button
+                className="btn danger small"
+                onClick={() => setConfirmingId(s.id)}
+                aria-label={`Supprimer la session du ${formatDate(s.startedAt)}`}
+              >
+                Supprimer
+              </button>
             </div>
           ))}
         </>
       )}
+
+      {/* Sur une action destructive, l'action sûre reçoit le focus — jamais « Supprimer ». */}
+      <ConfirmDialog
+        ouverte={confirmingId !== null}
+        onFermer={() => setConfirmingId(null)}
+        onConfirmer={() => confirmingId && handleRemove(confirmingId)}
+        titre="Supprimer cette session ?"
+        message="La transcription et ses mesures seront effacées — ici, et sur ton compte si tu es connecté."
+        libelleConfirmer="Supprimer"
+        danger
+      />
     </>
   );
 }

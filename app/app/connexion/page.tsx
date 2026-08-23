@@ -61,7 +61,7 @@ export default function ConnexionPage() {
             </div>
             <p className="compte-note">
               Tes sessions, ton support, ton parcours et tes fiches sont synchronisés sur ce compte.{" "}
-              <Link href="/app">Retour au parcours →</Link>
+              <Link href="/app">Retour à l&apos;accueil →</Link>
             </p>
           </div>
           <div className="card compte-danger">

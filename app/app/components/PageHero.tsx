@@ -23,9 +23,12 @@ const ENTETES: ReadonlyArray<{ prefixe: string; exact?: boolean; entete: Entete 
   { prefixe: "/app/guide-concours", entete: { section: "Oral de concours", titre: "Le guide de l'oral de concours", sousTitre: "Ce que le jury d'admission évalue, se présenter, « pourquoi nous », l'actualité du domaine." } },
   { prefixe: "/app/guide-entretien", entete: { section: "Entretien d'embauche", titre: "Le guide de l'entretien", sousTitre: "Le déroulé, ce que le recruteur évalue, la méthode STAR, les erreurs qui éliminent." } },
   { prefixe: "/app/guide", entete: { section: "Ressources", titre: "Le guide de la soutenance", sousTitre: "Tout ce qu'on découvre d'habitude trop tard. Dix minutes à lire, cinq à relire la veille." } },
-  { prefixe: "/app/session", entete: { section: "Entraînement", titre: "Session d'entraînement", sousTitre: "Parle comme si le jury était en face. La transcription suit en direct." } },
+  { prefixe: "/app/session", exact: true, entete: { section: "Entraînement", titre: "Session d'entraînement", sousTitre: "Parle comme si le jury était en face. La transcription suit en direct." } },
   { prefixe: "/app/connexion", entete: { section: "Compte", titre: "Ton compte", sousTitre: "Retrouve tes sessions, ton support et tes fiches sur tous tes appareils." } },
-  { prefixe: "/app", exact: true, entete: { section: "Tableau de bord", titre: "Ton parcours", sousTitre: "Chaque jour, ce qu'il faut faire — et ce que ton activité a déjà prouvé." } },
+  { prefixe: "/app/sessions", entete: { section: "Navigation", titre: "Mes sessions", sousTitre: "Toutes tes répétitions, tous tes oraux — avec l'avis du coach sur chacune." } },
+  { prefixe: "/app/guides", entete: { section: "Navigation", titre: "Les guides", sousTitre: "Un guide par oral. Tout ce qu'on découvre d'habitude trop tard." } },
+  { prefixe: "/app/soutenance", entete: { section: "Soutenance", titre: "Ton parcours", sousTitre: "Chaque jour, ce qu'il faut faire — et ce que ton activité a déjà prouvé." } },
+  { prefixe: "/app", exact: true, entete: { section: "Accueil", titre: "Bonjour", sousTitre: "Ce que tu prépares, où tu en es, et quoi faire maintenant." } },
 ];
 
 /** Le bandeau de tête de chaque page : section, titre, une phrase. */

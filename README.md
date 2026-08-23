@@ -73,6 +73,15 @@ tendance — *en progression*, *stable*, *en recul* — avec les valeurs brutes
 (« 12,5 → 0,8 béquilles pour 100 mots »). Stagner au bon niveau se dit « c'est acquis » ;
 stagner au mauvais, « c'est TON point de travail prioritaire ».
 
+## L'organisation : un accueil, des modules, des guides
+
+À la première visite : « Qu'est-ce que tu prépares ? » — l'étudiant choisit ses oraux et la
+navigation ne montre que ceux-là. **Accueil** (prochaine échéance, où on en est par oral, quoi
+faire maintenant), **Mes sessions** (historique unifié, recherche, filtre par oral), **Guides**
+(la bibliothèque). Chaque oral est un module : une entrée dans la barre latérale, des onglets
+à l'intérieur (Préparer · Slides · Répéter · Fiches · Jury · Guide pour la soutenance ;
+Préparer · Simulation · Guide pour les autres).
+
 ## Le parcours : de « j'ai une date » à « je suis prêt »
 
 L'étudiant donne sa date de soutenance et son format (PFA 15 min, PFE 20 min). Un catalogue

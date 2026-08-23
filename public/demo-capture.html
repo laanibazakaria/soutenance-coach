@@ -64,5 +64,6 @@
     for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0;
     localStorage.setItem("sc.ia.v1:module-questions:" + id + ":" + (h >>> 0).toString(36), JSON.stringify(questionsModules[id]));
   }
+  localStorage.setItem("sc.ia.v1:preferences:modules", JSON.stringify(["soutenance", "entretien", "pitch"]));
   location.replace(new URLSearchParams(location.search).get("vers") || "/app");
 </script>

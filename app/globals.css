@@ -705,3 +705,46 @@ input[type="checkbox"]:focus { box-shadow: none; outline: 2px solid var(--violet
 .cv-ligne { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .entretien .question { margin-bottom: 10px; }
 .entretien .question-pourquoi b { color: var(--txt); }
+
+/* ═══════════════ Onglets de module ═══════════════ */
+.module-tabs { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; }
+.module-tabs-inner { max-width: 920px; margin: 0 auto; padding: 0 28px; display: flex; gap: 4px; overflow-x: auto; }
+.module-tab { padding: 12px 14px; font-size: 0.9rem; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; font-weight: 500; }
+.module-tab:hover { color: var(--txt); }
+.module-tab.active { color: var(--violet); border-bottom-color: var(--violet); font-weight: 600; }
+@media (max-width: 768px) { .module-tabs-inner { padding: 0 8px; } .module-tab { padding: 10px 12px; font-size: 0.84rem; } }
+
+/* ═══════════════ Accueil ═══════════════ */
+.accueil-prochaine { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-left: 3px solid var(--gold); flex-wrap: wrap; margin-bottom: 26px; }
+.accueil-action { color: var(--muted); font-size: 0.95rem; }
+.accueil-grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 26px; }
+.accueil-carte { display: flex; flex-direction: column; gap: 10px; margin-bottom: 0; }
+.accueil-carte h3 { font-size: 1.02rem; margin-bottom: 2px; }
+.accueil-carte-tete { display: flex; gap: 12px; align-items: flex-start; }
+.accueil-carte-tete > div { flex: 1; min-width: 0; }
+.accueil-emoji { font-size: 1.5rem; line-height: 1; width: 40px; height: 40px; border-radius: 12px; background: var(--bg2); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.accueil-jours { font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; background: var(--gold-50); border-radius: 8px; padding: 2px 10px; font-size: 0.9rem; }
+.accueil-vide { color: var(--dim); font-size: 0.88rem; }
+.accueil-carte .btn { align-self: flex-start; }
+.accueil-lien-hub { font-size: 0.82rem; color: var(--dim); }
+.accueil-carte-decouvrir { opacity: 0.92; }
+.accueil-session { display: flex; color: var(--txt); }
+.accueil-session:hover { border-color: var(--violet); color: var(--txt); }
+
+/* ═══════════════ Choix des oraux ═══════════════ */
+.choix { text-align: center; padding: 10px 0 30px; }
+.choix-grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 26px 0; text-align: left; }
+.choix-carte { position: relative; display: flex; flex-direction: column; gap: 8px; cursor: pointer; font-family: inherit; text-align: left; margin-bottom: 0; transition: border-color 0.15s, box-shadow 0.2s, transform 0.15s; }
+.choix-carte b { font-size: 1rem; color: var(--heading); }
+.choix-carte p { font-size: 0.86rem; color: var(--muted); line-height: 1.55; }
+.choix-carte.active { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(111, 0, 255, 0.12); background: var(--bg2); }
+.choix-coche { position: absolute; top: 14px; right: 14px; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: var(--dim); background: #fff; }
+.choix-carte.active .choix-coche { background: var(--violet); border-color: var(--violet); color: #fff; }
+.sidebar-link-ajout { color: var(--dim); font-size: 0.86rem; }
+
+/* ═══════════════ Historique ═══════════════ */
+.filtres { display: flex; gap: 6px; flex-wrap: wrap; }
+.recherche { max-width: none; }
+.recherche input { width: 100%; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.guides-sommaire { margin: 4px 0 8px 18px; font-size: 0.84rem; color: var(--muted); line-height: 1.6; }

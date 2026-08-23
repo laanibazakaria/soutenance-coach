@@ -164,7 +164,7 @@ export const ETAPES: readonly Etape[] = [
     pourquoi:
       "Les chiffres disent comment tu parles ; le coach dit ce que tu as oublié de tes slides, ce qui était confus, et quoi dire autrement. Une fois suffit pour savoir quoi retravailler.",
     action: "Voir mes sessions",
-    lien: "/app",
+    lien: "/app/sessions",
     position: 0.55,
     auto: (c) => c.avisCoach,
   },

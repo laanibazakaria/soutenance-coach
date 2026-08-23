@@ -2,6 +2,7 @@ import { SessionProvider } from "next-auth/react";
 import AccountBar from "./components/AccountBar";
 import Sidebar, { OngletsMobiles, Marque } from "./components/Sidebar";
 import PageHero from "./components/PageHero";
+import ModuleTabs from "./components/ModuleTabs";
 import { ToastProvider } from "@/app/components/Toast";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 
@@ -25,6 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <AccountBar />
             </header>
             <PageHero />
+            <ModuleTabs />
             <main className="content">
               <ErrorBoundary>{children}</ErrorBoundary>
             </main>

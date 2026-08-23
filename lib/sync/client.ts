@@ -38,6 +38,11 @@ export function estConnecte(): boolean {
   return typeof window !== "undefined" && window.localStorage.getItem(FLAG) === "1";
 }
 
+/** Prévient les composants abonnés qu'une donnée locale partagée a changé (préférences). */
+export function signalerSynchronisation(): void {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(EVENEMENT));
+}
+
 export function marquerDeconnecte(): void {
   window.localStorage.removeItem(FLAG);
 }

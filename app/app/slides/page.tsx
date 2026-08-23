@@ -170,8 +170,8 @@ export default function SlidesPage() {
     <>
       <div className="toolbar">
         <div />
-        <Link href="/app" className="btn small">
-          ← Mes sessions
+        <Link href="/app/soutenance" className="btn small">
+          ← Mon parcours
         </Link>
       </div>
 

@@ -13,7 +13,7 @@ import {
 import { sauverDeck, listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { cleCache, lireCache, ecrireCache } from "@/lib/ia-cache";
 import { pitchEnTexte, type Pitch } from "@/lib/pitch";
-import { pousserTout } from "@/lib/sync/client";
+import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import type { Deck, DeckFinding, JuryQuestion } from "@/lib/slides/types";
 
 const DUREES = [
@@ -58,6 +58,11 @@ export default function SlidesPage() {
   useEffect(() => {
     const memorise = listeDeckSauvegarde(window.localStorage);
     if (memorise) setDeck(memorise);
+    // Un support arrivé par synchronisation ne remplace jamais celui en cours.
+    return surSynchronisation(() => {
+      const distant = listeDeckSauvegarde(window.localStorage);
+      if (distant) setDeck((actuel) => actuel ?? distant);
+    });
   }, []);
 
   // À chaque changement de support ou de durée : relire le cache.

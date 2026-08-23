@@ -13,6 +13,19 @@ import type { Deck } from "../slides/types";
 
 const FLAG = "sc.connecte";
 const PREFIXE_IA = "sc.ia.v1:";
+const EVENEMENT = "sc:synchronise";
+
+/**
+ * Appelle `cb` après chaque synchronisation réussie. Les pages lisent le
+ * stockage local au montage ; sans cela, ce que la synchronisation vient
+ * d'écrire n'apparaîtrait qu'au prochain rechargement. Renvoie la fonction
+ * de désabonnement (à retourner depuis un useEffect).
+ */
+export function surSynchronisation(cb: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener(EVENEMENT, cb);
+  return () => window.removeEventListener(EVENEMENT, cb);
+}
 
 /** Vrai si une synchronisation a réussi depuis la dernière connexion. */
 export function estConnecte(): boolean {
@@ -94,6 +107,7 @@ export async function synchroniser(): Promise<{ ok: boolean; sessions: number }>
       ia: iaLocal,
     });
     ls.setItem(FLAG, "1");
+    window.dispatchEvent(new Event(EVENEMENT));
     return { ok: true, sessions: fusion.length };
   } catch {
     return { ok: false, sessions: 0 };

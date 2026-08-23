@@ -7,6 +7,7 @@ import { analyserReponse } from "@/lib/jury/evaluation";
 import type { AvisModele } from "@/lib/jury/evaluation";
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCache } from "@/lib/ia-cache";
+import { surSynchronisation } from "@/lib/sync/client";
 import type { JuryQuestion } from "@/lib/slides/types";
 
 type Etape = "attente" | "reponse" | "evaluation";
@@ -33,6 +34,10 @@ export default function JuryPage() {
   const stoppingRef = useRef(false);
   const questionAfficheeRef = useRef(0);
 
+  // Incrémenté après chaque synchronisation : recharge support et questions.
+  const [version, setVersion] = useState(0);
+  useEffect(() => surSynchronisation(() => setVersion((v) => v + 1)), []);
+
   useEffect(() => {
     setSupporte(getRecognitionCtor() !== null);
     const deck = listeDeckSauvegarde(window.localStorage);
@@ -56,7 +61,7 @@ export default function JuryPage() {
       stoppingRef.current = true;
       recRef.current?.abort();
     };
-  }, []);
+  }, [version]);
 
   const question = questions[index];
 

@@ -7,7 +7,7 @@ import { computeReport } from "@/lib/scoring";
 import { buildTrendReport, SEUILS_TENDANCES } from "@/lib/trends";
 import type { SessionRecord } from "@/lib/types";
 import TrendsView from "@/app/components/TrendsView";
-import { pousserTout, supprimerDistante } from "@/lib/sync/client";
+import { pousserTout, supprimerDistante, surSynchronisation } from "@/lib/sync/client";
 
 function formatDuration(ms: number): string {
   const totalSec = Math.round(ms / 1000);
@@ -64,6 +64,8 @@ export default function HomePage() {
 
   useEffect(() => {
     setSessions(listSessions(window.localStorage));
+    // Après une synchronisation (connexion sur un nouvel appareil), relire.
+    return surSynchronisation(() => setSessions(listSessions(window.localStorage)));
   }, []);
 
   function handleRemove(id: string) {

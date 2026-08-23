@@ -10,7 +10,7 @@ Aucune installation, compte facultatif. Ouvre le lien dans Chrome ou Edge, autor
 et parle. *(Sans compte, tout reste sur ton appareil ; avec un compte Google, ton travail te suit
 sur tous tes appareils — jamais l'audio.)*
 
-> Hébergée sur Vercel. Chaque déploiement passe par la CI (types, 180 tests, build).
+> Hébergée sur Vercel. Chaque déploiement passe par la CI (types, 173 tests, build).
 
 > Construit en août 2026 par [Zakaria Laaniba](https://laanibazakaria.github.io), élève-ingénieur
 > en IA à l'ENSIAS, après un stage passé à fiabiliser une application d'IA en production.
@@ -134,7 +134,7 @@ npm run dev        # http://localhost:3000
 L'application le dit explicitement si le navigateur ne la propose pas.
 
 ```bash
-npm test           # 180 tests unitaires (Vitest)
+npm test           # 173 tests unitaires (Vitest)
 npm run typecheck  # TypeScript strict
 npm run build      # build de production
 ```
@@ -153,7 +153,7 @@ lib/
 ├── sync/                 Fusion local ↔ compte (pure, testée)
 ├── storage.ts            Persistance locale, export/import JSON
 └── types.ts
-tests/unit/               180 tests, dont des fixtures de sessions réelles
+tests/unit/               173 tests, dont des fixtures de sessions réelles
 ```
 
 Le cœur (`lib/`) n'a **aucune dépendance au DOM** : il se teste sans navigateur, et les

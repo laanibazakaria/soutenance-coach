@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { GeistSans } from "geist/font/sans";
+import { Plus_Jakarta_Sans } from "next/font/google";
+
+const police = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-app", display: "swap" });
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,7 +29,7 @@ export const viewport: Viewport = { themeColor: "#ffffff", width: "device-width"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={GeistSans.variable}>
+    <html lang="fr" className={police.variable}>
       <body>{children}</body>
     </html>
   );

@@ -55,10 +55,10 @@ export default function LandingPage() {
                 <path
                   d="M0,-62 L11,-15 L44,-44 L15,-11 L62,0 L15,11 L44,44 L11,15 L0,62 L-11,15 L-44,44 L-15,11 L-62,0 L-15,-11 L-44,-44 L-11,-15 Z"
                   fill="none"
-                  stroke="#6f00ff"
+                  stroke="#0f766e"
                   strokeWidth="7"
                 />
-                <circle r="8" fill="#ffd700" />
+                <circle r="8" fill="#f59e0b" />
               </g>
             </svg>
             SoutenanceCoach

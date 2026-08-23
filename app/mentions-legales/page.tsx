@@ -28,7 +28,7 @@ export default function MentionsLegalesPage() {
         <a href="https://github.com/laanibazakaria/soutenance-coach" target="_blank" rel="noopener noreferrer">
           github.com/laanibazakaria/soutenance-coach
         </a>
-        . Le système de design s&apos;inspire de celui de Propulsez Coach IA, avec l&apos;accord de Propulsez.
+        . La structure de l&apos;interface s&apos;inspire de celle de Propulsez Coach IA, avec l&apos;accord de Propulsez ; les couleurs, la police et le logo sont propres à SoutenanceCoach.
       </p>
 
       <h2>Données personnelles</h2>

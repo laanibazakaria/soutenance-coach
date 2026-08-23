@@ -81,11 +81,11 @@ const TRACES = {
 } as const;
 
 export const TEINTES = {
-  violet: { fond: "#f5f0ff", trait: "#6f00ff" },
-  or: { fond: "#fff9e0", trait: "#8a7000" },
+  violet: { fond: "#f0fdfa", trait: "#0f766e" },
+  or: { fond: "#fffbeb", trait: "#b45309" },
   vert: { fond: "rgba(22,163,74,0.08)", trait: "#16a34a" },
-  rose: { fond: "#fff0f5", trait: "#c4176a" },
-  bleu: { fond: "rgba(37,99,235,0.08)", trait: "#2563eb" },
+  rose: { fond: "#fff1f2", trait: "#be123c" },
+  bleu: { fond: "#eff6ff", trait: "#1d4ed8" },
   rouge: { fond: "rgba(220,38,38,0.08)", trait: "#dc2626" },
   gris: { fond: "#f1f5f9", trait: "#475569" },
   blanc: { fond: "rgba(255,255,255,0.16)", trait: "#ffffff" },

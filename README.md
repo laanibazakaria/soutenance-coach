@@ -11,7 +11,7 @@ et parle. *(Sans compte, tout reste sur ton appareil ; avec un compte Google, to
 sur tous tes appareils — jamais l'audio.)*
 
 > Hébergée sur Vercel. Chaque déploiement passe par la CI (types, 212 tests, build).
-> Système de design inspiré de [Propulsez Coach IA](https://coach.propulsez.fr), avec l'accord de Propulsez :
+> Structure de l'interface (coquille, barre latérale, tableau de bord) inspirée de [Propulsez Coach IA](https://coach.propulsez.fr), avec l'accord de Propulsez — palette, police et logo propres à SoutenanceCoach :
 > palette, typographie Geist, coquille à barre latérale, composants accessibles (modale, toasts, squelettes).
 
 > Construit en août 2026 par [Zakaria Laaniba](https://laanibazakaria.github.io), élève-ingénieur

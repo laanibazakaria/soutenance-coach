@@ -49,10 +49,12 @@ function SessionChips({ session }: { session: SessionRecord }) {
     .filter((m) => m.level !== "absent" && m.value !== undefined)
     .map((m) => ({ id: m.id, level: m.level, text: `${m.value} ${CHIP_UNITS[m.id] ?? ""}`.trim() }));
   const avecSlides = session.slides && session.slides.length > 0;
-  if (chips.length === 0 && !avecSlides && session.mode !== "entretien") return null;
+  if (chips.length === 0 && !avecSlides && !session.mode) return null;
   return (
     <div className="chips">
       {session.mode === "entretien" && <span className="chip chip-info">💼 Entretien</span>}
+      {session.mode === "pitch" && <span className="chip chip-info">🚀 Pitch</span>}
+      {session.mode === "concours" && <span className="chip chip-info">🏛️ Concours</span>}
       {avecSlides && <span className="chip chip-info">🎞️ {session.slides!.length} diapositives</span>}
       {chips.map((c) => (
         <span key={c.id} className={`chip chip-${c.level}`}>

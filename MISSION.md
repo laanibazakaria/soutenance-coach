@@ -252,3 +252,20 @@ qui relance, pitch de 2 minutes avec coach comparant au CV, guide, checklist ave
   la banque classique porte, elle, l'« attendu » rédigé à la main.
 - *Les écarts sont posés avec respect* : la consigne le dit explicitement — on prépare, on ne
   humilie pas.
+
+## Étape K — Le moteur de modules : Pitch de projet, Oral de concours (23 août 2026)
+
+**Le manque.** Après l'entretien, deux autres oraux décisifs pour un étudiant : le pitch d'un
+projet devant un jury d'innovation, et l'oral d'admission ou de concours. Les copier trois fois
+aurait donné trois codes à maintenir.
+
+**Ce qui est construit.** Une définition de module (`lib/modules`) : champs du profil, banque
+classique rédigée à la main avec l'« attendu », persona et critères du jury, checklist avec
+détection, guide. Un seul moteur rend le hub (`/app/m/[module]`), la simulation, les questions
+IA, la présentation chronométrée (`/app/session?mode=…`) et l'avis du coach comparé au dossier.
+Les profils sont synchronisés (table `ProfilModule`, clé utilisateur + module).
+
+**Garde-fous.** Les mêmes : dossier lu dans le navigateur, texte seul envoyé ; questions
+spécifiques ou rien ; mesures par du code, jamais de note ; faiblesses pointées avec respect.
+Le module Entretien, construit avant le moteur, garde sa propre implémentation — à migrer un
+jour sur le moteur, sans urgence : il marche.

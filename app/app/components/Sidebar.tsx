@@ -27,6 +27,12 @@ const I = {
   entretien: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" /></svg>
   ),
+  pitch: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" /><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" /></svg>
+  ),
+  concours: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18" /><path d="M5 21V7l7-4 7 4v14" /><path d="M9 21v-6h6v6" /><path d="M9 11h.01M15 11h.01" /></svg>
+  ),
   micro: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" /></svg>
   ),
@@ -44,6 +50,25 @@ const ENTRETIEN: ReadonlyArray<{ href: string; label: string; icone: React.React
   { href: "/app/entretien", label: "Mon entretien", icone: I.entretien, exact: true },
   { href: "/app/entretien/simulation", label: "Simulation", icone: I.jury },
   { href: "/app/guide-entretien", label: "Guide entretien", icone: I.guide },
+];
+
+const MODULES_NAV: ReadonlyArray<{ section: string; liens: ReadonlyArray<{ href: string; label: string; icone: React.ReactNode; exact?: boolean }> }> = [
+  {
+    section: "Pitch de projet",
+    liens: [
+      { href: "/app/m/pitch", label: "Mon pitch", icone: I.pitch, exact: true },
+      { href: "/app/m/pitch/simulation", label: "Simulation", icone: I.jury },
+      { href: "/app/guide-pitch", label: "Guide pitch", icone: I.guide },
+    ],
+  },
+  {
+    section: "Oral de concours",
+    liens: [
+      { href: "/app/m/concours", label: "Mon oral", icone: I.concours, exact: true },
+      { href: "/app/m/concours/simulation", label: "Simulation", icone: I.jury },
+      { href: "/app/guide-concours", label: "Guide concours", icone: I.guide },
+    ],
+  },
 ];
 
 const RESSOURCES: ReadonlyArray<{ href: string; label: string; icone: React.ReactNode }> = [
@@ -105,6 +130,21 @@ export default function Sidebar() {
           </Link>
         );
       })}
+
+      {MODULES_NAV.map((groupe) => (
+        <div key={groupe.section}>
+          <div className="sidebar-section">{groupe.section}</div>
+          {groupe.liens.map((l) => {
+            const actif = estActif(chemin, l.href, l.exact);
+            return (
+              <Link key={l.href} href={l.href} className={`sidebar-link${actif ? " active" : ""}`} aria-current={actif ? "page" : undefined}>
+                <span className="sidebar-icone">{l.icone}</span>
+                {l.label}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
 
       <div className="sidebar-section">Ressources</div>
       {RESSOURCES.map((l) => {

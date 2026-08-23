@@ -6,6 +6,8 @@ import type { AvisCoach as Avis } from "@/lib/coach";
 import { lireCache, ecrireCache } from "@/lib/ia-cache";
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCandidature } from "@/lib/entretien/persistance";
+import { MODULES, estModuleId, contexteProfil } from "@/lib/modules";
+import { lireProfil } from "@/lib/modules/persistance";
 import { pousserTout } from "@/lib/sync/client";
 
 /** Clé de cache d'un avis : une session, un avis — on ne redemande pas. */
@@ -42,6 +44,9 @@ export default function AvisCoach({ session, compact = false }: Props) {
     setErreur(null);
     const deck = listeDeckSauvegarde(window.localStorage);
     const candidature = session.mode === "entretien" ? lireCandidature(window.localStorage) : null;
+    const module = estModuleId(session.mode) ? MODULES[session.mode] : null;
+    const profil = module ? lireProfil(window.localStorage, module.id) : null;
+    const dossier = module && profil ? { nom: module.nom, persona: module.persona, consigne: module.formatConsigne, contexte: contexteProfil(module, profil) } : undefined;
     try {
       const res = await fetch("/api/coach", {
         method: "POST",
@@ -50,11 +55,12 @@ export default function AvisCoach({ session, compact = false }: Props) {
           transcript: session.transcript,
           durationMs: session.durationMs,
           targetDurationMs: session.targetDurationMs,
-          slides: candidature ? undefined : deck?.slides.map((s) => ({ numero: s.numero, titre: s.titre, texte: s.texte })),
+          slides: candidature || dossier ? undefined : deck?.slides.map((s) => ({ numero: s.numero, titre: s.titre, texte: s.texte })),
           slidesTiming: session.slides,
           candidature: candidature
             ? { poste: candidature.poste, entreprise: candidature.entreprise, offre: candidature.offre, cvTexte: candidature.cvTexte }
             : undefined,
+          dossier,
         }),
       });
       const data = (await res.json()) as { avis?: Avis; erreur?: string };
@@ -87,9 +93,11 @@ export default function AvisCoach({ session, compact = false }: Props) {
             <p className="coach-note">
               {session.mode === "entretien"
                 ? "Il compare ton pitch à ton CV et à l'offre : expériences pertinentes oubliées, exigences non adressées, phrases à reformuler."
-                : `Il compare ce que tu as dit ${supportConnu ? "à tes diapositives" : "à ce qu'attend un jury"} : oublis, passages confus, phrases à reformuler.`}{" "}
+                : estModuleId(session.mode)
+                  ? "Il compare ta présentation à ton dossier et à la structure attendue : blocs manquants, preuves oubliées, phrases à reformuler."
+                  : `Il compare ce que tu as dit ${supportConnu ? "à tes diapositives" : "à ce qu'attend un jury"} : oublis, passages confus, phrases à reformuler.`}{" "}
               Il ne note pas — les chiffres ci-dessus restent calculés par du code.
-              {session.mode !== "entretien" && !supportConnu && " Dépose tes slides pour qu'il repère aussi les oublis."}
+              {!session.mode && !supportConnu && " Dépose tes slides pour qu'il repère aussi les oublis."}
             </p>
           )}
           {erreur && (

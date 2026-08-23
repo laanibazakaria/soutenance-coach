@@ -22,6 +22,8 @@ export interface DemandeCoach {
   slidesTiming?: SlideTiming[];
   /** Module Entretien : le pitch « présentez-vous » est comparé au CV et à l'offre. */
   candidature?: { poste: string; entreprise: string; offre: string; cvTexte: string };
+  /** Modules pitch / concours : la présentation est comparée au dossier. */
+  dossier?: { nom: string; persona: string; consigne: string; contexte: string };
 }
 
 export interface Reformulation {
@@ -82,6 +84,43 @@ export function construirePromptCoach(demande: DemandeCoach, rapport: ScoreRepor
       : "";
 
   const support = demande.slides && demande.slides.length > 0 ? slidesEnTexte(demande.slides) : null;
+
+  if (demande.dossier) {
+    const d = demande.dossier;
+    return `Tu es un coach qui prépare des candidats à un ${d.nom.toLowerCase()} devant un ${d.persona.toLowerCase()}. Un candidat vient de répéter sa présentation à voix haute. La transcription est automatique : ignore les fautes de transcription, juge le fond et la clarté.
+
+${temps}
+
+STRUCTURE ATTENDUE DE LA PRÉSENTATION :
+${d.consigne}
+
+DOSSIER DU CANDIDAT :
+${d.contexte.slice(0, 7000)}
+
+TRANSCRIPTION DE LA PRÉSENTATION :
+${demande.transcript.slice(0, LIMITES_COACH.transcriptChars)}
+
+MESURES DÉJÀ CALCULÉES (ne les recalcule pas, ne les contredis pas) :
+${faits || "- aucune"}
+
+Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sans balises Markdown, de la forme :
+{
+  "oublis": ["..."],
+  "confus": ["..."],
+  "reformulations": [{"avant": "...", "apres": "..."}],
+  "points_forts": ["..."],
+  "priorite": "..."
+}
+
+Règles impératives :
+- N'attribue AUCUNE note, AUCUN score, AUCUN pourcentage. Tu conseilles, tu ne notes pas.
+- "oublis" : 0 à 4 éléments — des blocs de la structure attendue absents, ou des éléments forts du dossier (chiffres, preuves, faits précis) jamais cités. Cite-les précisément. Vide si tout y est.
+- "confus" : 0 à 3 passages peu clairs, en citant les mots exacts entre guillemets, puis pourquoi.
+- "reformulations" : 1 à 3 — "avant" reprend une phrase réellement dite, "apres" la version que ce jury retient : courte, concrète, un fait.
+- "points_forts" : 1 à 3 choses qui tiennent vraiment.
+- "priorite" : une seule phrase — la chose à travailler avant le jour J.
+- Français, tutoiement, phrases courtes, concret. Exigeant mais bienveillant.`;
+  }
 
   if (demande.candidature) {
     const c = demande.candidature;

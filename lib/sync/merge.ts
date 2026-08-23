@@ -59,6 +59,7 @@ export interface StorageEffacable {
 /** Clés locales appartenant au travail de l'utilisateur (pas les réglages). */
 export const CLES_DONNEES = ["sc.sessions.v1", "sc.deck.v1", "sc.parcours.v1", "sc.candidature.v1", "sc.connecte"] as const;
 export const PREFIXE_IA = "sc.ia.v1:";
+export const PREFIXE_PROFIL = "sc.profil.v1:";
 
 /**
  * Efface sessions, support, résultats IA et drapeau de connexion. À n'appeler
@@ -70,7 +71,7 @@ export function viderDonneesLocales(storage: StorageEffacable): number {
   const cles: string[] = [];
   for (let i = 0; i < storage.length; i++) {
     const k = storage.key(i);
-    if (k && ((CLES_DONNEES as readonly string[]).includes(k) || k.startsWith(PREFIXE_IA))) cles.push(k);
+    if (k && ((CLES_DONNEES as readonly string[]).includes(k) || k.startsWith(PREFIXE_IA) || k.startsWith(PREFIXE_PROFIL))) cles.push(k);
   }
   for (const k of cles) storage.removeItem(k);
   return cles.length;

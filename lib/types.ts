@@ -27,7 +27,7 @@ export interface SessionRecord {
    */
   slides?: SlideTiming[];
   /** Module d'origine : soutenance par défaut ; "entretien" pour un pitch « présentez-vous ». */
-  mode?: "soutenance" | "entretien";
+  mode?: "soutenance" | "entretien" | "pitch" | "concours";
 }
 
 /** Temps passé sur une diapositive pendant une répétition. */

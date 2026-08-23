@@ -96,6 +96,15 @@ posera** (tirées du CV et de l'offre : écarts, affirmations à prouver), « pr
 où le recruteur IA relance, la méthode STAR, un guide (déroulé, erreurs qui éliminent,
 questions à poser, salaire, l'après) et une checklist jusqu'à la date de l'entretien.
 
+## Les modules Pitch de projet et Oral de concours
+
+Un **moteur de modules** (`lib/modules`) décrit une situation d'oral — profil, banque classique,
+persona du jury, critères, checklist, guide — et produit les mêmes écrans : profil avec dossier
+PDF lu localement, questions spécifiques tirées du dossier, simulation avec un jury qui relance,
+présentation chronométrée avec coach, guide. Deux modules l'utilisent : **Pitch de projet**
+(concours d'innovation, startup, hackathon — jury d'innovation) et **Oral de concours**
+(admission, master, bourse — jury d'admission). Ajouter un module, c'est écrire une définition.
+
 ## Et avec l'IA : pitch, questions de jury, coach, fiches, simulation d'entretien
 
 Dépose le PDF de tes slides. Seul le **texte extrait** est envoyé au modèle — jamais le fichier.

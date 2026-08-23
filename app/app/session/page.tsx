@@ -8,6 +8,7 @@ import ScoreReportView from "@/app/components/ScoreReportView";
 import AvisCoach from "@/app/components/AvisCoach";
 import { pousserTout } from "@/lib/sync/client";
 import { useEnregistrement } from "../hooks/useEnregistrement";
+import { MODULES, estModuleId } from "@/lib/modules";
 
 /**
  * Formats proposés, nommés d'après les soutenances réelles des étudiants
@@ -17,6 +18,7 @@ import { useEnregistrement } from "../hooks/useEnregistrement";
 const FORMATS: ReadonlyArray<{ label: string; hint?: string; minutes: number | null }> = [
   { label: "Libre", minutes: null },
   { label: "2 min", hint: "présentez-vous", minutes: 2 },
+  { label: "3 min", hint: "pitch", minutes: 3 },
   { label: "5 min", hint: "pitch", minutes: 5 },
   { label: "10 min", hint: "stage", minutes: 10 },
   { label: "15 min", hint: "PFA", minutes: 15 },
@@ -27,14 +29,15 @@ export default function SessionPage() {
   const router = useRouter();
   const rec = useEnregistrement();
   const [targetMinutes, setTargetMinutes] = useState<number | null>(null);
-  const [mode, setMode] = useState<"soutenance" | "entretien">("soutenance");
+  const [mode, setMode] = useState<"soutenance" | "entretien" | "pitch" | "concours">("soutenance");
 
   // Préréglage par l'URL (module Entretien : « présentez-vous » en 2 minutes).
   // Lu dans un effet plutôt qu'avec useSearchParams, qui imposerait une
   // frontière Suspense à toute la page.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("mode") === "entretien") setMode("entretien");
+    const m = params.get("mode");
+    if (m === "entretien" || estModuleId(m)) setMode(m);
     const format = Number(params.get("format"));
     if (FORMATS.some((f) => f.minutes === format)) setTargetMinutes(format);
   }, []);
@@ -55,10 +58,10 @@ export default function SessionPage() {
       wordCount: countWords(transcript),
       confidence: rec.confidence(),
       targetDurationMs: targetMs,
-      ...(mode === "entretien" ? { mode } : {}),
+      ...(mode !== "soutenance" ? { mode } : {}),
     });
     void pousserTout();
-    router.push(mode === "entretien" ? "/app/entretien" : "/app");
+    router.push(mode === "entretien" ? "/app/entretien" : estModuleId(mode) ? `/app/m/${mode}` : "/app");
   }
 
   function discard() {
@@ -97,6 +100,15 @@ export default function SessionPage() {
             Présent (qui tu es) → passé (deux expériences qui le prouvent) → futur (pourquoi ce poste). Deux minutes. Le coach
             comparera ensuite ton pitch à ton CV et à l&apos;offre.
           </p>
+        </div>
+      )}
+
+      {estModuleId(mode) && phase === "idle" && (
+        <div className="card jury-intro" style={{ textAlign: "left" }}>
+          <b>
+            {MODULES[mode].emoji} {MODULES[mode].formatTitre} — {MODULES[mode].formatMinutes} minutes
+          </b>
+          <p>{MODULES[mode].formatConsigne} Le coach comparera ensuite ta présentation à ton dossier.</p>
         </div>
       )}
 
@@ -185,7 +197,7 @@ export default function SessionPage() {
               wordCount: countWords(finalText.trim()),
               confidence: rec.confidence(),
               targetDurationMs: targetMs,
-              ...(mode === "entretien" ? { mode } : {}),
+              ...(mode !== "soutenance" ? { mode } : {}),
             }}
           />
         </>

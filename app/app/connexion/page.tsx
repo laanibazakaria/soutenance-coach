@@ -20,7 +20,24 @@ export default function ConnexionPage() {
   const [confirmerSuppression, setConfirmerSuppression] = useState(false);
   const [suppression, setSuppression] = useState(false);
   const [quitte, setQuitte] = useState(false);
+  const [lienDispo, setLienDispo] = useState(false);
+  const [email, setEmail] = useState("");
+  const [envoi, setEnvoi] = useState(false);
+  const [lienEnvoye, setLienEnvoye] = useState(false);
   const toast = useToast();
+
+  async function envoyerLien() {
+    setEnvoi(true);
+    try {
+      const r = await signIn("resend", { email: email.trim(), callbackUrl: "/app", redirect: false });
+      if (r?.error) throw new Error(r.error);
+      setLienEnvoye(true);
+    } catch {
+      toast.error("L'e-mail n'est pas parti. Vérifie l'adresse, ou connecte-toi avec Google.");
+    } finally {
+      setEnvoi(false);
+    }
+  }
 
   async function quitter() {
     setQuitte(true);
@@ -46,7 +63,10 @@ export default function ConnexionPage() {
   useEffect(() => {
     fetch("/api/auth/providers")
       .then((r) => (r.ok ? r.json() : {}))
-      .then((p: Record<string, unknown>) => setDispo(Boolean(p && p.google)))
+      .then((p: Record<string, unknown>) => {
+        setDispo(Boolean(p && p.google));
+        setLienDispo(Boolean(p && p.resend));
+      })
       .catch(() => setDispo(false));
   }, []);
 
@@ -106,14 +126,38 @@ export default function ConnexionPage() {
           <p>Tout le reste fonctionne sans compte, en local.</p>
         </div>
       ) : (
-        <div className="actions">
-          <button
-            className="btn primary big"
-            disabled={dispo === null}
-            onClick={() => void signIn("google", { callbackUrl: "/app" })}
-          >
+        <div className="card connexion-carte">
+          <button className="btn primary big" disabled={dispo === null} onClick={() => void signIn("google", { callbackUrl: "/app" })}>
             Continuer avec Google
           </button>
+          {lienDispo && (
+            <>
+              <div className="connexion-ou">
+                <span>ou par e-mail</span>
+              </div>
+              {lienEnvoye ? (
+                <p className="forfait-ok">
+                  <Icone nom="valide" /> Lien envoyé à <b>{email}</b>. Ouvre ta boîte mail et clique sur « Me connecter » (valable 24 h).
+                </p>
+              ) : (
+                <form
+                  className="connexion-email"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void envoyerLien();
+                  }}
+                >
+                  <label className="champ champ-large">
+                    <span>Ton adresse e-mail</span>
+                    <input type="email" name="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="prenom.nom@ecole.ma" />
+                  </label>
+                  <button className="btn" type="submit" disabled={envoi || !email.includes("@")}>
+                    {envoi ? "Envoi…" : "Recevoir un lien de connexion"}
+                  </button>
+                </form>
+              )}
+            </>
+          )}
         </div>
       )}
 

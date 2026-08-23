@@ -17,7 +17,7 @@ import { lireModulesActifs } from "@/lib/preferences";
 import { saveSession, countWords } from "@/lib/storage";
 import { pousserTout, signalerSynchronisation } from "@/lib/sync/client";
 import { signalerAppelIa } from "@/lib/usage-client";
-import { voixDisponible, meilleureVoix, parler, taire } from "@/lib/voix";
+import { voixDisponible, meilleureVoix, parler, taire, voixNavigateurExcellente, parlerNaturel, taireNaturel } from "@/lib/voix";
 import { CLE_RAPPORT } from "../components/RapportView";
 import DebriefAppel from "./DebriefAppel";
 
@@ -83,6 +83,8 @@ function AppelInner() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [debrief, setDebrief] = useState<Debrief | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  /** Voix naturelle de l'API quand le navigateur n'a rien de bon (décidé au lancement). */
+  const [voixNaturelle, setVoixNaturelle] = useState(false);
 
   const voixRef = useRef<SpeechSynthesisVoice | null>(null);
   const recRef = useRef<SpeechRecognition | null>(null);
@@ -138,6 +140,7 @@ function AppelInner() {
       arreteRef.current = true;
       nettoyerEcoute();
       taire();
+      taireNaturel();
       const reponses = hist.filter((m) => m.role === "user");
       if (reponses.length === 0) {
         setPhase("idle");
@@ -197,8 +200,12 @@ function AppelInner() {
       historiqueRef.current = nouveau;
       setHistorique(nouveau);
       setPhase("jury-parle");
-      if (supporte.voix) await parler(replique, langue, voixRef.current, { debit: 1.02 });
-      else await new Promise((r) => setTimeout(r, Math.min(8000, 800 + replique.length * 45)));
+      let dit = false;
+      if (voixNaturelle) dit = await parlerNaturel(replique, langue, mode === "entretien" ? "recruteur" : "jury");
+      if (!dit && !arreteRef.current) {
+        if (supporte.voix) await parler(replique, langue, voixRef.current, { debit: 1.02 });
+        else await new Promise((r) => setTimeout(r, Math.min(8000, 800 + replique.length * 45)));
+      }
       if (arreteRef.current) return;
       if (fin) {
         await terminerAppel(nouveau);
@@ -207,7 +214,7 @@ function AppelInner() {
       ecouter(nouveau);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mode, contexte, langue, dureeMin, supporte.voix, terminerAppel],
+    [mode, contexte, langue, dureeMin, supporte.voix, voixNaturelle, terminerAppel],
   );
 
   function ecouter(hist: Message[]) {
@@ -287,6 +294,7 @@ function AppelInner() {
     debutRef.current = Date.now();
     setEcouleS(0);
     if (supporte.voix) voixRef.current = await meilleureVoix(langue);
+    setVoixNaturelle(!voixNavigateurExcellente(voixRef.current));
     // Un premier « parler » vide débloque la synthèse vocale sur mobile (geste utilisateur requis).
     if (supporte.voix) await parler(" ", langue, voixRef.current);
     await tourDuJury([]);
@@ -296,6 +304,7 @@ function AppelInner() {
     arreteRef.current = true;
     nettoyerEcoute();
     taire();
+    taireNaturel();
   }, [nettoyerEcoute]);
 
   const p = PERSONAS[mode];

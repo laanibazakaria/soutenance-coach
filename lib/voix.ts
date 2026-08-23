@@ -75,3 +75,45 @@ export function taire(): void {
 export function parleEnCours(): boolean {
   return enCours !== null;
 }
+
+/**
+ * Une voix du navigateur « excellente » (Edge en ligne, voix neuronales) vaut
+ * mieux qu'un aller-retour serveur de 4 s : on ne demande la voix naturelle
+ * à l'API que si le navigateur n'a rien de bon.
+ */
+export function voixNavigateurExcellente(voix: SpeechSynthesisVoice | null): boolean {
+  if (!voix) return false;
+  return /natural|online|neural/i.test(voix.name) || /^Microsoft (Denise|Henri|Vivienne|Remy|Ava|Andrew|Emma)/.test(voix.name);
+}
+
+let audioEnCours: HTMLAudioElement | null = null;
+
+/** Joue la réplique avec la voix naturelle de l'API. Résout `false` si ça échoue (→ repli navigateur). */
+export async function parlerNaturel(texte: string, langue: "fr" | "en", voix: "jury" | "recruteur" = "jury"): Promise<boolean> {
+  try {
+    const r = await fetch("/api/voix", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ texte, langue, voix }), signal: AbortSignal.timeout(22_000) });
+    if (!r.ok) return false;
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    await new Promise<void>((resolve, reject) => {
+      const a = new Audio(url);
+      audioEnCours = a;
+      a.onended = () => resolve();
+      a.onerror = () => reject(new Error("lecture"));
+      a.play().catch(reject);
+    });
+    URL.revokeObjectURL(url);
+    audioEnCours = null;
+    return true;
+  } catch {
+    audioEnCours = null;
+    return false;
+  }
+}
+
+export function taireNaturel(): void {
+  if (audioEnCours) {
+    audioEnCours.pause();
+    audioEnCours = null;
+  }
+}

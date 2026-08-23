@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { appelerGemini } from "@/lib/gemini";
+import { appelerIA } from "@/lib/llm";
 import { verifierQuota } from "@/lib/quota-serveur";
 import { construirePromptFiches, parseFiches } from "@/lib/fiches";
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   // Quota vérifié avant le modèle, consommé seulement après succès : ni une requête invalide ni une panne du fournisseur ne coûtent un appel.
   const quota = await verifierQuota(request);
   if (!quota.ok) return quota.reponse;
-  const resultat = await appelerGemini(construirePromptFiches(slides), { maxOutputTokens: 4000, temperature: 0.5 });
+  const resultat = await appelerIA(construirePromptFiches(slides), { maxOutputTokens: 4000, temperature: 0.5 });
   if (resultat.ok) await quota.confirmer();
   if (!resultat.ok) {
     return NextResponse.json({ erreur: resultat.erreur, code: resultat.code }, { status: resultat.code === "cle_absente" ? 503 : 502 });

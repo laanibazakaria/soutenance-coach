@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma, baseConfiguree } from "@/lib/prisma";
-import { cleConfiguree } from "@/lib/gemini";
+import { iaConfiguree, fournisseursDisponibles } from "@/lib/llm";
 import { authConfiguree } from "@/auth";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +24,8 @@ export async function GET() {
     {
       ok,
       base,
-      ia: cleConfiguree() ? "ok" : "absente",
+      ia: iaConfiguree() ? "ok" : "absente",
+      fournisseurs: fournisseursDisponibles(),
       comptes: authConfiguree() ? "ok" : "absents",
       horodatage: new Date().toISOString(),
     },

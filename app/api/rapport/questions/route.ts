@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { appelerGemini } from "@/lib/gemini";
+import { appelerIA } from "@/lib/llm";
 import { verifierQuota } from "@/lib/quota-serveur";
 import { construirePromptRapporteur, parseQuestionsRapporteur, LIMITES_RAPPORT } from "@/lib/rapport";
 
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   };
   const quota = await verifierQuota(request);
   if (!quota.ok) return quota.reponse;
-  const resultat = await appelerGemini(construirePromptRapporteur(rapport), { maxOutputTokens: 5000, temperature: 0.6, timeoutMs: 90_000 });
+  const resultat = await appelerIA(construirePromptRapporteur(rapport), { maxOutputTokens: 5000, temperature: 0.6, timeoutMs: 90_000 });
   if (resultat.ok) await quota.confirmer();
   if (!resultat.ok) {
     return NextResponse.json({ erreur: resultat.erreur, code: resultat.code }, { status: resultat.code === "cle_absente" ? 503 : 502 });

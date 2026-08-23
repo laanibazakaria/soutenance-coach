@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { appelerGemini } from "@/lib/gemini";
+import { appelerIA } from "@/lib/llm";
 import { verifierQuota } from "@/lib/quota-serveur";
 import { analyserReponse, parseAvis } from "@/lib/jury/evaluation";
 import { MODULES, estModuleId, construirePromptEvaluationModule } from "@/lib/modules";
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   // Quota vérifié avant le modèle, consommé seulement après succès : ni une requête invalide ni une panne du fournisseur ne coûtent un appel.
   const quota = await verifierQuota(request);
   if (!quota.ok) return quota.reponse;
-  const resultat = await appelerGemini(construirePromptEvaluationModule(m, { question, reponse, profil, langue: corps.langue === "en" ? "en" : undefined }, analyse), { maxOutputTokens: 3000, temperature: 0.4 });
+  const resultat = await appelerIA(construirePromptEvaluationModule(m, { question, reponse, profil, langue: corps.langue === "en" ? "en" : undefined }, analyse), { maxOutputTokens: 3000, temperature: 0.4 });
   if (resultat.ok) await quota.confirmer();
   if (!resultat.ok) {
     return NextResponse.json({ erreur: `${resultat.erreur} Les mesures automatiques restent disponibles.`, code: resultat.code, analyse }, { status: resultat.code === "cle_absente" ? 503 : 502 });

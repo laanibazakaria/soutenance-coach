@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { appelerGemini } from "@/lib/gemini";
+import { appelerIA } from "@/lib/llm";
 import { verifierQuota } from "@/lib/quota-serveur";
 import { construirePromptQuestions, parseQuestionsGenerees } from "@/lib/jury/generation";
 import { decouperSlide } from "@/lib/slides/analyse";
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   // Quota vérifié avant le modèle, consommé seulement après succès : ni une requête invalide ni une panne du fournisseur ne coûtent un appel.
   const quota = await verifierQuota(request);
   if (!quota.ok) return quota.reponse;
-  const resultat = await appelerGemini(
+  const resultat = await appelerIA(
     construirePromptQuestions(deck, { nombre: 10, dureeMinutes: corps.dureeMinutes }),
     { maxOutputTokens: 5000, temperature: 0.6 },
   );

@@ -62,13 +62,19 @@ function Recherche() {
   }, [ouvert]);
 
   return (
-    <div className="barre-recherche" ref={boite}>
+    <div className="barre-recherche" ref={boite} onKeyDown={(e) => e.key === "Escape" && setOuvert(false)}>
       <Icone nom="recherche" taille={15} className="barre-recherche-loupe" />
       <input
         type="search"
+        name="q"
+        autoComplete="off"
+        spellCheck={false}
+        enterKeyHint="search"
         value={q}
         placeholder="Rechercher une page, un guide, une session…"
         aria-label="Rechercher"
+        aria-expanded={ouvert}
+        aria-controls="barre-resultats"
         onChange={(e) => {
           setQ(e.target.value);
           setOuvert(e.target.value.trim().length >= 2);
@@ -83,7 +89,7 @@ function Recherche() {
         }}
       />
       {ouvert && (
-        <div className="barre-resultats" role="listbox">
+        <div className="barre-resultats" id="barre-resultats">
           {vide ? (
             <div className="barre-resultats-vide">Rien pour « {q} ».</div>
           ) : (
@@ -156,13 +162,13 @@ function Cloche() {
   }
 
   return (
-    <div className="cloche" ref={boite}>
-      <button type="button" className="cloche-bouton" onClick={basculer} aria-label={nouvelles > 0 ? `${nouvelles} notifications` : "Notifications"} aria-expanded={ouvert}>
+    <div className="cloche" ref={boite} onKeyDown={(e) => e.key === "Escape" && setOuvert(false)}>
+      <button type="button" className="cloche-bouton" onClick={basculer} aria-label={nouvelles > 0 ? `${nouvelles} notification${nouvelles > 1 ? "s" : ""} non lue${nouvelles > 1 ? "s" : ""}` : "Notifications"} aria-expanded={ouvert} aria-controls="cloche-panneau">
         <Icone nom="cloche" taille={18} />
         {nouvelles > 0 && <span className="cloche-point" aria-hidden="true" />}
       </button>
       {ouvert && (
-        <div className="cloche-panneau">
+        <div className="cloche-panneau" id="cloche-panneau">
           <div className="cloche-tete">
             <b>Notifications</b>
             <span className="session-meta">{notifications.length === 0 ? "rien à signaler" : `${notifications.length} à voir`}</span>

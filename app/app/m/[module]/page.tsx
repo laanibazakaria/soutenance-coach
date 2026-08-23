@@ -16,6 +16,7 @@ import { telechargerIcs } from "@/lib/ics";
 import RepeterAvecAmi from "../../components/RepeterAvecAmi";
 import RetourOralForm from "../../components/RetourOralForm";
 import { Icone } from "@/app/components/Icone";
+import ListeQuestions from "../../components/ListeQuestions";
 
 function dateLongue(d: string): string {
   const [a, m, j] = d.split("-").map(Number);
@@ -197,32 +198,19 @@ function Hub({ m }: { m: ModuleOral }) {
             <p className="dropzone-note reassure-note">Seul le texte est envoyé — jamais le fichier.</p>
           </div>
         ) : (
-          questions.map((q) => <QuestionCarte key={q.id} q={q} />)
+          <ListeQuestions questions={questions.map(enLigne)} lienEntrainement={`/app/m/${m.id}/simulation`} libelleEntrainement={`M'entraîner avec le ${m.persona.toLowerCase()}`} />
         )}
         <details className="classiques">
           <summary>Les {m.banque.length} questions classiques d&apos;un {m.persona.toLowerCase()} — avec ce qu&apos;une bonne réponse contient</summary>
-          {questionsClassiquesModule(m).map((q) => (
-            <QuestionCarte key={q.id} q={q} />
-          ))}
+          <ListeQuestions questions={questionsClassiquesModule(m).map(enLigne)} />
         </details>
       </section>
     </div>
   );
 }
 
-function QuestionCarte({ q }: { q: QuestionEntretien }) {
-  return (
-    <article className={`card question${q.source === "ia" ? " question-priorite" : ""}`}>
-      <span className="question-cat">{LIBELLES_CATEGORIES_ENTRETIEN[q.categorie]}</span>
-      <p className="question-texte">{q.question}</p>
-      <p className="question-pourquoi">
-        <b>Ce qu&apos;il vérifie :</b> {q.pourquoi}
-      </p>
-      <p className="question-pourquoi">
-        <b>Une bonne réponse :</b> {q.attendu}
-      </p>
-    </article>
-  );
+function enLigne(q: QuestionEntretien) {
+  return { id: q.id, categorie: LIBELLES_CATEGORIES_ENTRETIEN[q.categorie], question: q.question, pourquoi: q.pourquoi, attendu: q.attendu, priorite: q.source === "ia" };
 }
 
 function Formulaire({ m, initial, onValider, onAnnuler }: { m: ModuleOral; initial: ProfilModule | null; onValider: (p: ProfilModule) => void; onAnnuler?: () => void }) {

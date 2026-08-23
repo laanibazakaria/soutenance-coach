@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { listSessions, removeSession, exportSessions, importSessions } from "@/lib/storage";
 import { computeReport } from "@/lib/scoring";
@@ -15,6 +16,7 @@ import { lireCache } from "@/lib/ia-cache";
 import { pousserTout, supprimerDistante, surSynchronisation } from "@/lib/sync/client";
 import { Icone } from "@/app/components/Icone";
 import LigneSession from "../components/LigneSession";
+import EtatVide from "@/app/components/EtatVide";
 
 function formatDuration(ms: number): string {
   const totalSec = Math.round(ms / 1000);
@@ -53,6 +55,16 @@ function SessionChips({ session }: { session: SessionRecord }) {
 
 /** L'historique unifié : toutes les sessions, tous les modules, recherche et filtres. */
 export default function SessionsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SessionsInner />
+    </Suspense>
+  );
+}
+
+function SessionsInner() {
+  const params = useSearchParams();
+  const qUrl = params.get("q") ?? "";
   const [sessions, setSessions] = useState<SessionRecord[] | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [filtre, setFiltre] = useState("tous");
@@ -64,10 +76,11 @@ export default function SessionsPage() {
   useEffect(() => {
     const lire = () => setSessions(listSessions(window.localStorage));
     lire();
-    const q = new URLSearchParams(window.location.search).get("q");
-    if (q) setRecherche(q);
     return surSynchronisation(lire);
   }, []);
+  useEffect(() => {
+    if (qUrl) setRecherche(qUrl);
+  }, [qUrl]);
 
   function handleRemove(id: string) {
     setSessions(removeSession(window.localStorage, id));
@@ -140,22 +153,30 @@ export default function SessionsPage() {
       </div>
       <label className="champ champ-large recherche">
         <span className="sr-only">Rechercher dans les transcriptions</span>
-        <input type="search" value={recherche} onChange={(e) => setRecherche(e.target.value)} placeholder="Rechercher un mot dans tes transcriptions…" />
+        <input type="search" name="q" autoComplete="off" spellCheck={false} value={recherche} onChange={(e) => setRecherche(e.target.value)} placeholder="Rechercher un mot dans tes transcriptions…" />
       </label>
-      <p className="session-meta" style={{ margin: "6px 0 14px" }}>
+      <p className="session-meta" style={{ margin: "6px 0 14px" }} aria-live="polite">
         {visibles.length} session{visibles.length > 1 ? "s" : ""}
         {visibles.length !== sessions.length && ` sur ${sessions.length}`}
       </p>
 
       {sessions.length === 0 ? (
-        <div className="card teaser">
-          Aucune session encore. <Link href="/app/session">Lance ta première</Link> — deux minutes suffisent. Déjà des sessions sur un autre appareil ?{" "}
-          <button className="link-btn" onClick={() => fileRef.current?.click()}>
-            Importe ton fichier
-          </button>
-        </div>
+        <EtatVide
+          icone="sessions"
+          titre="Aucune session pour l'instant"
+          texte="Chaque répétition enregistrée apparaîtra ici, avec ses mesures, sa transcription annotée et l'avis du coach."
+          action={{ libelle: "Lancer ma première session →", href: "/app/session" }}
+          secondaire={
+            <>
+              Déjà des sessions sur un autre appareil ?{" "}
+              <button className="link-btn" onClick={() => fileRef.current?.click()}>
+                Importe ton fichier
+              </button>
+            </>
+          }
+        />
       ) : visibles.length === 0 ? (
-        <div className="card teaser">Rien ne correspond à ce filtre.</div>
+        <EtatVide icone="recherche" teinte="gris" titre="Rien ne correspond" texte="Essaie un autre mot, ou retire le filtre par oral." />
       ) : (
         <div className="lignes-sessions">
           {visibles.map((s) => {

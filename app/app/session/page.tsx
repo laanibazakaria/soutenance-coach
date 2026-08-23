@@ -15,6 +15,7 @@ import { useEnregistrement } from "../hooks/useEnregistrement";
 import { lireLangue, sauverLangue, LANGUES, type Langue } from "@/lib/langue";
 import { MODULES, estModuleId } from "@/lib/modules";
 import { Icone } from "@/app/components/Icone";
+import ConfirmDialog from "@/app/components/ConfirmDialog";
 
 /**
  * Formats proposés, nommés d'après les soutenances réelles des étudiants
@@ -76,10 +77,21 @@ export default function SessionPage() {
     router.push(mode === "entretien" ? "/app/entretien" : estModuleId(mode) ? `/app/m/${mode}` : "/app");
   }
 
+  const [confirmerAbandon, setConfirmerAbandon] = useState(false);
   function discard() {
     rec.cleanup();
     router.push("/app");
   }
+
+  // Une session en cours ou non sauvegardée ne doit pas se perdre sur un clic malheureux.
+  useEffect(() => {
+    if (phase === "idle") return;
+    const garde = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", garde);
+    return () => window.removeEventListener("beforeunload", garde);
+  }, [phase]);
 
   const minutes = Math.floor(elapsedMs / 60000);
   const seconds = Math.floor((elapsedMs % 60000) / 1000);
@@ -169,6 +181,9 @@ export default function SessionPage() {
         </div>
       )}
 
+      <p className="sr-only" aria-live="polite">
+        {phase === "recording" ? "Enregistrement en cours" : phase === "stopped" ? "Enregistrement terminé, rapport disponible" : ""}
+      </p>
       {phase !== "idle" && (
       <div className={`timer timer-${timerState}`} aria-live="off">
         {phase === "recording" && <span className="rec-dot" aria-hidden="true" />}
@@ -201,7 +216,7 @@ export default function SessionPage() {
               rec.stop();
             }}
           >
-            ■ Arrêter
+            <Icone nom="stop" /> Arrêter
           </button>
         )}
         {phase === "stopped" && (
@@ -209,9 +224,18 @@ export default function SessionPage() {
             <button className="btn primary" onClick={save} disabled={finalText.trim() === ""}>
               <Icone nom="sauvegarder" /> Sauvegarder la session
             </button>
-            <button className="btn" onClick={discard}>
+            <button className="btn" onClick={() => setConfirmerAbandon(true)}>
               Abandonner
             </button>
+            <ConfirmDialog
+              ouverte={confirmerAbandon}
+              onFermer={() => setConfirmerAbandon(false)}
+              onConfirmer={discard}
+              titre="Abandonner cette session ?"
+              message="La transcription et les mesures seront perdues. Tu peux aussi la sauvegarder pour la relire plus tard."
+              libelleConfirmer="Abandonner"
+              danger
+            />
           </>
         )}
       </div>
@@ -244,7 +268,7 @@ export default function SessionPage() {
       )}
 
       {phase !== "stopped" && (
-        <div className="transcript" aria-live="polite">
+        <div className="transcript" tabIndex={0} role="region" aria-label="Transcription en direct">
           {finalText === "" && interimText === "" ? (
             <span className="transcript-placeholder">Ta transcription apparaîtra ici pendant que tu parles…</span>
           ) : (

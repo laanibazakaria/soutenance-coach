@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { listSessions } from "@/lib/storage";
@@ -15,9 +16,20 @@ import { useToast } from "@/app/components/Toast";
 import { Icone, IconeBadge, type NomIcone } from "@/app/components/Icone";
 import CarteQuotidien from "./components/CarteQuotidien";
 import LigneSession from "./components/LigneSession";
+import EtatVide from "@/app/components/EtatVide";
 
 /** L'accueil : ce que tu prépares, où tu en es, quoi faire maintenant. */
 export default function AccueilPage() {
+  return (
+    <Suspense fallback={null}>
+      <AccueilInner />
+    </Suspense>
+  );
+}
+
+function AccueilInner() {
+  const params = useSearchParams();
+  const choisirUrl = params.get("choisir") === "1";
   const [sessions, setSessions] = useState<SessionRecord[] | null>(null);
   const [actifs, setActifs] = useState<ModuleActif[] | null | undefined>(undefined);
   const [choisir, setChoisir] = useState(false);
@@ -35,12 +47,12 @@ export default function AccueilPage() {
       setActifs(a);
       setResumes(a ? resumerModules(window.localStorage, s, a) : []);
       setSerie(lireCache<Serie>(window.localStorage, "serie"));
-      setChoisir(new URLSearchParams(window.location.search).get("choisir") === "1");
       setMaintenant(new Date());
     };
     lire();
     return surSynchronisation(lire);
   }, []);
+  useEffect(() => setChoisir(choisirUrl), [choisirUrl]);
 
   if (actifs === undefined || sessions === null || maintenant === null) return null;
 
@@ -79,9 +91,9 @@ export default function AccueilPage() {
 
       <div className="accueil-duo">
         <section className="card accueil-echeance" aria-label="Prochaine échéance">
-          <span className="carte-titre carte-titre-clair">
+          <h2 className="carte-titre carte-titre-clair">
             <Icone nom="calendrier" taille={16} /> Prochaine échéance
-          </span>
+          </h2>
           {urgent ? (
             <>
               <div className="accueil-echeance-corps">
@@ -118,9 +130,9 @@ export default function AccueilPage() {
         </section>
 
         <section className="card accueil-perf" aria-label="Ma progression">
-          <span className="carte-titre">
+          <h2 className="carte-titre">
             <Icone nom="tendance" taille={16} /> Cette semaine
-          </span>
+          </h2>
           <div className="accueil-perf-grille">
             <div>
               <span className="accueil-perf-valeur">{chiffres.sessions}</span>
@@ -220,7 +232,7 @@ export default function AccueilPage() {
             <Link href={r.prochaineAction.lien} className="btn small primary">
               {r.prochaineAction.titre} →
             </Link>
-            <Link href={r.hub} className="accueil-lien-hub">
+            <Link href={r.hub} className="accueil-lien-hub" aria-label={`Ouvrir le module ${r.nom}`}>
               Ouvrir le module
             </Link>
           </article>
@@ -238,10 +250,15 @@ export default function AccueilPage() {
         </div>
       </div>
       {recentes.length === 0 ? (
-        <div className="card teaser">
-          Aucune session encore. <Link href="/app/session">Lance ta première</Link> — deux minutes suffisent.{" "}
-          Ou <a href="/demo-capture.html?vers=/app">regarde avec un exemple</a> ce que l&apos;application donne une fois remplie.
-        </div>
+        <EtatVide
+          icone="micro"
+          titre="Ta première session : deux minutes"
+          texte="Parle comme si le jury était en face. À la fin, quatre mesures honnêtes — sans note, sans jugement — et chaque session suivante te montre ta progression."
+          action={{ libelle: "Lancer ma première session →", href: "/app/session" }}
+          secondaire={
+            <a href="/demo-capture.html?vers=/app">Voir l&apos;application avec un exemple rempli</a>
+          }
+        />
       ) : (
         <div className="lignes-sessions">
           {recentes.map((s) => (

@@ -17,13 +17,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <SessionProvider>
       <ToastProvider>
         <div className="shell">
+          <a href="#contenu" className="skip-link">
+            Aller au contenu
+          </a>
           <Sidebar />
           <div className="main">
             <SyncCompte />
             <BarreHaut />
             <PageHero />
             <ModuleTabs />
-            <main className="content">
+            <main className="content" id="contenu" tabIndex={-1}>
               <ErrorBoundary>{children}</ErrorBoundary>
             </main>
             <OngletsMobiles />

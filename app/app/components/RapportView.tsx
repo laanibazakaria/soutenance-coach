@@ -10,6 +10,7 @@ import type { JuryQuestion } from "@/lib/slides/types";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import { useToast } from "@/app/components/Toast";
 import { Icone } from "@/app/components/Icone";
+import ListeQuestions from "./ListeQuestions";
 
 export const CLE_RAPPORT = "rapport:texte";
 export const cleQuestionsRapport = (texte: string) => `questions-rapport:${empreinteRapport(texte)}`;
@@ -126,13 +127,7 @@ export default function RapportView() {
           </button>
           {ouvert && (
             <div style={{ marginTop: 10 }}>
-              {questions.map((q) => (
-                <article key={q.id} className="card question question-priorite">
-                  <span className="question-cat">{LIBELLES_CATEGORIES[q.categorie]}</span>
-                  <p className="question-texte">{q.question}</p>
-                  <p className="question-pourquoi"><Icone nom="idee" /> {q.pourquoi}</p>
-                </article>
-              ))}
+              <ListeQuestions questions={questions.map((q) => ({ id: q.id, categorie: LIBELLES_CATEGORIES[q.categorie], question: q.question, pourquoi: q.pourquoi, priorite: true }))} libellePourquoi="Pourquoi le rapporteur la pose" />
               <p className="report-note" style={{ textAlign: "left" }}>
                 Les cinq premières sont déjà dans <Link href="/app/jury">la simulation</Link> et dans la soutenance blanche.
               </p>

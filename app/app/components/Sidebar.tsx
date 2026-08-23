@@ -108,7 +108,7 @@ export default function Sidebar() {
   const modules = TOUS_LES_MODULES.filter((m) => actifs.includes(m.id));
 
   return (
-    <aside className="sidebar" aria-label="Navigation principale">
+    <nav className="sidebar" aria-label="Navigation principale">
       <div className="sidebar-brand">
         <Marque taille={26} />
       </div>
@@ -141,7 +141,7 @@ export default function Sidebar() {
         </Link>
       </div>
       <PiedUtilisateur />
-    </aside>
+    </nav>
   );
 }
 

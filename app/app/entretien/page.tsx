@@ -21,6 +21,7 @@ import { telechargerIcs } from "@/lib/ics";
 import RepeterAvecAmi from "../components/RepeterAvecAmi";
 import RetourOralForm from "../components/RetourOralForm";
 import { Icone } from "@/app/components/Icone";
+import ListeQuestions from "../components/ListeQuestions";
 
 const TYPES: ReadonlyArray<{ id: TypeEntretien; label: string; hint: string }> = [
   { id: "rh", label: "RH", hint: "motivation, parcours" },
@@ -222,14 +223,12 @@ export default function EntretienPage() {
             <p className="dropzone-note reassure-note">Seul le texte de ton CV et de l&apos;offre est envoyé — jamais le fichier.</p>
           </div>
         ) : (
-          questions.map((q) => <QuestionCarte key={q.id} q={q} />)
+          <ListeQuestions questions={questions.map(enLigne)} lienEntrainement="/app/entretien/simulation" libelleEntrainement="M'entraîner avec le recruteur" />
         )}
 
         <details className="classiques">
           <summary>Les {classiques.length} questions classiques — avec ce qu&apos;une bonne réponse contient</summary>
-          {classiques.map((q) => (
-            <QuestionCarte key={q.id} q={q} />
-          ))}
+          <ListeQuestions questions={classiques.map(enLigne)} />
         </details>
       </section>
 
@@ -242,22 +241,19 @@ export default function EntretienPage() {
   );
 }
 
-function QuestionCarte({ q }: { q: QuestionEntretien }) {
-  return (
-    <article className={`card question${q.source === "ia" ? " question-priorite" : ""}`}>
-      <span className="question-cat">
-        {LIBELLES_CATEGORIES_ENTRETIEN[q.categorie]}
-        {q.cible !== "les-deux" && ` · ${q.cible === "rh" ? "RH" : "technique"}`}
-      </span>
-      <p className="question-texte">{q.question}</p>
-      <p className="question-pourquoi">
-        <b>Ce qu&apos;il vérifie :</b> {q.pourquoi}
-      </p>
-      <p className="question-pourquoi">
-        <b>Une bonne réponse :</b> {q.attendu}
-      </p>
-    </article>
-  );
+function enLigne(q: QuestionEntretien) {
+  return {
+    id: q.id,
+    categorie: (() => {
+      const base = LIBELLES_CATEGORIES_ENTRETIEN[q.categorie];
+      const cible = q.cible === "rh" ? "RH" : q.cible === "technique" ? "technique" : null;
+      return cible && base.toLowerCase() !== cible.toLowerCase() ? `${base} · ${cible}` : base;
+    })(),
+    question: q.question,
+    pourquoi: q.pourquoi,
+    attendu: q.attendu,
+    priorite: q.source === "ia",
+  };
 }
 
 function FormulaireCandidature({

@@ -16,6 +16,7 @@ import { pitchEnTexte, type Pitch } from "@/lib/pitch";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import type { Deck, DeckFinding, JuryQuestion } from "@/lib/slides/types";
 import { Icone, IconeBadge } from "@/app/components/Icone";
+import ListeQuestions from "../components/ListeQuestions";
 
 const DUREES = [
   { label: "5 min · pitch", minutes: 5 },
@@ -421,14 +422,7 @@ export default function SlidesPage() {
                     </div>
                   </div>
 
-                  {questionsIA.map((q) => (
-                    <article key={q.id} className="card question question-priorite">
-                      <span className="question-cat">{LIBELLES_CATEGORIES[q.categorie]}</span>
-                      <p className="question-texte">{q.question}</p>
-                      <p className="question-pourquoi"><Icone nom="idee" /> {q.pourquoi}</p>
-                      {q.slide && <span className="question-slide">Diapositive {q.slide}</span>}
-                    </article>
-                  ))}
+                  <ListeQuestions questions={questionsIA.map((q) => ({ id: q.id, categorie: LIBELLES_CATEGORIES[q.categorie], question: q.question, pourquoi: q.pourquoi, slide: q.slide, priorite: true }))} libellePourquoi="Pourquoi le jury la pose" />
                 </>
               )}
 
@@ -436,13 +430,7 @@ export default function SlidesPage() {
                 <summary>
                   Les questions classiques de toute soutenance ({classiquesARetenir.length})
                 </summary>
-                {classiquesARetenir.map((q) => (
-                  <article key={q.id} className="card question">
-                    <span className="question-cat">{LIBELLES_CATEGORIES[q.categorie]}</span>
-                    <p className="question-texte">{q.question}</p>
-                    <p className="question-pourquoi"><Icone nom="idee" /> {q.pourquoi}</p>
-                  </article>
-                ))}
+                <ListeQuestions questions={classiquesARetenir.map((q) => ({ id: q.id, categorie: LIBELLES_CATEGORIES[q.categorie], question: q.question, pourquoi: q.pourquoi }))} libellePourquoi="Pourquoi le jury la pose" />
               </details>
             </>
           )}

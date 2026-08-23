@@ -19,6 +19,7 @@ import AvisCoach from "@/app/components/AvisCoach";
 import ExempleReponse from "@/app/components/ExempleReponse";
 import { pousserTout } from "@/lib/sync/client";
 import { useToast } from "@/app/components/Toast";
+import { Icone } from "@/app/components/Icone";
 
 const NB_QUESTIONS = 4;
 
@@ -161,7 +162,7 @@ export default function SoutenanceBlanchePage() {
           </ol>
           <div className="actions">
             <Link href="/app/repetition?blanche=1" className="btn primary big">
-              🎓 Commencer la soutenance blanche
+              <Icone nom="soutenance" /> Commencer la soutenance blanche
             </Link>
           </div>
           <p className="report-note">Compte 25 à 35 minutes. Prévois le micro, un verre d&apos;eau, et personne dans la pièce — comme le jour J.</p>
@@ -191,7 +192,7 @@ export default function SoutenanceBlanchePage() {
       {phase === "questions" && (
         <div className="actions">
           <button className="btn primary big" onClick={() => void repondre()} disabled={!rec.supported}>
-            🎤 Répondre
+            <Icone nom="micro" /> Répondre
           </button>
         </div>
       )}
@@ -257,8 +258,8 @@ function Debrief({ session, reponses }: { session: SessionRecord; reponses: Repo
         </h2>
         <div className="chips">
           <span className="chip chip-info">⏱️ Exposé : {mmss(session.durationMs)}{session.targetDurationMs ? ` / ${mmss(session.targetDurationMs)}` : ""}</span>
-          {comparaison && <span className={`chip ${comparaison.nonVues.length === 0 ? "chip-bon" : "chip-attention"}`}>🎞️ {comparaison.lignes.length - comparaison.nonVues.length}/{comparaison.lignes.length} diapositives montrées</span>}
-          <span className="chip chip-info">🎓 {reponses.length} questions · {bonnes} réponses solides sur les mesures</span>
+          {comparaison && <span className={`chip ${comparaison.nonVues.length === 0 ? "chip-bon" : "chip-attention"}`}><Icone nom="slides" /> {comparaison.lignes.length - comparaison.nonVues.length}/{comparaison.lignes.length} diapositives montrées</span>}
+          <span className="chip chip-info"><Icone nom="soutenance" /> {reponses.length} questions · {bonnes} réponses solides sur les mesures</span>
         </div>
         {comparaison && <p className="rep-resume" style={{ marginTop: 12, textAlign: "left" }}>{comparaison.resume}</p>}
       </section>

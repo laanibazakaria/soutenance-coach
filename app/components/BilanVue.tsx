@@ -1,4 +1,5 @@
 import type { Bilan } from "@/lib/bilan";
+import { Icone } from "@/app/components/Icone";
 
 function mmss(ms: number): string {
   const s = Math.max(0, Math.round(ms / 1000));
@@ -26,7 +27,7 @@ export default function BilanVue({ bilan }: { bilan: Bilan }) {
           {bilan.modules.map((m) => (
             <div key={m.id} className="bilan-carte">
               <b>
-                {m.emoji} {m.nom}
+                <Icone nom={m.id} /> {m.nom}
               </b>
               <p className="session-meta">{m.sousTitre}</p>
               {m.pourcent !== null ? (

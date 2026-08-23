@@ -14,6 +14,7 @@ import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { genererQuestions, selectionnerPourEntrainement } from "@/lib/jury";
 import type { JuryQuestion } from "@/lib/slides/types";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
+import { Icone } from "@/app/components/Icone";
 
 /** Le module Soutenance : le parcours, puis la progression mesurée. */
 export default function SoutenancePage() {
@@ -48,7 +49,7 @@ export default function SoutenancePage() {
             Historique
           </Link>
           <Link href="/app/session" className="btn small primary">
-            🎤 Nouvelle session
+            <Icone nom="micro" /> Nouvelle session
           </Link>
         </div>
       </div>
@@ -62,7 +63,7 @@ export default function SoutenancePage() {
             </>
           ) : (
             <>
-              🔒 Encore {remaining} session{remaining > 1 ? "s" : ""} pour débloquer tes tendances — le coach ne juge pas ta progression sur du bruit.
+              <Icone nom="cadenas" /> Encore {remaining} session{remaining > 1 ? "s" : ""} pour débloquer tes tendances — le coach ne juge pas ta progression sur du bruit.
             </>
           )}
         </div>

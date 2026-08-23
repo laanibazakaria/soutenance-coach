@@ -13,6 +13,8 @@ import ConfirmDialog from "@/app/components/ConfirmDialog";
 import { useToast } from "@/app/components/Toast";
 import { lireCache } from "@/lib/ia-cache";
 import { pousserTout, supprimerDistante, surSynchronisation } from "@/lib/sync/client";
+import { Icone } from "@/app/components/Icone";
+import LigneSession from "../components/LigneSession";
 
 function formatDuration(ms: number): string {
   const totalSec = Math.round(ms / 1000);
@@ -24,12 +26,12 @@ function formatDate(iso: string): string {
 }
 
 const CHIP_UNITS: Record<string, string> = { temps: "min", debit: "mots/min", bequilles: "béq./100 mots", phrases: "mots/phrase" };
-const FILTRES: ReadonlyArray<{ id: string; label: string }> = [
+const FILTRES: ReadonlyArray<{ id: string; label: React.ReactNode }> = [
   { id: "tous", label: "Tous" },
-  { id: "soutenance", label: "🎓 Soutenance" },
-  { id: "entretien", label: "💼 Entretien" },
-  { id: "pitch", label: "🚀 Pitch" },
-  { id: "concours", label: "🏛️ Concours" },
+  { id: "soutenance", label: <><Icone nom="soutenance" /> Soutenance</> },
+  { id: "entretien", label: <><Icone nom="entretien" /> Entretien</> },
+  { id: "pitch", label: <><Icone nom="pitch" /> Pitch</> },
+  { id: "concours", label: <><Icone nom="concours" /> Concours</> },
 ];
 
 function SessionChips({ session }: { session: SessionRecord }) {
@@ -39,7 +41,7 @@ function SessionChips({ session }: { session: SessionRecord }) {
   return (
     <div className="chips">
       <span className="chip chip-info">{FILTRES.find((f) => f.id === (session.mode ?? "soutenance"))?.label}</span>
-      {avecSlides && <span className="chip chip-info">🎞️ {session.slides!.length} diapositives</span>}
+      {avecSlides && <span className="chip chip-info"><Icone nom="slides" /> {session.slides!.length} diapositives</span>}
       {chips.map((c) => (
         <span key={c.id} className={`chip chip-${c.level}`}>
           {c.text}
@@ -55,12 +57,15 @@ export default function SessionsPage() {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [filtre, setFiltre] = useState("tous");
   const [recherche, setRecherche] = useState("");
+  const [ouverte, setOuverte] = useState<string | null>(null);
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const lire = () => setSessions(listSessions(window.localStorage));
     lire();
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setRecherche(q);
     return surSynchronisation(lire);
   }, []);
 
@@ -120,16 +125,16 @@ export default function SessionsPage() {
         </div>
         <div className="list-actions">
           <button className="btn small" onClick={handleExport} disabled={sessions.length === 0}>
-            ⬇ Exporter
+            <Icone nom="telecharger" /> Exporter
           </button>
           <button className="btn small" onClick={() => fileRef.current?.click()}>
-            ⬆ Importer
+            <Icone nom="importer" /> Importer
           </button>
           <Link href="/app/bilan" className="btn small">
-            📄 Bilan
+            <Icone nom="document" /> Bilan
           </Link>
           <Link href="/app/session" className="btn small primary">
-            🎤 Nouvelle session
+            <Icone nom="micro" /> Nouvelle session
           </Link>
         </div>
       </div>
@@ -152,33 +157,35 @@ export default function SessionsPage() {
       ) : visibles.length === 0 ? (
         <div className="card teaser">Rien ne correspond à ce filtre.</div>
       ) : (
-        visibles.map((s) => (
-          <div key={s.id} className="card session-row">
-            <div>
-              <div className="session-meta">
-                {formatDate(s.startedAt)} · {formatDuration(s.durationMs)} · {s.wordCount} mots
-              </div>
-              <SessionChips session={s} />
-              <div className="session-excerpt">{s.transcript || "(transcription vide)"}</div>
-              {s.transcript && (
-                <details className="annote-details">
-                  <summary>Transcription annotée</summary>
-                  <TranscriptAnnote transcript={s.transcript} titre="" />
-                </details>
-              )}
-              {lireCache(window.localStorage, `blanche:${s.id}`) !== null && (
-                <Link href={`/app/soutenance-blanche?session=${s.id}`} className="btn small" style={{ marginTop: 8 }}>
-                  🎓 Débrief de la soutenance blanche →
-                </Link>
-              )}
-              <LecteurAudio sessionId={s.id} mesures={s.audio} compact />
-              <AvisCoach session={s} compact />
-            </div>
-            <button className="btn danger small" onClick={() => setConfirmingId(s.id)} aria-label={`Supprimer la session du ${formatDate(s.startedAt)}`}>
-              Supprimer
-            </button>
-          </div>
-        ))
+        <div className="lignes-sessions">
+          {visibles.map((s) => {
+            const estOuverte = ouverte === s.id;
+            return (
+              <article key={s.id} className={`ligne-session-carte${estOuverte ? " ouverte" : ""}`}>
+                <LigneSession session={s} onClick={() => setOuverte(estOuverte ? null : s.id)} ouvert={estOuverte} />
+                {estOuverte && (
+                  <div className="ligne-session-detail">
+                    <SessionChips session={s} />
+                    {s.transcript ? <TranscriptAnnote transcript={s.transcript} titre="" /> : <p className="session-meta">(transcription vide)</p>}
+                    {lireCache(window.localStorage, `blanche:${s.id}`) !== null && (
+                      <Link href={`/app/soutenance-blanche?session=${s.id}`} className="btn small" style={{ marginTop: 8 }}>
+                        <Icone nom="soutenance" /> Débrief de la soutenance blanche →
+                      </Link>
+                    )}
+                    <LecteurAudio sessionId={s.id} mesures={s.audio} compact />
+                    <AvisCoach session={s} compact />
+                    <div className="ligne-session-pied">
+                      <span className="session-meta">{formatDate(s.startedAt)} · {formatDuration(s.durationMs)}</span>
+                      <button className="btn danger small" onClick={() => setConfirmingId(s.id)} aria-label={`Supprimer la session du ${formatDate(s.startedAt)}`}>
+                        <Icone nom="corbeille" /> Supprimer
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
       )}
 
       <ConfirmDialog

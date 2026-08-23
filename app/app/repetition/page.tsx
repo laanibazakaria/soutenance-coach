@@ -21,6 +21,7 @@ import TranscriptAnnote from "@/app/components/TranscriptAnnote";
 import JaugeDebit from "@/app/components/JaugeDebit";
 import { sauverAudio } from "@/lib/audio/stockage";
 import { pousserTout } from "@/lib/sync/client";
+import { Icone } from "@/app/components/Icone";
 
 const DUREES: ReadonlyArray<{ minutes: number; hint?: string }> = [
   { minutes: 5, hint: "pitch" },
@@ -228,10 +229,10 @@ export default function RepetitionPage() {
   if (!deck) {
     return (
       <div className="ia-invite">
-        <h2>🎞️ Répéter avec mes slides</h2>
+        <h2><Icone nom="slides" /> Répéter avec mes slides</h2>
         <p>Il faut d&apos;abord déposer ton support : la répétition affiche chaque diapositive et chronomètre le temps que tu passes dessus.</p>
         <Link href="/app/slides" className="btn primary">
-          📄 Déposer mes slides
+          <Icone nom="document" /> Déposer mes slides
         </Link>
       </div>
     );
@@ -283,7 +284,7 @@ export default function RepetitionPage() {
 
           <label className="pdf-option">
             <span>
-              🖼️ <b>Afficher les vraies diapositives</b> (optionnel) — recharge le PDF ; il reste dans ton navigateur.
+              <Icone nom="image" /> <b>Afficher les vraies diapositives</b> (optionnel) — recharge le PDF ; il reste dans ton navigateur.
             </span>
             <input
               type="file"
@@ -449,7 +450,7 @@ export default function RepetitionPage() {
               </button>
             ) : (
               <button className="btn primary" onClick={() => sauvegarder()} disabled={rec.finalText.trim() === ""}>
-                💾 Sauvegarder la session
+                <Icone nom="sauvegarder" /> Sauvegarder la session
               </button>
             )}
             <button

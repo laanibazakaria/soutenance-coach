@@ -15,6 +15,7 @@ import { cleCache, lireCache, ecrireCache } from "@/lib/ia-cache";
 import { pitchEnTexte, type Pitch } from "@/lib/pitch";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import type { Deck, DeckFinding, JuryQuestion } from "@/lib/slides/types";
+import { Icone, IconeBadge } from "@/app/components/Icone";
 
 const DUREES = [
   { label: "5 min · pitch", minutes: 5 },
@@ -189,9 +190,7 @@ export default function SlidesPage() {
 
       {!deck && (
         <div className="dropzone">
-          <span className="dropzone-icon" aria-hidden="true">
-            📄
-          </span>
+          <IconeBadge nom="document" taille={56} />
           <h2>Dépose ton PDF</h2>
           <p>
             Exporte tes slides en PDF (PowerPoint : Fichier → Exporter → PDF), puis charge-les ici.
@@ -200,7 +199,7 @@ export default function SlidesPage() {
             {chargement ? "Lecture en cours…" : "Choisir un fichier PDF"}
           </button>
           <p className="dropzone-note">
-            🔒 Ton fichier est lu dans ton navigateur. Seul le texte des diapositives est envoyé à
+            <Icone nom="cadenas" /> Ton fichier est lu dans ton navigateur. Seul le texte des diapositives est envoyé à
             l&apos;IA pour le pitch et les questions — jamais le PDF.
           </p>
         </div>
@@ -221,7 +220,7 @@ export default function SlidesPage() {
             </div>
             <div className="list-actions">
               <Link href="/app/repetition" className="btn small">
-                🎞️ Répéter avec ces slides
+                <Icone nom="slides" /> Répéter avec ces slides
               </Link>
               <button className="btn small" onClick={() => fileRef.current?.click()}>
                 Changer de fichier
@@ -248,8 +247,8 @@ export default function SlidesPage() {
             {(
               [
                 ["analyse", "Analyse du support"],
-                ["pitch", "🎬 Mon pitch"],
-                ["jury", "🎓 Jury virtuel"],
+                ["pitch", <><Icone nom="clap" /> Mon pitch</>],
+                ["jury", <><Icone nom="soutenance" /> Jury virtuel</>],
               ] as Array<[Onglet, string]>
             ).map(([id, label]) => (
               <button
@@ -320,7 +319,7 @@ export default function SlidesPage() {
                     un point de départ solide, pas un texte à réciter.
                   </p>
                   <button className="btn primary big" onClick={genererPitch} disabled={iaEnCours !== null}>
-                    {iaEnCours === "pitch" ? "Rédaction en cours… (20 à 40 s)" : "✨ Rédiger mon pitch"}
+                    {iaEnCours === "pitch" ? "Rédaction en cours… (20 à 40 s)" : <><Icone nom="etincelles" /> Rédiger mon pitch</>}
                   </button>
                 </div>
               ) : (
@@ -331,10 +330,10 @@ export default function SlidesPage() {
                     </span>
                     <div className="list-actions">
                       <button className="btn small" onClick={copierPitch}>
-                        {copie ? "✓ Copié" : "📋 Copier le script"}
+                        {copie ? "✓ Copié" : <><Icone nom="presse" /> Copier le script</>}
                       </button>
                       <button className="btn small" onClick={genererPitch} disabled={iaEnCours !== null}>
-                        {iaEnCours === "pitch" ? "Rédaction…" : "↻ Régénérer"}
+                        {iaEnCours === "pitch" ? "Rédaction…" : <><Icone nom="rafraichir" /> Régénérer</>}
                       </button>
                     </div>
                   </div>
@@ -355,7 +354,7 @@ export default function SlidesPage() {
                           </span>
                           <span className="timeline-temps">{formatSecondes(s.secondes)}</span>
                         </header>
-                        {s.messageCle && <p className="pitch-cle">🎯 {s.messageCle}</p>}
+                        {s.messageCle && <p className="pitch-cle"><Icone nom="cible" /> {s.messageCle}</p>}
                         <p className="pitch-texte">{s.texte}</p>
                         {s.transition && <p className="pitch-transition">→ {s.transition}</p>}
                       </article>
@@ -380,7 +379,7 @@ export default function SlidesPage() {
 
                   <div className="actions">
                     <Link href="/app/session" className="btn primary">
-                      🎤 Répéter ce pitch en conditions réelles
+                      <Icone nom="micro" /> Répéter ce pitch en conditions réelles
                     </Link>
                   </div>
                 </>
@@ -403,7 +402,7 @@ export default function SlidesPage() {
                     onClick={genererQuestionsIA}
                     disabled={iaEnCours !== null}
                   >
-                    {iaEnCours === "questions" ? "Le jury lit tes slides… (15 à 30 s)" : "✨ Générer les questions de mon projet"}
+                    {iaEnCours === "questions" ? "Le jury lit tes slides… (15 à 30 s)" : <><Icone nom="etincelles" /> Générer les questions de mon projet</>}
                   </button>
                 </div>
               ) : (
@@ -414,10 +413,10 @@ export default function SlidesPage() {
                     </span>
                     <div className="list-actions">
                       <button className="btn small" onClick={genererQuestionsIA} disabled={iaEnCours !== null}>
-                        {iaEnCours === "questions" ? "Génération…" : "↻ Régénérer"}
+                        {iaEnCours === "questions" ? "Génération…" : <><Icone nom="rafraichir" /> Régénérer</>}
                       </button>
                       <Link href="/app/jury" className="btn primary small">
-                        🎓 S&apos;entraîner à répondre
+                        <Icone nom="soutenance" /> S&apos;entraîner à répondre
                       </Link>
                     </div>
                   </div>
@@ -426,7 +425,7 @@ export default function SlidesPage() {
                     <article key={q.id} className="card question question-priorite">
                       <span className="question-cat">{LIBELLES_CATEGORIES[q.categorie]}</span>
                       <p className="question-texte">{q.question}</p>
-                      <p className="question-pourquoi">💡 {q.pourquoi}</p>
+                      <p className="question-pourquoi"><Icone nom="idee" /> {q.pourquoi}</p>
                       {q.slide && <span className="question-slide">Diapositive {q.slide}</span>}
                     </article>
                   ))}
@@ -441,7 +440,7 @@ export default function SlidesPage() {
                   <article key={q.id} className="card question">
                     <span className="question-cat">{LIBELLES_CATEGORIES[q.categorie]}</span>
                     <p className="question-texte">{q.question}</p>
-                    <p className="question-pourquoi">💡 {q.pourquoi}</p>
+                    <p className="question-pourquoi"><Icone nom="idee" /> {q.pourquoi}</p>
                   </article>
                 ))}
               </details>

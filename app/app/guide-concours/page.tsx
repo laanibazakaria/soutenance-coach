@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icone } from "@/app/components/Icone";
 
 export const metadata = {
   title: "Le guide de l'oral de concours",
@@ -52,7 +53,7 @@ export default function GuideConcoursPage() {
           <li><b>La maturité.</b> Assumer un point faible du dossier sans t&apos;excuser ; avoir un plan B ; argumenter une opinion quand on te la demande.</li>
           <li><b>La clarté et l&apos;écoute.</b> Réponses structurées, courtes, qui répondent à la question posée.</li>
         </ol>
-        <p className="guide-encadre">💡 Un jury d&apos;admission ne cherche pas le meilleur dossier — il l&apos;a déjà classé. Il cherche la personne qui sait ce qu&apos;elle vient faire ici.</p>
+        <p className="guide-encadre"><Icone nom="idee" /> Un jury d&apos;admission ne cherche pas le meilleur dossier — il l&apos;a déjà classé. Il cherche la personne qui sait ce qu&apos;elle vient faire ici.</p>
       </section>
 
       <section id="presentation" className="guide-section">

@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import AccountBar from "./AccountBar";
-import UsageBadge from "./UsageBadge";
+import { useSession } from "next-auth/react";
+import { useUsage } from "@/lib/usage-client";
+import { useEtatApp, oralPrioritaire } from "../hooks/useEtatApp";
+import { useEtatSync, libelleSync } from "./SyncCompte";
+import { Avatar, libelleForfait } from "./BarreHaut";
 import { moduleDuChemin } from "./ModuleTabs";
 import { lireModulesActifs, TOUS_LES_MODULES, type ModuleActif } from "@/lib/preferences";
 import { surSynchronisation } from "@/lib/sync/client";
@@ -99,7 +102,8 @@ function LienNav({ href, label, icone, actif }: { href: string; label: string; i
 export default function Sidebar() {
   const chemin = usePathname();
   const actifs = useModulesActifs();
-  const [admin, setAdmin] = useState(false);
+  const usage = useUsage();
+  const admin = usage?.admin ?? false;
   const moduleCourant = moduleDuChemin(chemin)?.id;
   const modules = TOUS_LES_MODULES.filter((m) => actifs.includes(m.id));
 
@@ -130,25 +134,96 @@ export default function Sidebar() {
       {admin && <LienNav href="/app/admin" label="Admin" icone={I.admin} actif={chemin.startsWith("/app/admin")} />}
 
       <div className="sidebar-bas">
+        <CartePreparation />
         <Link href="/app/session" className="btn primary sidebar-cta">
           <span className="sidebar-icone">{I.micro}</span>
           Nouvelle session
         </Link>
-        <div className="sidebar-account">
-          <AccountBar />
-          <UsageBadge onAdmin={setAdmin} />
-        </div>
-        <nav className="sidebar-legal" aria-label="Informations légales">
-          <Link href="/confidentialite">Confidentialité</Link>
-          <span aria-hidden="true">·</span>
-          <Link href="/mentions-legales">Mentions légales</Link>
-          <span aria-hidden="true">·</span>
+      </div>
+      <PiedUtilisateur />
+    </aside>
+  );
+}
+
+/** La carte « préparation » : l'oral le plus proche, et où on en est. */
+function CartePreparation() {
+  const etat = useEtatApp();
+  const oral = etat ? oralPrioritaire(etat.resumes) : null;
+  if (!oral) return null;
+  const pct = oral.pourcent ?? 0;
+  return (
+    <Link href={oral.hub} className="sidebar-prep" title={oral.prochaineAction.titre}>
+      <span className="sidebar-prep-ligne">
+        <span className="sidebar-prep-nom">
+          {oral.nom}
+          {oral.jours !== null && oral.jours >= 0 && <span className="sidebar-prep-j">J-{oral.jours}</span>}
+        </span>
+        <b>{pct}%</b>
+      </span>
+      <span className="sidebar-prep-barre">
+        <span style={{ width: `${pct}%` }} />
+      </span>
+    </Link>
+  );
+}
+
+/** Le pied : qui est connecté, le forfait, le quota — ou l'invitation à se connecter. */
+function PiedUtilisateur() {
+  const { data: session, status } = useSession();
+  const usage = useUsage();
+  const sync = useEtatSync();
+  const connecte = status === "authenticated" && !!session?.user;
+  const ratio = usage && usage.limite > 0 ? Math.min(1, usage.appels / usage.limite) : 0;
+  return (
+    <div className="sidebar-pied">
+      {connecte ? (
+        <Link href="/app/connexion" className="sidebar-user">
+          <Avatar nom={session?.user?.name} image={session?.user?.image} />
+          <span className="sidebar-user-texte">
+            <span className="sidebar-user-nom">{session?.user?.name ?? "Connecté"}</span>
+            <span className="sidebar-user-ligne">
+              <span className="sidebar-plan">{libelleForfait(usage?.type)}</span>
+              <span className="sidebar-upgrader">Upgrader</span>
+            </span>
+          </span>
+        </Link>
+      ) : (
+        <Link href="/app/connexion" className="sidebar-user">
+          <Avatar nom={null} />
+          <span className="sidebar-user-texte">
+            <span className="sidebar-user-nom">Sans compte</span>
+            <span className="sidebar-user-ligne">
+              <span className="sidebar-upgrader">Se connecter →</span>
+            </span>
+          </span>
+        </Link>
+      )}
+      {usage && (
+        <Link href="/app/forfaits" className={`sidebar-quota${ratio >= 1 ? " plein" : ratio >= 0.75 ? " haut" : ""}`} title="Appels à l'IA ce mois — pitch, questions, fiches, coach, jury">
+          <span className="sidebar-quota-ligne">
+            <span>IA ce mois</span>
+            <b>
+              {usage.appels}/{usage.limite}
+            </b>
+          </span>
+          <span className="sidebar-quota-barre">
+            <span style={{ width: `${ratio * 100}%` }} />
+          </span>
+        </Link>
+      )}
+      <div className="sidebar-legal">
+        <span className="sidebar-sync" title={libelleSync(sync)}>
+          <span className={`sidebar-sync-point sidebar-sync-${sync}`} aria-hidden="true" />
+          {libelleSync(sync)}
+        </span>
+        <span>
+          <Link href="/confidentialite">Confidentialité</Link> · <Link href="/mentions-legales">Mentions</Link> ·{" "}
           <a href="https://github.com/laanibazakaria/soutenance-coach/issues/new" target="_blank" rel="noopener noreferrer">
             Idée / bug
           </a>
-        </nav>
+        </span>
       </div>
-    </aside>
+    </div>
   );
 }
 

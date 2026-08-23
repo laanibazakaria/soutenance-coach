@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icone } from "@/app/components/Icone";
 
 export const metadata = {
   title: "Le guide de la soutenance — SoutenanceCoach",
@@ -101,7 +102,7 @@ export default function GuidePage() {
           </li>
         </ol>
         <p className="guide-encadre">
-          💡 Le jury ne note pas ton projet : il note <b>ta compréhension de ton projet</b>. C&apos;est une bonne nouvelle — c&apos;est
+          <Icone nom="idee" /> Le jury ne note pas ton projet : il note <b>ta compréhension de ton projet</b>. C&apos;est une bonne nouvelle — c&apos;est
           la seule chose qui se prépare encore la dernière semaine.
         </p>
       </section>
@@ -269,7 +270,7 @@ export default function GuidePage() {
           <li>À la fin, remercie — et sors. La délibération se fait sans toi.</li>
         </ul>
         <p className="guide-encadre">
-          🎓 Tu as préparé. Ce que le jury voit, c&apos;est quelqu&apos;un qui connaît son sujet et qui sait écouter. Le reste, c&apos;est du
+          <Icone nom="soutenance" /> Tu as préparé. Ce que le jury voit, c&apos;est quelqu&apos;un qui connaît son sujet et qui sait écouter. Le reste, c&apos;est du
           détail.
         </p>
       </section>

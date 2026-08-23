@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LIBELLES_TYPE_ORAL, type TypeOral } from "@/lib/retours";
 import { useToast } from "@/app/components/Toast";
+import { Icone } from "@/app/components/Icone";
 
 /** Après l'oral : « comment ça s'est passé ? » — les vraies questions, pour les suivants. */
 export default function RetourOralForm({ type, ecoleInitiale = "", niveauInitial = "" }: { type: TypeOral; ecoleInitiale?: string; niveauInitial?: string }) {
@@ -43,7 +44,7 @@ export default function RetourOralForm({ type, ecoleInitiale = "", niveauInitial
       {!ouvert ? (
         <div className="actions" style={{ justifyContent: "flex-start" }}>
           <button className="btn primary" onClick={() => setOuvert(true)}>
-            🗣️ Comment ça s&apos;est passé ? Raconte les vraies questions
+            <Icone nom="parole" /> Comment ça s&apos;est passé ? Raconte les vraies questions
           </button>
           <span className="session-meta">Anonyme · 2 minutes · ça aide tous les suivants</span>
         </div>

@@ -14,6 +14,7 @@ import { pousserTout } from "@/lib/sync/client";
 import { useEnregistrement } from "../hooks/useEnregistrement";
 import { lireLangue, sauverLangue, LANGUES, type Langue } from "@/lib/langue";
 import { MODULES, estModuleId } from "@/lib/modules";
+import { Icone } from "@/app/components/Icone";
 
 /**
  * Formats proposés, nommés d'après les soutenances réelles des étudiants
@@ -106,7 +107,7 @@ export default function SessionPage() {
 
       {mode === "entretien" && phase === "idle" && (
         <div className="card jury-intro" style={{ textAlign: "left" }}>
-          <b>💼 « Présentez-vous. »</b>
+          <b><Icone nom="entretien" /> « Présentez-vous. »</b>
           <p>
             Présent (qui tu es) → passé (deux expériences qui le prouvent) → futur (pourquoi ce poste). Deux minutes. Le coach
             comparera ensuite ton pitch à ton CV et à l&apos;offre.
@@ -117,55 +118,64 @@ export default function SessionPage() {
       {estModuleId(mode) && phase === "idle" && (
         <div className="card jury-intro" style={{ textAlign: "left" }}>
           <b>
-            {MODULES[mode].emoji} {MODULES[mode].formatTitre} — {MODULES[mode].formatMinutes} minutes
+            <Icone nom={mode} /> {MODULES[mode].formatTitre} — {MODULES[mode].formatMinutes} minutes
           </b>
           <p>{MODULES[mode].formatConsigne} Le coach comparera ensuite ta présentation à ton dossier.</p>
         </div>
       )}
 
       {phase === "idle" && (
-        <fieldset className="formats formats-langue">
-          <legend>Langue de l&apos;oral</legend>
-          {LANGUES.map((l) => (
-            <button
-              key={l.id}
-              type="button"
-              className={`format-btn${langue === l.id ? " active" : ""}`}
-              aria-pressed={langue === l.id}
-              onClick={() => {
-                setLangue(l.id);
-                sauverLangue(window.localStorage, l.id);
-              }}
-            >
-              {l.label}
-            </button>
-          ))}
-        </fieldset>
+        <div className="card lanceur">
+          <fieldset className="formats formats-langue">
+            <legend>
+              <Icone nom="parole" taille={14} /> Langue de l&apos;oral
+            </legend>
+            {LANGUES.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                className={`format-btn${langue === l.id ? " active" : ""}`}
+                aria-pressed={langue === l.id}
+                onClick={() => {
+                  setLangue(l.id);
+                  sauverLangue(window.localStorage, l.id);
+                }}
+              >
+                {l.label}
+              </button>
+            ))}
+          </fieldset>
+          <fieldset className="formats">
+            <legend>
+              <Icone nom="horloge" taille={14} /> Durée de l&apos;exercice
+            </legend>
+            {FORMATS.map((f) => (
+              <button
+                key={f.label}
+                type="button"
+                className={`format-btn${targetMinutes === f.minutes ? " active" : ""}`}
+                aria-pressed={targetMinutes === f.minutes}
+                onClick={() => setTargetMinutes(f.minutes)}
+              >
+                {f.label}
+                {f.hint && <span className="format-hint"> · {f.hint}</span>}
+              </button>
+            ))}
+          </fieldset>
+          <button className="btn primary big lanceur-btn" onClick={() => void rec.start()} disabled={!supported}>
+            <Icone nom="micro" /> Démarrer l&apos;enregistrement
+          </button>
+          <p className="lanceur-note">Rien ne quitte ton navigateur : la transcription est faite sur l&apos;appareil, l&apos;audio n&apos;est jamais envoyé.</p>
+        </div>
       )}
 
-      {phase === "idle" && (
-        <fieldset className="formats">
-          <legend>Format de l&apos;exercice</legend>
-          {FORMATS.map((f) => (
-            <button
-              key={f.label}
-              type="button"
-              className={`format-btn${targetMinutes === f.minutes ? " active" : ""}`}
-              aria-pressed={targetMinutes === f.minutes}
-              onClick={() => setTargetMinutes(f.minutes)}
-            >
-              {f.label}
-              {f.hint && <span className="format-hint"> · {f.hint}</span>}
-            </button>
-          ))}
-        </fieldset>
-      )}
-
+      {phase !== "idle" && (
       <div className={`timer timer-${timerState}`} aria-live="off">
         {phase === "recording" && <span className="rec-dot" aria-hidden="true" />}
         {minutes}:{seconds.toString().padStart(2, "0")}
         {targetMs !== undefined && <span className="timer-target"> / {targetMinutes}:00</span>}
       </div>
+      )}
 
       {phase === "recording" && <JaugeDebit texte={`${finalText} ${interimText}`} elapsedMs={elapsedMs} />}
 
@@ -183,11 +193,6 @@ export default function SessionPage() {
       )}
 
       <div className="actions">
-        {phase === "idle" && (
-          <button className="btn primary" onClick={() => void rec.start()} disabled={!supported}>
-            ● Démarrer l&apos;enregistrement
-          </button>
-        )}
         {phase === "recording" && (
           <button
             className="btn danger"
@@ -202,7 +207,7 @@ export default function SessionPage() {
         {phase === "stopped" && (
           <>
             <button className="btn primary" onClick={save} disabled={finalText.trim() === ""}>
-              💾 Sauvegarder la session
+              <Icone nom="sauvegarder" /> Sauvegarder la session
             </button>
             <button className="btn" onClick={discard}>
               Abandonner

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LIBELLES_TYPE_ORAL, TYPES_ORAL, type TypeOral } from "@/lib/retours";
+import { Icone } from "@/app/components/Icone";
 
 interface Groupe {
   ecole: string;
@@ -77,7 +78,7 @@ export default function QuestionsReellesPage() {
               ))}
             </ol>
             {g.conseils.length > 0 && (
-              <p className="session-meta">💬 {g.conseils.map((c) => `« ${c} »`).join(" · ")}</p>
+              <p className="session-meta"><Icone nom="message" /> {g.conseils.map((c) => `« ${c} »`).join(" · ")}</p>
             )}
           </article>
         ))

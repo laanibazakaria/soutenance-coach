@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { LIMITES_PAR_DEFAUT, type EtatQuota } from "@/lib/quota";
 import { useToast } from "@/app/components/Toast";
+import { Icone } from "@/app/components/Icone";
 
 /** Les forfaits : ce qui est gratuit aujourd'hui, ce que Pro apportera, la liste d'attente. */
 export default function ForfaitsPage() {
@@ -91,9 +92,9 @@ export default function ForfaitsPage() {
             quelques euros par mois <span className="session-meta">— le prix sera fixé avec les premiers inscrits</span>
           </p>
           <ul className="forfait-liste">
-            <li>★ Appels IA largement étendus, pour préparer plusieurs oraux en même temps</li>
-            <li>★ Le <b>mémoire ou la thèse</b> en entrée — les questions du rapporteur</li>
-            <li>★ Plusieurs entretiens, plusieurs oraux en parallèle</li>
+            <li><Icone nom="etoile" /> Appels IA largement étendus, pour préparer plusieurs oraux en même temps</li>
+            <li><Icone nom="etoile" /> Le <b>mémoire ou la thèse</b> en entrée — les questions du rapporteur</li>
+            <li><Icone nom="etoile" /> Plusieurs entretiens, plusieurs oraux en parallèle</li>
           </ul>
           {inscrit ? (
             <p className="forfait-ok">✓ Tu es sur la liste. Tu seras prévenu en premier, et tu auras le premier prix.</p>

@@ -6,6 +6,7 @@ import { listSessions } from "@/lib/storage";
 import { construireBilan, type Bilan } from "@/lib/bilan";
 import BilanVue from "@/app/components/BilanVue";
 import { useToast } from "@/app/components/Toast";
+import { Icone } from "@/app/components/Icone";
 
 /** Le bilan : à imprimer en PDF, ou à partager par un lien en lecture seule. */
 export default function BilanPage() {
@@ -51,10 +52,10 @@ export default function BilanPage() {
         <p className="session-meta">Un document propre, sans transcription : pour toi, ou pour ton encadrant.</p>
         <div className="list-actions">
           <button className="btn small" onClick={() => void partager()} disabled={creation}>
-            {creation ? "Création…" : "🔗 Lien de partage (30 jours)"}
+            {creation ? "Création…" : <><Icone nom="lien" /> Lien de partage (30 jours)</>}
           </button>
           <button className="btn small primary" onClick={() => window.print()}>
-            🖨️ Imprimer / enregistrer en PDF
+            <Icone nom="imprimer" /> Imprimer / enregistrer en PDF
           </button>
         </div>
       </div>

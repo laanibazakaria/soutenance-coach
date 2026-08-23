@@ -8,6 +8,7 @@ import { dateDuJour } from "@/lib/parcours";
 import { surSynchronisation } from "@/lib/sync/client";
 import { pushDisponible, etatPush, activerPush, desactiverPush, type EtatPush } from "@/lib/push-client";
 import { useToast } from "@/app/components/Toast";
+import { Icone, IconeBadge } from "@/app/components/Icone";
 
 /** Sur l'accueil : la question du jour (faite ou pas), la série, et le bouton des rappels. */
 export default function CarteQuotidien() {
@@ -51,20 +52,18 @@ export default function CarteQuotidien() {
   return (
     <div className="card accueil-quotidien">
       <div className="accueil-quotidien-principal">
-        <span className="accueil-emoji" aria-hidden="true">
-          {e.courante >= 3 ? "🔥" : "🎯"}
-        </span>
+        <IconeBadge nom={e.courante >= 3 ? "flamme" : "cible"} teinte={e.courante >= 3 ? "or" : "violet"} />
         <div>
           <b>{faite ? "Question du jour : faite ✓" : "La question du jour"}</b>
           <p className="session-meta">{phraseSerie(e)}</p>
         </div>
         <Link href="/app/question-du-jour" className={`btn small${faite ? "" : " primary"}`}>
-          {faite ? "Revoir" : "🎤 Une minute"}
+          {faite ? "Revoir" : <><Icone nom="micro" /> Une minute</>}
         </Link>
       </div>
       {pushDisponible() && push !== "refuse" && (
         <div className="accueil-quotidien-push">
-          <span className="session-meta">{push === "actif" ? "🔔 Rappels activés — un par jour, le soir." : "🔕 Un rappel par jour (J-X, la veille, la question du jour) ?"}</span>
+          <span className="session-meta">{push === "actif" ? <><Icone nom="cloche" /> Rappels activés — un par jour, le soir.</> : <><Icone nom="clocheBarree" /> Un rappel par jour (J-X, la veille, la question du jour) ?</>}</span>
           <button className="btn small" onClick={() => void basculerPush()} disabled={occupe}>
             {occupe ? "…" : push === "actif" ? "Désactiver" : "Activer les rappels"}
           </button>

@@ -19,6 +19,7 @@ import { lireModulesActifs } from "@/lib/preferences";
 import { pousserTout, signalerSynchronisation } from "@/lib/sync/client";
 import ExempleReponse from "@/app/components/ExempleReponse";
 import { useToast } from "@/app/components/Toast";
+import { Icone, IconeBadge } from "@/app/components/Icone";
 
 export const CLE_SERIE = "serie";
 const DUREE_MAX_MS = 60_000;
@@ -164,9 +165,7 @@ export default function QuestionDuJourPage() {
   return (
     <div className="qdj">
       <div className="card qdj-serie">
-        <span className="qdj-flamme" aria-hidden="true">
-          {etatSerie.courante >= 3 ? "🔥" : "📅"}
-        </span>
+        <IconeBadge nom={etatSerie.courante >= 3 ? "flamme" : "calendrier"} teinte={etatSerie.courante >= 3 ? "or" : "violet"} taille={48} rond />
         <div>
           <b>{etatSerie.courante > 0 ? `${etatSerie.courante} jour${etatSerie.courante > 1 ? "s" : ""} d'affilée` : "Ta série"}</b>
           <p className="session-meta">{phraseSerie(etatSerie)}{etatSerie.record >= 2 ? ` · record : ${etatSerie.record}` : ""}</p>
@@ -176,13 +175,13 @@ export default function QuestionDuJourPage() {
       <article className="card question-posee">
         <span className="question-cat">{new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })} · {question.source === "soutenance" ? "ton jury" : question.source === "entretien" ? "ton recruteur" : MODULES[question.source].persona}</span>
         <p className="question-grande">{question.question}</p>
-        {(resultat || rec.phase !== "idle") && <p className="question-pourquoi">💡 {question.pourquoi}</p>}
+        {(resultat || rec.phase !== "idle") && <p className="question-pourquoi"><Icone nom="idee" /> {question.pourquoi}</p>}
       </article>
 
       {!resultat && rec.phase === "idle" && (
         <div className="actions">
           <button className="btn primary big" onClick={() => void repondre()} disabled={!rec.supported}>
-            🎤 Répondre — 60 secondes max
+            <Icone nom="micro" /> Répondre — 60 secondes max
           </button>
         </div>
       )}
@@ -204,7 +203,7 @@ export default function QuestionDuJourPage() {
       {resultat && (
         <>
           <div className="card notice-lien" style={{ borderLeftColor: "var(--ok)" }}>
-            ✅ Fait pour aujourd&apos;hui. {phraseSerie(calculerSerie(serie, aujourdhui))}
+            <Icone nom="valide" /> Fait pour aujourd&apos;hui. {phraseSerie(calculerSerie(serie, aujourdhui))}
           </div>
           <div className="transcript">{resultat.transcript || "(aucune réponse captée)"}</div>
           <div className="report-grid" style={{ marginBottom: 14 }}>

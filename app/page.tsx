@@ -2,40 +2,41 @@ import Link from "next/link";
 import Image from "next/image";
 import accueil from "@/docs/accueil.png";
 import session from "@/docs/session.png";
+import { Icone, IconeBadge, type NomIcone } from "@/app/components/Icone";
 
-const OUTILS = [
-  { icone: "📅", titre: "Le parcours J-X", texte: "Ta date, ton format, et chaque jour ce qu'il faut faire : les étapes prouvées par ton activité se cochent seules." },
-  { icone: "🎞️", titre: "Répéter avec tes slides", texte: "La diapositive à l'écran, un chrono par diapositive comparé au minutage de ton pitch. Tu sauras laquelle mange le temps." },
-  { icone: "🗂️", titre: "Les fiches à mémoriser", texte: "Chiffres, définitions, choix à justifier, questions pièges — tirés de tes slides, révisés avec rappel espacé." },
-  { icone: "💬", titre: "L'avis du coach", texte: "Ce que tu as oublié de tes diapositives, ce qui était confus, quoi dire autrement. Des conseils, jamais une note." },
-  { icone: "🎓", titre: "Le jury qui t'interroge", texte: "Des questions propres à ton projet, tu réponds au micro, et un avis de jury sur chaque réponse." },
-  { icone: "💼", titre: "L'entretien d'embauche", texte: "Ton CV et l'offre : les questions que ce recruteur te posera, « présentez-vous » en 2 minutes, une simulation RH ou technique qui relance, la méthode STAR." },
-  { icone: "🚀", titre: "Le pitch de projet", texte: "Concours d'innovation, startup, hackathon : ton dossier, les questions d'un jury d'innovation, un pitch de 3 minutes chronométré, la preuve avant la promesse." },
-  { icone: "🏛️", titre: "L'oral de concours", texte: "Admission en école ou en master, bourse : ton dossier, les questions d'un jury d'admission, « pourquoi nous », le projet professionnel." },
-  { icone: "📖", titre: "Le guide de la soutenance", texte: "Comment ça se passe, ce que le jury note vraiment, et comment répondre à une question dont tu n'as pas la réponse." },
-] as const;
+const OUTILS: ReadonlyArray<{ icone: NomIcone; titre: string; texte: string }> = [
+  { icone: "calendrier", titre: "Le parcours J-X", texte: "Ta date, ton format, et chaque jour ce qu'il faut faire : les étapes prouvées par ton activité se cochent seules." },
+  { icone: "slides", titre: "Répéter avec tes slides", texte: "La diapositive à l'écran, un chrono par diapositive comparé au minutage de ton pitch. Tu sauras laquelle mange le temps." },
+  { icone: "fiches", titre: "Les fiches à mémoriser", texte: "Chiffres, définitions, choix à justifier, questions pièges — tirés de tes slides, révisés avec rappel espacé." },
+  { icone: "message", titre: "L'avis du coach", texte: "Ce que tu as oublié de tes diapositives, ce qui était confus, quoi dire autrement. Des conseils, jamais une note." },
+  { icone: "soutenance", titre: "Le jury qui t'interroge", texte: "Des questions propres à ton projet, tu réponds au micro, et un avis de jury sur chaque réponse." },
+  { icone: "entretien", titre: "L'entretien d'embauche", texte: "Ton CV et l'offre : les questions que ce recruteur te posera, « présentez-vous » en 2 minutes, une simulation RH ou technique qui relance, la méthode STAR." },
+  { icone: "pitch", titre: "Le pitch de projet", texte: "Concours d'innovation, startup, hackathon : ton dossier, les questions d'un jury d'innovation, un pitch de 3 minutes chronométré, la preuve avant la promesse." },
+  { icone: "concours", titre: "L'oral de concours", texte: "Admission en école ou en master, bourse : ton dossier, les questions d'un jury d'admission, « pourquoi nous », le projet professionnel." },
+  { icone: "livre", titre: "Le guide de la soutenance", texte: "Comment ça se passe, ce que le jury note vraiment, et comment répondre à une question dont tu n'as pas la réponse." },
+];
 
-const METRIQUES = [
+const METRIQUES: ReadonlyArray<{ icone: NomIcone; titre: string; texte: string }> = [
   {
-    icone: "⏱️",
+    icone: "chrono",
     titre: "Tenue du temps",
     texte:
       "Format PFA 15 min ou PFE 20 min : le minuteur passe à l'orange dans les dernières minutes, au rouge au dépassement. Un jury coupe — coupe avant lui.",
   },
   {
-    icone: "🗣️",
+    icone: "parole",
     titre: "Débit de parole",
     texte:
       "Mots par minute, comparés à la zone confortable d'un exposé (110-160). Trop lent, le jury décroche ; trop rapide, il ne suit plus.",
   },
   {
-    icone: "🎯",
+    icone: "cible",
     titre: "Mots béquilles",
     texte:
       "« euh », « du coup », « en fait », « voilà »… comptés pour 100 mots, avec le détail de ceux qui reviennent le plus. Ceux qu'on n'entend jamais soi-même.",
   },
   {
-    icone: "🧭",
+    icone: "boussole",
     titre: "Structure annoncée",
     texte:
       "Est-ce que tu annonces ton plan en introduction ? Est-ce que ta conclusion est marquée ? Le jury doit toujours savoir où tu en es.",
@@ -95,7 +96,7 @@ export default function LandingPage() {
           </p>
           <div className="lp-cta">
             <Link href="/app" className="btn primary big">
-              🎤 Commencer mon entraînement
+              <Icone nom="micro" /> Commencer mon entraînement
             </Link>
             <a href="#fonctionnement" className="btn big">
               Voir comment ça marche
@@ -176,7 +177,7 @@ export default function LandingPage() {
             {OUTILS.map((o) => (
               <article key={o.titre} className="lp-card">
                 <span className="lp-card-icon" aria-hidden="true">
-                  {o.icone}
+                  <IconeBadge nom={o.icone} taille={44} />
                 </span>
                 <h3>{o.titre}</h3>
                 <p>{o.texte}</p>
@@ -197,7 +198,7 @@ export default function LandingPage() {
             {METRIQUES.map((m) => (
               <article key={m.titre} className="lp-card">
                 <span className="lp-card-icon" aria-hidden="true">
-                  {m.icone}
+                  <IconeBadge nom={m.icone} teinte="or" taille={44} />
                 </span>
                 <h3>{m.titre}</h3>
                 <p>{m.texte}</p>
@@ -242,7 +243,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="lp-trend lp-trend-locked">
-              <span className="lp-trend-icon">🔒</span>
+              <span className="lp-trend-icon"><Icone nom="cadenas" taille={16} /></span>
               <div>
                 <b>Tenue du temps</b>
                 <span>Encore 2 séances pour débloquer</span>
@@ -270,9 +271,9 @@ export default function LandingPage() {
             capté ne prouve pas que tu parles lentement.
           </p>
           <div className="lp-pills">
-            <span className="lp-pill">🔒 Audio et PDF jamais envoyés</span>
-            <span className="lp-pill">🧪 212 tests automatisés</span>
-            <span className="lp-pill">📖 Code source ouvert</span>
+            <span className="lp-pill"><Icone nom="cadenas" /> Audio et PDF jamais envoyés</span>
+            <span className="lp-pill"><Icone nom="flacon" /> 212 tests automatisés</span>
+            <span className="lp-pill"><Icone nom="livre" /> Code source ouvert</span>
             <span className="lp-pill">🆓 Gratuit, compte facultatif</span>
           </div>
         </div>
@@ -286,7 +287,7 @@ export default function LandingPage() {
             Deux minutes suffisent pour ta première séance.
           </p>
           <Link href="/app" className="btn primary big">
-            🎤 Commencer maintenant
+            <Icone nom="micro" /> Commencer maintenant
           </Link>
         </div>
       </section>

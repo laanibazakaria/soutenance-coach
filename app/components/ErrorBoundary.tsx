@@ -1,5 +1,7 @@
 "use client";
 
+import { IconeBadge } from "@/app/components/Icone";
+
 import React from "react";
 
 interface State {
@@ -27,7 +29,7 @@ export default class ErrorBoundary extends React.Component<{ children: React.Rea
       <div className="erreur-page">
         <div className="card erreur-carte">
           <div className="erreur-icone" aria-hidden="true">
-            ⚠️
+            <IconeBadge nom="alerte" teinte="rouge" taille={56} rond />
           </div>
           <h2>Oups, quelque chose s&apos;est mal passé</h2>
           <p>Tes données sont intactes — elles sont dans ton navigateur et sur ton compte. Recharge la page pour reprendre.</p>

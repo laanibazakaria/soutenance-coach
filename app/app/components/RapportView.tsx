@@ -9,6 +9,7 @@ import { LIBELLES_CATEGORIES } from "@/lib/jury";
 import type { JuryQuestion } from "@/lib/slides/types";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import { useToast } from "@/app/components/Toast";
+import { Icone } from "@/app/components/Icone";
 
 export const CLE_RAPPORT = "rapport:texte";
 export const cleQuestionsRapport = (texte: string) => `questions-rapport:${empreinteRapport(texte)}`;
@@ -100,7 +101,7 @@ export default function RapportView() {
       <div className="list-head" style={{ margin: 0 }}>
         <div>
           <h2 className="list-title" style={{ margin: 0 }}>
-            📕 Ton mémoire, ton rapport, ta thèse
+            <Icone nom="memoire" /> Ton mémoire, ton rapport, ta thèse
           </h2>
           <p className="session-meta">
             {rapport ? `${rapport.nomFichier} · ${rapport.pages} pages · ${Math.round(rapport.texte.split(/\s+/).length / 100) / 10}k mots lus` : "Le rapporteur l'a lu de près : c'est là qu'il prend ses questions de fond."}
@@ -108,11 +109,11 @@ export default function RapportView() {
         </div>
         <div className="list-actions">
           <button className="btn small" onClick={() => fileRef.current?.click()} disabled={lecture}>
-            {lecture ? "Lecture…" : rapport ? "Changer de document" : "📕 Déposer le PDF"}
+            {lecture ? "Lecture…" : rapport ? "Changer de document" : <><Icone nom="memoire" /> Déposer le PDF</>}
           </button>
           {rapport && (
             <button className="btn small primary" onClick={() => void generer()} disabled={generation}>
-              {generation ? "Le rapporteur lit…" : questions ? "↻ Régénérer" : "✨ Questions du rapporteur"}
+              {generation ? "Le rapporteur lit…" : questions ? <><Icone nom="rafraichir" /> Régénérer</> : <><Icone nom="etincelles" /> Questions du rapporteur</>}
             </button>
           )}
         </div>
@@ -129,7 +130,7 @@ export default function RapportView() {
                 <article key={q.id} className="card question question-priorite">
                   <span className="question-cat">{LIBELLES_CATEGORIES[q.categorie]}</span>
                   <p className="question-texte">{q.question}</p>
-                  <p className="question-pourquoi">💡 {q.pourquoi}</p>
+                  <p className="question-pourquoi"><Icone nom="idee" /> {q.pourquoi}</p>
                 </article>
               ))}
               <p className="report-note" style={{ textAlign: "left" }}>

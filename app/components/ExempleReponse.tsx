@@ -5,6 +5,7 @@ import { lireCache, ecrireCache } from "@/lib/ia-cache";
 import { cleExemple, type Exemple } from "@/lib/jury/exemple";
 import { lireLangue, courte } from "@/lib/langue";
 import { pousserTout } from "@/lib/sync/client";
+import { Icone } from "@/app/components/Icone";
 
 interface Props {
   question: string;
@@ -55,7 +56,7 @@ export default function ExempleReponse({ question, pourquoi, contexte, persona, 
     return (
       <div className="exemple-invite">
         <button className="btn" onClick={() => void demander()} disabled={etat === "chargement"}>
-          {etat === "chargement" ? "Le coach rédige…" : "✨ Voir comment un excellent candidat répondrait"}
+          {etat === "chargement" ? "Le coach rédige…" : <><Icone nom="etincelles" /> Voir comment un excellent candidat répondrait</>}
         </button>
         {erreur && (
           <p className="warn" role="alert" style={{ marginTop: 10 }}>
@@ -68,7 +69,7 @@ export default function ExempleReponse({ question, pourquoi, contexte, persona, 
 
   return (
     <article className="card avis-bloc exemple">
-      <b>✨ Comment un excellent candidat répondrait</b>
+      <b><Icone nom="etincelles" /> Comment un excellent candidat répondrait</b>
       <p className="exemple-reponse">« {exemple.reponse} »</p>
       <ul className="exemple-pourquoi">
         {exemple.pourquoi.map((p) => (

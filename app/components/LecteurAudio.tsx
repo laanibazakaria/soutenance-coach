@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { lireAudio } from "@/lib/audio/stockage";
 import { constatsAudio, type MesuresAudio } from "@/lib/audio/mesures";
+import { Icone } from "@/app/components/Icone";
 
 /** Réécoute-toi : l'audio de la session, s'il est sur cet appareil, et ce que le son dit. */
 export default function LecteurAudio({ sessionId, mesures, compact = false }: { sessionId: string; mesures?: MesuresAudio; compact?: boolean }) {
@@ -29,7 +30,7 @@ export default function LecteurAudio({ sessionId, mesures, compact = false }: { 
     <div className={`lecteur${compact ? " lecteur-compact" : ""}`}>
       {url && (
         <div className="lecteur-ligne">
-          <span className="lecteur-label">🎧 Réécoute-toi</span>
+          <span className="lecteur-label"><Icone nom="casque" /> Réécoute-toi</span>
           <audio controls preload="metadata" src={url} className="lecteur-audio" />
           {!compact && <span className="session-meta">L&apos;audio est sur cet appareil seulement — jamais envoyé, jamais synchronisé.</span>}
         </div>

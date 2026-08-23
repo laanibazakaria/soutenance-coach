@@ -7,6 +7,8 @@ import ConfirmDialog from "@/app/components/ConfirmDialog";
 import { useToast } from "@/app/components/Toast";
 import { viderDonneesLocales } from "@/lib/sync/merge";
 import { toutEffacerAudio } from "@/lib/audio/stockage";
+import { Icone } from "@/app/components/Icone";
+import { seDeconnecterProprement } from "../components/SyncCompte";
 
 /**
  * Page de connexion. Le compte est optionnel : on le dit, et on dit ce qu'il
@@ -17,7 +19,14 @@ export default function ConnexionPage() {
   const [dispo, setDispo] = useState<boolean | null>(null);
   const [confirmerSuppression, setConfirmerSuppression] = useState(false);
   const [suppression, setSuppression] = useState(false);
+  const [quitte, setQuitte] = useState(false);
   const toast = useToast();
+
+  async function quitter() {
+    setQuitte(true);
+    const parti = await seDeconnecterProprement();
+    if (!parti) setQuitte(false);
+  }
 
   async function supprimerCompte() {
     setSuppression(true);
@@ -65,6 +74,11 @@ export default function ConnexionPage() {
               Tes sessions, ton support, ton parcours et tes fiches sont synchronisés sur ce compte.{" "}
               <Link href="/app">Retour à l&apos;accueil →</Link>
             </p>
+            <div className="actions" style={{ justifyContent: "flex-start", marginTop: 14 }}>
+              <button className="btn" onClick={() => void quitter()} disabled={quitte}>
+                <Icone nom="sortie" /> {quitte ? "Déconnexion…" : "Se déconnecter de cet appareil"}
+              </button>
+            </div>
           </div>
           <div className="card compte-danger">
             <b>Supprimer mon compte</b>
@@ -105,19 +119,19 @@ export default function ConnexionPage() {
 
       <div className="reassure">
         <p>
-          🔒 <b>Ce qui est stocké sur ton compte :</b> les transcriptions de tes sessions, le texte
+          <Icone nom="cadenas" /> <b>Ce qui est stocké sur ton compte :</b> les transcriptions de tes sessions, le texte
           de tes slides, ton pitch et tes questions. <b>Jamais l&apos;audio</b>, jamais le PDF.
         </p>
         <p>
-          🗑️ <b>Tu peux tout supprimer</b> à tout moment, session par session. Rien n&apos;est
+          <Icone nom="corbeille" /> <b>Tu peux tout supprimer</b> à tout moment, session par session. Rien n&apos;est
           utilisé pour entraîner un modèle.
         </p>
         <p>
-          ↔️ <b>Ce que tu as déjà fait sans compte</b> sera fusionné avec ton compte à la première
+          <Icone nom="echange" /> <b>Ce que tu as déjà fait sans compte</b> sera fusionné avec ton compte à la première
           connexion — rien n&apos;est perdu.
         </p>
         <p>
-          🚪 <b>À la déconnexion, cet appareil est vidé</b> — ton travail reste sur ton compte.
+          <Icone nom="sortie" /> <b>À la déconnexion, cet appareil est vidé</b> — ton travail reste sur ton compte.
           Sur un ordinateur partagé, la personne suivante ne voit rien de toi.
         </p>
         <p className="reassure-note">

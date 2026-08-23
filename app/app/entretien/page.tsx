@@ -20,6 +20,7 @@ import { useToast } from "@/app/components/Toast";
 import { telechargerIcs } from "@/lib/ics";
 import RepeterAvecAmi from "../components/RepeterAvecAmi";
 import RetourOralForm from "../components/RetourOralForm";
+import { Icone } from "@/app/components/Icone";
 
 const TYPES: ReadonlyArray<{ id: TypeEntretien; label: string; hint: string }> = [
   { id: "rh", label: "RH", hint: "motivation, parcours" },
@@ -183,7 +184,7 @@ export default function EntretienPage() {
                 })
               }
             >
-              📅 Ajouter au calendrier
+              <Icone nom="calendrier" /> Ajouter au calendrier
             </button>
           )}
         </div>
@@ -208,7 +209,7 @@ export default function EntretienPage() {
         <div className="list-head">
           <h2 className="list-title">Les questions de ce recruteur</h2>
           <button className="btn small primary" onClick={() => void genererQuestions()} disabled={generation}>
-            {generation ? "Le recruteur lit ton CV…" : questions ? "↻ Régénérer" : "✨ Générer depuis mon CV et l'offre"}
+            {generation ? "Le recruteur lit ton CV…" : questions ? <><Icone nom="rafraichir" /> Régénérer</> : <><Icone nom="etincelles" /> Générer depuis mon CV et l'offre</>}
           </button>
         </div>
         {!questions ? (
@@ -298,7 +299,7 @@ function FormulaireCandidature({
 
   return (
     <section className="card parcours parcours-form" aria-label="Ma candidature">
-      <h2 className="parcours-titre">💼 Pour quel entretien te prépares-tu ?</h2>
+      <h2 className="parcours-titre"><Icone nom="entretien" /> Pour quel entretien te prépares-tu ?</h2>
       <p className="parcours-lead">
         Le poste, l&apos;offre et ton CV : tout ce qui suit — questions, simulation, avis du coach — sera personnalisé à partir de là.
         Le CV est lu dans ton navigateur ; seul son texte est conservé.

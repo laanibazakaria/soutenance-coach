@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icone } from "@/app/components/Icone";
 
 export const metadata = {
   title: "Le guide de l'entretien d'embauche",
@@ -64,7 +65,7 @@ export default function GuideEntretienPage() {
           <li><b>Comment tu réagis quand ça frotte ?</b> Les questions sur l&apos;échec, le conflit, la pression ne cherchent pas la perfection : elles cherchent le recul.</li>
           <li><b>Est-ce qu&apos;on a envie de travailler avec toi ?</b> Écoute, concision, curiosité, pas d&apos;arrogance. Ça se joue dans la manière, pas dans le contenu.</li>
         </ol>
-        <p className="guide-encadre">💡 Un recruteur n&apos;attend pas un candidat parfait. Il attend quelqu&apos;un de clair, honnête et préparé. Les trois se travaillent.</p>
+        <p className="guide-encadre"><Icone nom="idee" /> Un recruteur n&apos;attend pas un candidat parfait. Il attend quelqu&apos;un de clair, honnête et préparé. Les trois se travaillent.</p>
       </section>
 
       <section id="presentez-vous" className="guide-section">

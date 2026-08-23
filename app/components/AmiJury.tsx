@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { SeanceAmi } from "@/lib/ami";
+import { Icone } from "@/app/components/Icone";
 
 type Ligne = { clair: boolean; complet: boolean; convaincant: boolean; remarque: string };
 
@@ -100,7 +101,7 @@ export default function AmiJury({ id, seance }: { id: string; seance: SeanceAmi 
       </div>
       <article className="card question-posee">
         <p className="question-grande">{q.question}</p>
-        {q.pourquoi && <p className="question-pourquoi">🔎 Ce que tu vérifies : {q.pourquoi}</p>}
+        {q.pourquoi && <p className="question-pourquoi"><Icone nom="recherche" /> Ce que tu vérifies : {q.pourquoi}</p>}
         {q.attendu && (
           <p className="question-pourquoi">
             {attenduVisible ? (

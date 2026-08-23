@@ -12,6 +12,7 @@ import { LIBELLES_CATEGORIES_ENTRETIEN, type QuestionEntretien } from "@/lib/ent
 import { analyserReponse, type AvisModele } from "@/lib/jury/evaluation";
 import { lireCache } from "@/lib/ia-cache";
 import { pousserTout } from "@/lib/sync/client";
+import { Icone } from "@/app/components/Icone";
 
 type Etape = "attente" | "reponse" | "evaluation";
 
@@ -140,7 +141,7 @@ function Simulation({ m }: { m: ModuleOral }) {
             <p className="question-grande">{question.question}</p>
             {etape !== "attente" && (
               <>
-                <p className="question-pourquoi">💡 {question.pourquoi}</p>
+                <p className="question-pourquoi"><Icone nom="idee" /> {question.pourquoi}</p>
                 <p className="question-pourquoi">
                   <b>Une bonne réponse :</b> {question.attendu}
                 </p>
@@ -150,7 +151,7 @@ function Simulation({ m }: { m: ModuleOral }) {
           {etape === "attente" && (
             <div className="actions">
               <button className="btn primary big" onClick={() => void demarrer()} disabled={!rec.supported}>
-                🎤 Répondre maintenant
+                <Icone nom="micro" /> Répondre maintenant
               </button>
               <button className="btn" onClick={suivante}>
                 Passer cette question

@@ -8,6 +8,7 @@ import { dateDuJour } from "@/lib/parcours";
 import { fichesDues, reviser, bilan, LIBELLES_TYPE, NIVEAU_ACQUIS, type Fiche, type EtatFiche } from "@/lib/fiches";
 import type { Deck } from "@/lib/slides/types";
 import { pousserTout } from "@/lib/sync/client";
+import { Icone } from "@/app/components/Icone";
 
 type Mode = "revision" | "liste";
 
@@ -52,10 +53,10 @@ export default function FichesPage() {
   if (!deck) {
     return (
       <div className="ia-invite">
-        <h2>🗂️ Fiches à mémoriser</h2>
+        <h2><Icone nom="fiches" /> Fiches à mémoriser</h2>
         <p>Dépose d&apos;abord ton support : les fiches sont tirées de tes diapositives — tes chiffres, tes définitions, tes choix à justifier.</p>
         <Link href="/app/slides" className="btn primary">
-          📄 Déposer mes slides
+          <Icone nom="document" /> Déposer mes slides
         </Link>
       </div>
     );
@@ -110,13 +111,13 @@ export default function FichesPage() {
   if (!fiches) {
     return (
       <div className="ia-invite">
-        <h2>🗂️ Fiches à mémoriser</h2>
+        <h2><Icone nom="fiches" /> Fiches à mémoriser</h2>
         <p>
           Le coach extrait de <b>{deck.nomFichier}</b> ce que tu dois savoir par cœur : chiffres clés, définitions, choix à justifier,
           questions pièges. Puis tu les révises — les ratées reviennent plus souvent.
         </p>
         <button className="btn primary big" onClick={() => void generer()} disabled={chargement}>
-          {chargement ? "Le coach lit tes slides…" : "✨ Générer mes fiches"}
+          {chargement ? "Le coach lit tes slides…" : <><Icone nom="etincelles" /> Générer mes fiches</>}
         </button>
         {erreur && (
           <p className="warn" role="alert" style={{ marginTop: 16 }}>
@@ -213,11 +214,11 @@ export default function FichesPage() {
           <div className="card teaser fiches-fin">
             {faitesCetteSeance > 0 ? (
               <>
-                ✅ Séance terminée : {faitesCetteSeance} fiche{faitesCetteSeance > 1 ? "s" : ""} revue{faitesCetteSeance > 1 ? "s" : ""}.
+                <Icone nom="valide" /> Séance terminée : {faitesCetteSeance} fiche{faitesCetteSeance > 1 ? "s" : ""} revue{faitesCetteSeance > 1 ? "s" : ""}.
                 {b.acquises === b.total ? " Tout est acquis." : " Les ratées reviendront demain."}
               </>
             ) : (
-              <>✅ Rien à revoir aujourd&apos;hui. Reviens demain — ou relis toutes les fiches.</>
+              <><Icone nom="valide" /> Rien à revoir aujourd&apos;hui. Reviens demain — ou relis toutes les fiches.</>
             )}
           </div>
         ))}
@@ -265,7 +266,7 @@ export default function FichesPage() {
           })}
           <div className="actions" style={{ marginTop: 24 }}>
             <button className="btn small" onClick={() => void generer()} disabled={chargement}>
-              {chargement ? "Génération…" : "↻ Régénérer les fiches"}
+              {chargement ? "Génération…" : <><Icone nom="rafraichir" /> Régénérer les fiches</>}
             </button>
           </div>
           {erreur && (

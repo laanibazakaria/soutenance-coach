@@ -12,6 +12,7 @@ import { surSynchronisation } from "@/lib/sync/client";
 import { lireLangue, courte } from "@/lib/langue";
 import ExempleReponse from "@/app/components/ExempleReponse";
 import type { JuryQuestion } from "@/lib/slides/types";
+import { Icone } from "@/app/components/Icone";
 
 type Etape = "attente" | "reponse" | "evaluation";
 
@@ -161,7 +162,7 @@ export default function JuryPage() {
       <div className="toolbar">
         <div />
         <Link href="/app/slides" className="btn small">
-          📄 Mes slides
+          <Icone nom="document" /> Mes slides
         </Link>
       </div>
 
@@ -184,13 +185,13 @@ export default function JuryPage() {
           <article className="card question-posee">
             <span className="question-cat">{LIBELLES_CATEGORIES[question.categorie]}</span>
             <p className="question-grande">{question.question}</p>
-            {etape !== "attente" && <p className="question-pourquoi">💡 {question.pourquoi}</p>}
+            {etape !== "attente" && <p className="question-pourquoi"><Icone nom="idee" /> {question.pourquoi}</p>}
           </article>
 
           {etape === "attente" && (
             <div className="actions">
               <button className="btn primary big" onClick={demarrerReponse} disabled={!supporte}>
-                🎤 Répondre maintenant
+                <Icone nom="micro" /> Répondre maintenant
               </button>
               <button className="btn" onClick={questionSuivante}>
                 Passer cette question

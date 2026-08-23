@@ -10,6 +10,7 @@ import { MODULES, estModuleId, contexteProfil } from "@/lib/modules";
 import { lireProfil } from "@/lib/modules/persistance";
 import { pousserTout } from "@/lib/sync/client";
 import { lireLangue, courte } from "@/lib/langue";
+import { Icone } from "@/app/components/Icone";
 
 /** Clé de cache d'un avis : une session, un avis — on ne redemande pas. */
 export function cleAvisCoach(sessionId: string): string {
@@ -89,7 +90,7 @@ export default function AvisCoach({ session, compact = false }: Props) {
       {!avis ? (
         <div className="coach-invite">
           <button className={`btn${compact ? " small" : " primary"}`} onClick={() => void demander()} disabled={etat === "chargement"}>
-            {etat === "chargement" ? "Le coach relit ta répétition…" : "💬 Demander l'avis du coach"}
+            {etat === "chargement" ? "Le coach relit ta répétition…" : <><Icone nom="message" /> Demander l'avis du coach</>}
           </button>
           {!compact && (
             <p className="coach-note">
@@ -112,13 +113,13 @@ export default function AvisCoach({ session, compact = false }: Props) {
         <>
           {compact && (
             <button className="link-btn coach-toggle" onClick={() => setOuvert((v) => !v)} aria-expanded={ouvert}>
-              💬 Avis du coach {ouvert ? "▾" : "▸"}
+              <Icone nom="message" /> Avis du coach {ouvert ? "▾" : "▸"}
             </button>
           )}
           {ouvert && (
             <div className="avis coach-avis">
               <div className="card avis-bloc coach-priorite">
-                <b>🎯 Priorité avant la prochaine répétition</b>
+                <b><Icone nom="cible" /> Priorité avant la prochaine répétition</b>
                 <p>{avis.priorite}</p>
               </div>
               {avis.oublis.length > 0 && (

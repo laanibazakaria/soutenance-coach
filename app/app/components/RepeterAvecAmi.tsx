@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { synthese, type QuestionAmi, type SeanceAmi } from "@/lib/ami";
 import { useToast } from "@/app/components/Toast";
+import { Icone } from "@/app/components/Icone";
 
 interface Props {
   titre: string;
@@ -78,7 +79,7 @@ export default function RepeterAvecAmi({ titre, persona, dureeS, questions, cle 
       <div className="list-head" style={{ margin: 0 }}>
         <div>
           <h2 className="list-title" style={{ margin: 0 }}>
-            👥 Répéter avec un ami
+            <Icone nom="amis" /> Répéter avec un ami
           </h2>
           <p className="session-meta">
             {nbRetours > 0 ? `${nbRetours} retour${nbRetours > 1 ? "s" : ""} reçu${nbRetours > 1 ? "s" : ""}` : "Un lien : il joue le jury, avec les bonnes questions et ce qu'une bonne réponse contient. Son retour revient ici."}
@@ -91,7 +92,7 @@ export default function RepeterAvecAmi({ titre, persona, dureeS, questions, cle 
             </button>
           )}
           <button className="btn small primary" onClick={() => void creer()} disabled={creation}>
-            {creation ? "Création…" : "🔗 Créer un lien pour un ami"}
+            {creation ? "Création…" : <><Icone nom="lien" /> Créer un lien pour un ami</>}
           </button>
         </div>
       </div>
@@ -124,7 +125,7 @@ export default function RepeterAvecAmi({ titre, persona, dureeS, questions, cle 
                     ))}
                     {sy.commentaires.length > 0 && (
                       <div className="timeline-row" style={{ flexWrap: "wrap" }}>
-                        <span className="timeline-titre" style={{ whiteSpace: "normal" }}>💬 {sy.commentaires.join(" — ")}</span>
+                        <span className="timeline-titre" style={{ whiteSpace: "normal" }}><Icone nom="message" /> {sy.commentaires.join(" — ")}</span>
                       </div>
                     )}
                   </div>

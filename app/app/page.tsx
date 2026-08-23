@@ -2,20 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { listSessions } from "@/lib/storage";
 import type { SessionRecord } from "@/lib/types";
 import { TOUS_LES_MODULES, lireModulesActifs, sauverModulesActifs, resumerModules, type ModuleActif, type ResumeModule } from "@/lib/preferences";
 import { pousserTout, surSynchronisation, signalerSynchronisation } from "@/lib/sync/client";
+import { lireCache } from "@/lib/ia-cache";
+import type { Serie } from "@/lib/quotidien";
+import { chiffresSemaine, dateLongue, salutation } from "@/lib/accueil";
+import { useUsage } from "@/lib/usage-client";
 import { useToast } from "@/app/components/Toast";
+import { Icone, IconeBadge, type NomIcone } from "@/app/components/Icone";
 import CarteQuotidien from "./components/CarteQuotidien";
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
-}
-
-function libelleMode(mode?: string): string {
-  return mode === "entretien" ? "💼 Entretien" : mode === "pitch" ? "🚀 Pitch" : mode === "concours" ? "🏛️ Concours" : "🎓 Soutenance";
-}
+import LigneSession from "./components/LigneSession";
 
 /** L'accueil : ce que tu prépares, où tu en es, quoi faire maintenant. */
 export default function AccueilPage() {
@@ -23,6 +22,10 @@ export default function AccueilPage() {
   const [actifs, setActifs] = useState<ModuleActif[] | null | undefined>(undefined);
   const [choisir, setChoisir] = useState(false);
   const [resumes, setResumes] = useState<ResumeModule[]>([]);
+  const [serie, setSerie] = useState<Serie | null>(null);
+  const [maintenant, setMaintenant] = useState<Date | null>(null);
+  const { data: session } = useSession();
+  const usage = useUsage();
 
   useEffect(() => {
     const lire = () => {
@@ -31,13 +34,15 @@ export default function AccueilPage() {
       setSessions(s);
       setActifs(a);
       setResumes(a ? resumerModules(window.localStorage, s, a) : []);
+      setSerie(lireCache<Serie>(window.localStorage, "serie"));
       setChoisir(new URLSearchParams(window.location.search).get("choisir") === "1");
+      setMaintenant(new Date());
     };
     lire();
     return surSynchronisation(lire);
   }, []);
 
-  if (actifs === undefined || sessions === null) return null;
+  if (actifs === undefined || sessions === null || maintenant === null) return null;
 
   function enregistrer(liste: ModuleActif[]) {
     sauverModulesActifs(window.localStorage, liste);
@@ -54,40 +59,146 @@ export default function AccueilPage() {
   }
 
   const inactifs = TOUS_LES_MODULES.filter((m) => !actifs.includes(m.id));
-  const recentes = sessions.slice(0, 3);
+  const recentes = sessions.slice(0, 4);
   const urgent = [...resumes].filter((r) => r.jours !== null && r.jours >= 0).sort((a, b) => (a.jours ?? 0) - (b.jours ?? 0))[0];
+  const premierSansDate = resumes.find((r) => r.jours === null);
+  const chiffres = chiffresSemaine(sessions, serie, maintenant);
+  const prenom = session?.user?.name?.split(" ")[0];
+  const deltaSessions = chiffres.sessions - chiffres.sessionsSemainePrecedente;
+  const ratioIa = usage && usage.limite > 0 ? Math.min(100, Math.round((usage.appels / usage.limite) * 100)) : 0;
 
   return (
     <div className="accueil">
-      <CarteQuotidien />
-      {urgent && (
-        <div className="card accueil-prochaine">
-          <div>
-            <span className="parcours-sur">Prochaine échéance</span>
-            <h2 className="parcours-titre">
-              {urgent.emoji} {urgent.nom} · {urgent.jours === 0 ? "aujourd'hui" : urgent.jours === 1 ? "demain" : `dans ${urgent.jours} jours`}
-            </h2>
-            <p className="accueil-action">
-              À faire maintenant : <Link href={urgent.prochaineAction.lien}>{urgent.prochaineAction.titre} →</Link>
-            </p>
+      <div className="accueil-tete">
+        <h1 className="accueil-bonjour">
+          {salutation(maintenant)}
+          {prenom ? ` ${prenom}` : ""}
+        </h1>
+        <p className="accueil-date">{dateLongue(maintenant)}</p>
+      </div>
+
+      <div className="accueil-duo">
+        <section className="card accueil-echeance" aria-label="Prochaine échéance">
+          <span className="carte-titre carte-titre-clair">
+            <Icone nom="calendrier" taille={16} /> Prochaine échéance
+          </span>
+          {urgent ? (
+            <>
+              <div className="accueil-echeance-corps">
+                <div>
+                  <h2>
+                    {urgent.nom} · {urgent.jours === 0 ? "aujourd'hui" : urgent.jours === 1 ? "demain" : `dans ${urgent.jours} jours`}
+                  </h2>
+                  <p>{urgent.sousTitre}</p>
+                </div>
+                <span className="accueil-echeance-j">J-{urgent.jours}</span>
+              </div>
+              <div className="accueil-echeance-actions">
+                <Link href={urgent.prochaineAction.lien} className="btn accueil-btn-clair">
+                  {urgent.prochaineAction.titre} →
+                </Link>
+                {urgent.pourcent !== null && <span className="accueil-echeance-pret">Prêt à {urgent.pourcent} %</span>}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="accueil-echeance-corps">
+                <div>
+                  <h2>Aucune date pour l&apos;instant</h2>
+                  <p>Donne la date de ton oral : le parcours se construit à partir d&apos;elle, jour par jour.</p>
+                </div>
+              </div>
+              <div className="accueil-echeance-actions">
+                <Link href={premierSansDate?.prochaineAction.lien ?? "/app/soutenance"} className="btn accueil-btn-clair">
+                  {premierSansDate?.prochaineAction.titre ?? "Donner ma date"} →
+                </Link>
+              </div>
+            </>
+          )}
+        </section>
+
+        <section className="card accueil-perf" aria-label="Ma progression">
+          <span className="carte-titre">
+            <Icone nom="tendance" taille={16} /> Cette semaine
+          </span>
+          <div className="accueil-perf-grille">
+            <div>
+              <span className="accueil-perf-valeur">{chiffres.sessions}</span>
+              <span className="accueil-perf-label">session{chiffres.sessions > 1 ? "s" : ""}</span>
+              <span className={`accueil-perf-delta ${deltaSessions > 0 ? "plus" : deltaSessions < 0 ? "moins" : ""}`}>
+                {deltaSessions > 0 ? `+${deltaSessions}` : deltaSessions < 0 ? `${deltaSessions}` : "="} vs semaine dernière
+              </span>
+            </div>
+            <div>
+              <span className="accueil-perf-valeur">{chiffres.minutes}</span>
+              <span className="accueil-perf-label">min à voix haute</span>
+              <span className="accueil-perf-delta">{chiffres.mots.toLocaleString("fr-FR")} mots</span>
+            </div>
+            <div>
+              <span className="accueil-perf-valeur accueil-perf-or">{chiffres.serie}</span>
+              <span className="accueil-perf-label">jour{chiffres.serie > 1 ? "s" : ""} d&apos;affilée</span>
+              <span className="accueil-perf-delta">question du jour</span>
+            </div>
           </div>
-          <div className={`jmoins ${(urgent.pourcent ?? 0) >= 80 ? "jmoins-pret" : (urgent.pourcent ?? 0) >= 40 ? "jmoins-encours" : "jmoins-debut"}`}>J-{urgent.jours}</div>
+          <Link href="/app/bilan" className="accueil-perf-lien">
+            Voir mon bilan <Icone nom="chevronDroite" taille={14} />
+          </Link>
+        </section>
+      </div>
+
+      <section className="card accueil-usage" aria-label="Mon utilisation ce mois">
+        <div className="accueil-usage-tete">
+          <span className="accueil-usage-titre">Mon utilisation ce mois</span>
+          <Link href="/app/forfaits" className="accueil-usage-lien">
+            Voir les forfaits →
+          </Link>
         </div>
-      )}
+        <div className="accueil-usage-grille">
+          <div className="accueil-usage-item">
+            <span className="accueil-usage-ligne">
+              <span>Appels IA</span>
+              <b className={ratioIa >= 100 ? "rouge" : ratioIa >= 75 ? "orange" : "vert"}>{usage ? `${usage.appels} / ${usage.limite}` : "…"}</b>
+            </span>
+            <span className="accueil-usage-barre">
+              <span style={{ width: `${ratioIa}%` }} className={ratioIa >= 100 ? "rouge" : ratioIa >= 75 ? "orange" : ""} />
+            </span>
+          </div>
+          <div className="accueil-usage-item">
+            <span className="accueil-usage-ligne">
+              <span>Sessions</span>
+              <b className="vert">{chiffres.sessionsMois} · illimité</b>
+            </span>
+            <span className="accueil-usage-barre">
+              <span style={{ width: `${Math.min(100, chiffres.sessionsMois * 10)}%` }} />
+            </span>
+          </div>
+          <div className="accueil-usage-item">
+            <span className="accueil-usage-ligne">
+              <span>Oraux préparés</span>
+              <b className="vert">{resumes.length} / 4</b>
+            </span>
+            <span className="accueil-usage-barre">
+              <span style={{ width: `${(resumes.length / 4) * 100}%` }} />
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <CarteQuotidien />
 
       <div className="list-head">
-        <h2 className="list-title">Mes oraux</h2>
+        <h2 className="list-title">
+          <Icone nom="fiches" taille={18} /> Mes oraux
+        </h2>
         <button className="btn small" onClick={() => setChoisir(true)}>
-          ＋ Ajouter ou retirer un oral
+          <Icone nom="plus" /> Ajouter un oral
         </button>
       </div>
       <div className="accueil-grille">
         {resumes.map((r) => (
           <article key={r.id} className="card accueil-carte card-hover">
             <div className="accueil-carte-tete">
-              <span className="accueil-emoji" aria-hidden="true">
-                {r.emoji}
-              </span>
+              <IconeBadge nom={r.id} teinte={r.id === "soutenance" ? "violet" : r.id === "entretien" ? "bleu" : r.id === "pitch" ? "or" : "rose"} />
               <div>
                 <h3>{r.nom}</h3>
                 <p className="session-meta">{r.sousTitre}</p>
@@ -117,63 +228,74 @@ export default function AccueilPage() {
       </div>
 
       <div className="list-head">
-        <h2 className="list-title">Dernières sessions</h2>
+        <h2 className="list-title">
+          <Icone nom="sessions" taille={18} /> Dernières sessions
+        </h2>
         <div className="list-actions">
-          <Link href="/app/bilan" className="btn small">
-            📄 Mon bilan
-          </Link>
-          <Link href="/app/sessions" className="btn small">
-            Tout l&apos;historique
-          </Link>
-          <Link href="/app/session" className="btn small primary">
-            🎤 Nouvelle session
+          <Link href="/app/sessions" className="accueil-usage-lien">
+            Voir tout →
           </Link>
         </div>
       </div>
       {recentes.length === 0 ? (
         <div className="card teaser">
-          Aucune session encore. <Link href="/app/session">Lance ta première</Link> — deux minutes suffisent.
-          {" "}Ou <a href="/demo-capture.html?vers=/app">regarde avec un exemple</a> ce que l&apos;application donne une fois remplie.
+          Aucune session encore. <Link href="/app/session">Lance ta première</Link> — deux minutes suffisent.{" "}
+          Ou <a href="/demo-capture.html?vers=/app">regarde avec un exemple</a> ce que l&apos;application donne une fois remplie.
         </div>
       ) : (
-        recentes.map((s) => (
-          <Link key={s.id} href="/app/sessions" className="card session-row accueil-session">
-            <div>
-              <div className="session-meta">
-                {formatDate(s.startedAt)} · {Math.round(s.durationMs / 60000)} min · {libelleMode(s.mode)}
-              </div>
-              <div className="session-excerpt">{s.transcript || "(transcription vide)"}</div>
-            </div>
-          </Link>
-        ))
+        <div className="lignes-sessions">
+          {recentes.map((s) => (
+            <LigneSession key={s.id} session={s} />
+          ))}
+        </div>
       )}
 
-      {inactifs.length > 0 && (
-        <>
-          <h2 className="list-title" style={{ marginTop: 30 }}>
-            Découvrir
-          </h2>
-          <div className="accueil-grille">
-            {inactifs.map((m) => (
-              <article key={m.id} className="card accueil-carte accueil-carte-decouvrir">
-                <div className="accueil-carte-tete">
-                  <span className="accueil-emoji" aria-hidden="true">
-                    {m.emoji}
-                  </span>
-                  <div>
-                    <h3>{m.nom}</h3>
-                    <p className="session-meta">{m.description}</p>
-                  </div>
-                </div>
-                <button className="btn small" onClick={() => enregistrer([...actifs, m.id])}>
-                  Activer
-                </button>
-              </article>
-            ))}
-          </div>
-        </>
-      )}
+      <h2 className="list-title" style={{ marginTop: 30 }}>
+        <Icone nom="boussole" taille={18} /> Découvrir
+      </h2>
+      <div className="accueil-decouvrir">
+        {inactifs.map((m) => (
+          <button key={m.id} type="button" className="card accueil-feature card-hover" onClick={() => enregistrer([...actifs, m.id])}>
+            <IconeBadge nom={m.id} taille={36} />
+            <span>
+              <b>{m.nom}</b>
+              <small>{m.description} Activer le module.</small>
+            </span>
+          </button>
+        ))}
+        <Feature icone="amis" titre="Répéter avec un ami" texte="Un lien : il joue le jury sans compte, et son retour revient dans ta préparation." href={resumes[0]?.hub ?? "/app/soutenance"} />
+        <Feature icone="parole" titre="Les vraies questions des jurys" texte="Racontées par les étudiants passés avant toi, par école et filière." href="/app/questions-reelles" nouveau />
+        <Feature icone="document" titre="Mon bilan" texte="Une photographie de ta préparation à imprimer, ou à partager avec ton encadrant." href="/app/bilan" />
+        <Feature icone="guides" titre="Les guides" texte="Un guide par oral : dix minutes à lire, cinq à relire la veille." href="/app/guides" />
+      </div>
+
+      <section className="accueil-bandeau" aria-label="Nouvelle session">
+        <div>
+          <span className="accueil-bandeau-titre">
+            <Icone nom="micro" taille={18} /> Nouvelle session
+          </span>
+          <p>Parle comme si le jury était en face. La transcription suit en direct, les mesures tombent à la fin — sans note, sans jugement.</p>
+        </div>
+        <Link href="/app/session" className="btn accueil-bandeau-btn">
+          Lancer →
+        </Link>
+      </section>
     </div>
+  );
+}
+
+function Feature({ icone, titre, texte, href, nouveau }: { icone: NomIcone; titre: string; texte: string; href: string; nouveau?: boolean }) {
+  return (
+    <Link href={href} className="card accueil-feature card-hover">
+      <IconeBadge nom={icone} taille={36} />
+      <span>
+        <b>
+          {titre}
+          {nouveau && <span className="accueil-nouveau">Nouveau</span>}
+        </b>
+        <small>{texte}</small>
+      </span>
+    </Link>
   );
 }
 
@@ -208,9 +330,7 @@ function Choix({
           const actif = choix.includes(m.id);
           return (
             <button key={m.id} type="button" className={`card choix-carte${actif ? " active" : ""}`} onClick={() => basculer(m.id)} aria-pressed={actif}>
-              <span className="accueil-emoji" aria-hidden="true">
-                {m.emoji}
-              </span>
+              <IconeBadge nom={m.id} taille={44} teinte={actif ? "violet" : "gris"} />
               <b>{m.nom}</b>
               <p>{m.description}</p>
               <span className="choix-coche" aria-hidden="true">

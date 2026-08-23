@@ -16,6 +16,7 @@ import { surSynchronisation } from "@/lib/sync/client";
 import { telechargerIcs } from "@/lib/ics";
 import RetourOralForm from "./RetourOralForm";
 import type { SessionRecord } from "@/lib/types";
+import { Icone } from "@/app/components/Icone";
 
 function versDate(d: string): Date {
   const [a, m, j] = d.split("-").map(Number);
@@ -89,7 +90,7 @@ export default function ParcoursView({ sessions, onChange }: Props) {
     return (
       <section className="card parcours parcours-fin" aria-label="Parcours">
         <h2>
-          🎓 Ta soutenance {libelle} était le {dateLongue(parcours.dateSoutenance)}.
+          <Icone nom="soutenance" /> Ta soutenance {libelle} était le {dateLongue(parcours.dateSoutenance)}.
         </h2>
         <p>Bravo d&apos;être allé au bout. Tes sessions restent ici pour la prochaine.</p>
         <RetourOralForm type="soutenance" niveauInitial={libelle} />
@@ -151,11 +152,11 @@ export default function ParcoursView({ sessions, onChange }: Props) {
         </>
       ) : plan.prochaine ? (
         <p className="parcours-calme">
-          ✅ Rien en retard. Prochaine étape {dateCourte(plan.prochaine.jour)} : <b>{plan.prochaine.titre}</b>.
+          <Icone nom="valide" /> Rien en retard. Prochaine étape {dateCourte(plan.prochaine.jour)} : <b>{plan.prochaine.titre}</b>.
           Envie d&apos;avancer ? <Link href={plan.prochaine.lien}>{plan.prochaine.action} →</Link>
         </p>
       ) : (
-        <p className="parcours-calme">✅ Tout est fait. Il ne reste qu&apos;à respirer.</p>
+        <p className="parcours-calme"><Icone nom="valide" /> Tout est fait. Il ne reste qu&apos;à respirer.</p>
       )}
 
       <div className="parcours-pied">
@@ -176,7 +177,7 @@ export default function ParcoursView({ sessions, onChange }: Props) {
             })
           }
         >
-          📅 Ajouter au calendrier
+          <Icone nom="calendrier" /> Ajouter au calendrier
         </button>
       </div>
 
@@ -264,7 +265,7 @@ function FormulaireDate({
 
   return (
     <section className="card parcours parcours-form" aria-label="Ta soutenance">
-      <h2 className="parcours-titre">📅 Ta soutenance, c&apos;est quand ?</h2>
+      <h2 className="parcours-titre"><Icone nom="calendrier" /> Ta soutenance, c&apos;est quand ?</h2>
       <p className="parcours-lead">
         Donne la date : le coach répartit les étapes sur les jours qui restent et coche tout seul celles
         que ton activité prouve.

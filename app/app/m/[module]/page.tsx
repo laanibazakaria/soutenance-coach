@@ -15,6 +15,7 @@ import { useToast } from "@/app/components/Toast";
 import { telechargerIcs } from "@/lib/ics";
 import RepeterAvecAmi from "../../components/RepeterAvecAmi";
 import RetourOralForm from "../../components/RetourOralForm";
+import { Icone } from "@/app/components/Icone";
 
 function dateLongue(d: string): string {
   const [a, m, j] = d.split("-").map(Number);
@@ -161,7 +162,7 @@ function Hub({ m }: { m: ModuleOral }) {
                 telechargerIcs({ titre: `${m.nom} — ${titreProfil || m.nom}`, date: profil.date!, description: "Préparé avec SoutenanceCoach.", url: `https://soutenance-coach.vercel.app/app/m/${m.id}` })
               }
             >
-              📅 Ajouter au calendrier
+              <Icone nom="calendrier" /> Ajouter au calendrier
             </button>
           )}
         </div>
@@ -186,7 +187,7 @@ function Hub({ m }: { m: ModuleOral }) {
         <div className="list-head">
           <h2 className="list-title">Les questions de ce {m.persona.toLowerCase()}</h2>
           <button className="btn small primary" onClick={() => void generer()} disabled={generation}>
-            {generation ? "Le jury lit ton dossier…" : questions ? "↻ Régénérer" : "✨ Générer depuis mon dossier"}
+            {generation ? "Le jury lit ton dossier…" : questions ? <><Icone nom="rafraichir" /> Régénérer</> : <><Icone nom="etincelles" /> Générer depuis mon dossier</>}
           </button>
         </div>
         {!questions ? (
@@ -255,7 +256,7 @@ function Formulaire({ m, initial, onValider, onAnnuler }: { m: ModuleOral; initi
   return (
     <section className="card parcours parcours-form" aria-label={m.nom}>
       <h2 className="parcours-titre">
-        {m.emoji} {m.nom} — {m.description}
+        <Icone nom={m.id} /> {m.nom} — {m.description}
       </h2>
       <p className="parcours-lead">Décris ton projet et dépose ton dossier : questions, simulation et avis du coach seront personnalisés à partir de là. Le PDF est lu dans ton navigateur ; seul son texte est conservé.</p>
       <form

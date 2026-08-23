@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icone } from "@/app/components/Icone";
 
 export const metadata = {
   title: "Le guide du pitch de projet",
@@ -72,7 +73,7 @@ export default function GuidePitchPage() {
           <li>Un prototype qui fonctionne — montré, pas décrit.</li>
           <li>Des entretiens avec la cible — combien, et ce qui vous a surpris.</li>
         </ol>
-        <p className="guide-encadre">💡 Un petit chiffre vrai (« 12 utilisateurs, 7 reviennent chaque semaine ») bat un grand chiffre projeté (« un marché de 2 milliards »). Le jury sait d&apos;où vient chacun.</p>
+        <p className="guide-encadre"><Icone nom="idee" /> Un petit chiffre vrai (« 12 utilisateurs, 7 reviennent chaque semaine ») bat un grand chiffre projeté (« un marché de 2 milliards »). Le jury sait d&apos;où vient chacun.</p>
       </section>
 
       <section id="questions" className="guide-section">

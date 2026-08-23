@@ -10,6 +10,7 @@ import { analyserReponse, type AvisModele } from "@/lib/jury/evaluation";
 import { lireCache } from "@/lib/ia-cache";
 import { pousserTout } from "@/lib/sync/client";
 import ExempleReponse from "@/app/components/ExempleReponse";
+import { Icone } from "@/app/components/Icone";
 
 type Etape = "attente" | "reponse" | "evaluation";
 
@@ -153,7 +154,7 @@ export default function SimulationEntretienPage() {
             <p className="question-grande">{question.question}</p>
             {etape !== "attente" && (
               <>
-                <p className="question-pourquoi">💡 {question.pourquoi}</p>
+                <p className="question-pourquoi"><Icone nom="idee" /> {question.pourquoi}</p>
                 <p className="question-pourquoi">
                   <b>Une bonne réponse :</b> {question.attendu}
                 </p>
@@ -164,7 +165,7 @@ export default function SimulationEntretienPage() {
           {etape === "attente" && (
             <div className="actions">
               <button className="btn primary big" onClick={() => void demarrer()} disabled={!rec.supported}>
-                🎤 Répondre maintenant
+                <Icone nom="micro" /> Répondre maintenant
               </button>
               <button className="btn" onClick={suivante}>
                 Passer cette question

@@ -1,6 +1,7 @@
 import { SessionProvider } from "next-auth/react";
-import AccountBar from "./components/AccountBar";
-import Sidebar, { OngletsMobiles, Marque } from "./components/Sidebar";
+import Sidebar, { OngletsMobiles } from "./components/Sidebar";
+import BarreHaut from "./components/BarreHaut";
+import SyncCompte from "./components/SyncCompte";
 import PageHero from "./components/PageHero";
 import ModuleTabs from "./components/ModuleTabs";
 import { ToastProvider } from "@/app/components/Toast";
@@ -8,8 +9,8 @@ import ErrorBoundary from "@/app/components/ErrorBoundary";
 
 /**
  * Coquille de l'application : barre latérale (bureau) ou onglets (mobile),
- * barre supérieure avec l'état du compte, bandeau de tête par page, et un
- * filet de sécurité autour du contenu.
+ * barre du haut (recherche, forfait, cloche, avatar), bandeau de tête par
+ * page, et un filet de sécurité autour du contenu.
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,13 +19,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="shell">
           <Sidebar />
           <div className="main">
-            <header className="topbar">
-              <div className="topbar-brand">
-                <Marque taille={22} />
-              </div>
-              <span className="topbar-espace" aria-hidden="true" />
-              <AccountBar />
-            </header>
+            <SyncCompte />
+            <BarreHaut />
             <PageHero />
             <ModuleTabs />
             <main className="content">

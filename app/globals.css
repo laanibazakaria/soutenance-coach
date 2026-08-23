@@ -915,6 +915,54 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
   .sidebar-legal span:last-child { display: none; }
 }
 
+
+/* ═══════════════ L'appel avec le jury IA ═══════════════ */
+.appel-lanceur .appel-contexte { display: flex; gap: 12px; align-items: flex-start; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 4px 0 18px; }
+.appel-contexte > span { display: flex; flex-direction: column; }
+.appel-contexte b { font-size: 0.9rem; }
+.appel-contexte small { font-size: 0.78rem; color: var(--muted); line-height: 1.45; }
+.appel-ecran { max-width: 680px; margin: 0 auto 14px; padding: 22px 26px 24px; border-radius: 22px; box-shadow: var(--shadow-lg); }
+.appel-tete { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+.appel-chrono { font-weight: 800; font-size: 1.1rem; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; gap: 6px; }
+.appel-chrono small { color: var(--dim); font-weight: 500; font-size: 0.8rem; }
+.appel-avatar-zone { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 18px; }
+.appel-avatar { width: 110px; height: 110px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, var(--violet), var(--violet-dark)); box-shadow: 0 0 0 8px var(--bg2); position: relative; transition: transform 0.3s; }
+.appel-avatar.parle::before, .appel-avatar.parle::after { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 2px solid var(--violet); opacity: 0; animation: onde 1.6s ease-out infinite; }
+.appel-avatar.parle::after { animation-delay: 0.8s; }
+.appel-avatar.reflechit { animation: respire 1.4s ease-in-out infinite; }
+@keyframes onde { 0% { transform: scale(0.9); opacity: 0.6; } 100% { transform: scale(1.35); opacity: 0; } }
+@keyframes respire { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+.appel-etat { font-weight: 600; color: var(--muted); font-size: 0.95rem; }
+.appel-ecoute .appel-etat { color: var(--violet); }
+.appel-dialogue { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; padding: 4px 2px; margin-bottom: 16px; }
+.appel-dialogue-complet { max-height: none; margin-top: 10px; }
+.appel-bulle { max-width: 88%; padding: 10px 14px; border-radius: 16px; font-size: 0.92rem; line-height: 1.5; }
+.appel-bulle-assistant { align-self: flex-start; background: var(--bg2); border-bottom-left-radius: 4px; }
+.appel-bulle-user { align-self: flex-end; background: var(--violet); color: #fff; border-bottom-right-radius: 4px; }
+.appel-bulle-interim { opacity: 0.75; }
+.appel-bulle-interim i { opacity: 0.8; }
+.appel-actions { margin-top: 4px; }
+.appel-debrief .appel-resume { display: flex; align-items: center; gap: 14px; }
+.appel-resume h2 { font-size: 1.2rem; margin-bottom: 2px; }
+.appel-diagnostic { background: linear-gradient(135deg, var(--violet), var(--violet-dark)); color: #fff; border: none; box-shadow: 0 8px 28px rgba(15, 118, 110, 0.22); }
+.appel-diagnostic p { font-size: 1.1rem; font-weight: 600; line-height: 1.5; }
+.appel-section { margin-bottom: 8px; }
+.appel-carte { margin-bottom: 8px; padding: 16px 20px; }
+.appel-carte b { display: block; margin-bottom: 6px; }
+.appel-carte blockquote { margin: 6px 0; padding: 8px 12px; background: var(--bg2); border-left: 3px solid var(--violet); border-radius: 8px; font-style: italic; color: var(--violet-dark); font-size: 0.9rem; }
+.appel-carte p { font-size: 0.9rem; color: var(--muted); line-height: 1.55; }
+.appel-carte-vert { border-left: 3px solid var(--ok); }
+.appel-carte-or { border-left: 3px solid var(--gold-vif); }
+.appel-dit span, .appel-mieux span { font-weight: 700; color: var(--txt); }
+.appel-mieux { color: var(--txt) !important; background: rgba(22, 163, 74, 0.06); border-radius: 8px; padding: 8px 12px; margin-top: 6px; }
+.appel-plan { background: var(--bg2); border-color: var(--violet-border); }
+.appel-plan ol { padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 0.95rem; }
+@media (max-width: 640px) {
+  .appel-ecran { padding: 16px 14px 18px; }
+  .appel-avatar { width: 84px; height: 84px; }
+  .appel-bulle { max-width: 100%; }
+}
+
 /* ═══════════════ Micro-interactions ═══════════════ */
 @keyframes pageEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 button, a[role="button"] { transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, opacity 0.15s ease; }

@@ -188,6 +188,11 @@ function SessionsInner() {
                   <div className="ligne-session-detail">
                     <SessionChips session={s} />
                     {s.transcript ? <TranscriptAnnote transcript={s.transcript} titre="" /> : <p className="session-meta">(transcription vide)</p>}
+                    {lireCache(window.localStorage, `appel:${s.id}`) !== null && (
+                      <Link href={`/app/appel/debrief/${s.id}`} className="btn small" style={{ marginTop: 8 }}>
+                        <Icone nom="appel" /> Débrief de l&apos;appel avec le jury →
+                      </Link>
+                    )}
                     {lireCache(window.localStorage, `blanche:${s.id}`) !== null && (
                       <Link href={`/app/soutenance-blanche?session=${s.id}`} className="btn small" style={{ marginTop: 8 }}>
                         <Icone nom="soutenance" /> Débrief de la soutenance blanche →

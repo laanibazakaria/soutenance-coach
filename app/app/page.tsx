@@ -286,15 +286,16 @@ function AccueilInner() {
         <Feature icone="guides" titre="Les guides" texte="Un guide par oral : dix minutes à lire, cinq à relire la veille." href="/app/guides" />
       </div>
 
-      <section className="accueil-bandeau" aria-label="Nouvelle session">
+      <section className="accueil-bandeau" aria-label="Appel avec le jury IA">
         <div>
           <span className="accueil-bandeau-titre">
-            <Icone nom="micro" taille={18} /> Nouvelle session
+            <Icone nom="appel" taille={18} /> L&apos;appel avec le jury IA
+            <span className="accueil-nouveau">Nouveau</span>
           </span>
-          <p>Parle comme si le jury était en face. La transcription suit en direct, les mesures tombent à la fin — sans note, sans jugement.</p>
+          <p>Un vrai oral en direct : le jury parle, tu réponds au micro, il rebondit sur ce que tu viens de dire. Puis le débrief complet — ce qui a marché, les moments manqués, le plan d&apos;action.</p>
         </div>
-        <Link href="/app/session" className="btn accueil-bandeau-btn">
-          Lancer →
+        <Link href="/app/appel" className="btn accueil-bandeau-btn">
+          Lancer l&apos;appel →
         </Link>
       </section>
     </div>

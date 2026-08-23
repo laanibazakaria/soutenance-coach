@@ -18,6 +18,7 @@ export const PAGES: ReadonlyArray<Page> = [
   { titre: "La question du jour", detail: "Une question, une minute au micro", lien: "/app/question-du-jour", mots: "quotidien série rappel" },
   { titre: "Mes sessions", detail: "Toutes tes répétitions, l'avis du coach", lien: "/app/sessions", mots: "historique transcription export import" },
   { titre: "Mon bilan", detail: "Une photographie de ta préparation, à imprimer", lien: "/app/bilan", mots: "pdf partager encadrant" },
+  { titre: "L'appel avec le jury IA", detail: "Il parle, tu réponds, il rebondit — en direct", lien: "/app/appel", mots: "simulation vocale entretien oral direct voix" },
   { titre: "Nouvelle session", detail: "Parle comme si le jury était en face", lien: "/app/session", mots: "enregistrer micro entraînement" },
   { titre: "Soutenance · parcours", detail: "Chaque jour, ce qu'il faut faire", lien: "/app/soutenance", mots: "pfa pfe mémoire thèse date j-x" },
   { titre: "Mes slides", detail: "Analyse, pitch, questions du jury", lien: "/app/slides", mots: "pdf support diapositives" },

@@ -14,6 +14,14 @@ import { surSynchronisation } from "@/lib/sync/client";
 
 /* Icônes en traits fins (24×24, stroke 1.8). */
 const I = {
+  documents: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 13h6" />
+      <path d="M9 17h4" />
+    </svg>
+  ),
   accueil: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1z" /><path d="M9 21V14h6v7" /></svg>
   ),
@@ -118,6 +126,7 @@ export default function Sidebar() {
 
       <div className="sidebar-section">Navigation</div>
       <LienNav href="/app" label="Accueil" icone={I.accueil} actif={chemin === "/app"} />
+      <LienNav href="/app/documents" label="Mes documents" icone={I.documents} actif={chemin.startsWith("/app/documents")} />
       <LienNav href="/app/appel" label="Appel avec le jury" icone={I.appel} actif={chemin.startsWith("/app/appel")} />
       <LienNav href="/app/question-du-jour" label="Question du jour" icone={I.jour} actif={chemin.startsWith("/app/question-du-jour")} />
       <LienNav href="/app/sessions" label="Mes sessions" icone={I.sessions} actif={chemin.startsWith("/app/sessions")} />

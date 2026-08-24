@@ -9,6 +9,7 @@ interface Entete {
 }
 
 const ENTETES: ReadonlyArray<{ prefixe: string; exact?: boolean; centre?: boolean; entete: Entete }> = [
+  { prefixe: "/app/documents", entete: { section: "Ton dossier", titre: "Mes documents", sousTitre: "Tout ce que le jury lira avant de t'interroger — au même endroit." } },
   { prefixe: "/app/appel", centre: true, entete: { section: "En direct", titre: "L'appel avec le jury IA", sousTitre: "Il parle, tu réponds au micro, il rebondit sur ce que tu viens de dire. Comme le jour J — avec le débrief en plus." } },
   { prefixe: "/app/slides", entete: { section: "Support", titre: "Mes slides", sousTitre: "Analyse, pitch, questions du jury : tout part de ton support." } },
   { prefixe: "/app/repetition", centre: true, entete: { section: "Entraînement", titre: "Répéter avec mes slides", sousTitre: "La diapositive à l'écran, un chrono par diapositive, le bilan à la fin." } },

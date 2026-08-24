@@ -1111,6 +1111,40 @@ p, .session-meta, .kpi-detail, .grille-constat { text-wrap: pretty; }
 .appel-fiche ul li::marker { color: var(--gold); }
 .appel-fiche ol li::marker { color: var(--violet); font-weight: 700; }
 
+
+/* ═══════════════ Mes documents : le lieu unique du dépôt ═══════════════ */
+.documents-etat { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 20px 24px; margin-bottom: 24px; }
+.documents-etat .session-meta { margin-top: 4px; max-width: 60ch; line-height: 1.55; }
+
+/* La zone de dépôt : bordure tiretée tant qu'elle est vide, pleine une fois
+   remplie — l'état se voit d'un coup d'œil, sans lire. */
+.depot {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center;
+  background: var(--card); border: 2px dashed var(--line); border-radius: 14px;
+  padding: 16px 18px; margin-bottom: 10px;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.depot.rempli { border-style: solid; border-color: var(--violet-border); background: var(--card); }
+.depot.survol { border-color: var(--violet); background: var(--bg2); transform: scale(1.005); }
+.depot.occupe { opacity: 0.6; }
+.depot-texte { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.depot-texte b { font-size: 0.98rem; font-weight: 700; }
+.depot-texte small { font-size: 0.84rem; color: var(--muted); line-height: 1.5; }
+.depot-fichier { font-size: 0.86rem; font-weight: 600; color: var(--violet2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.documents-autres { display: flex; flex-direction: column; gap: 8px; }
+.documents-lien { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 18px; text-decoration: none; color: inherit; }
+.documents-lien span { display: flex; flex-direction: column; min-width: 0; }
+.documents-lien b { font-size: 0.95rem; }
+.documents-lien small { font-size: 0.84rem; color: var(--muted); }
+.documents-lien .icone { color: var(--dim); }
+
+@media (max-width: 640px) {
+  .documents-etat, .depot, .documents-lien { grid-template-columns: auto minmax(0, 1fr); }
+  .documents-etat > .btn, .depot > .btn { grid-column: 1 / -1; justify-content: center; margin-top: 4px; }
+  .documents-lien > .icone { display: none; }
+}
+
 /* ═══════════════ Micro-interactions ═══════════════ */
 @keyframes pageEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 button, a[role="button"] { transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, opacity 0.15s ease; }

@@ -1056,6 +1056,35 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
 
 .appel-qui { display: block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
 
+
+/* ═══════════════ Progression d'un oral à l'autre ═══════════════ */
+.suivi { margin: 20px 0; }
+.suivi-tete { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 18px 22px; margin-bottom: 12px; }
+.suivi-tete .session-meta { margin-top: 6px; max-width: 62ch; line-height: 1.55; }
+.suivi-note { font-size: 1.5rem; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+.suivi-note small { font-size: 0.82rem; font-weight: 700; }
+.suivi-groupe { margin-bottom: 16px; }
+.suivi-groupe h4 { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.suivi-ligne { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 16px; padding: 9px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px; }
+.suivi-titre { font-size: 0.92rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.suivi-courbe { flex: none; }
+.suivi-chiffres { font-size: 0.9rem; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.suivi-chiffres b { color: var(--txt); font-weight: 700; }
+.suivi-chiffres small { margin-left: 8px; font-weight: 700; font-size: 0.82rem; }
+.suivi-monte { color: var(--ok); }
+.suivi-monte .suivi-titre, .suivi-descend .suivi-titre, .suivi-stable .suivi-titre { color: var(--txt); }
+.suivi-descend { color: var(--danger); }
+.suivi-stable { color: var(--dim); }
+.suivi-monte.suivi-ligne { border-left: 3px solid var(--ok); }
+.suivi-descend.suivi-ligne { border-left: 3px solid var(--danger); }
+.suivi-stable.suivi-ligne { border-left: 3px solid var(--line); }
+.suivi-stables { font-size: 0.86rem; color: var(--muted); margin-top: 4px; }
+@media (max-width: 640px) {
+  .suivi-tete { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .suivi-ligne { grid-template-columns: minmax(0, 1fr) auto; }
+  .suivi-courbe { display: none; }
+}
+
 /* ═══════════════ Micro-interactions ═══════════════ */
 @keyframes pageEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 button, a[role="button"] { transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, opacity 0.15s ease; }

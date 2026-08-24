@@ -1,11 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Icone, IconeBadge } from "@/app/components/Icone";
 import { membreParId, type Debrief, type Message, type Persona } from "@/lib/appel";
 import type { BilanCamera } from "@/lib/camera";
 import ConstatsCamera from "@/app/components/ConstatsCamera";
 import GrilleVue from "@/app/components/GrilleVue";
+import ProgressionGrille from "@/app/components/ProgressionGrille";
+import { suivre, historiqueDepuisStockage } from "@/lib/grille/progression";
 import type { Evaluation } from "@/lib/grille";
 
 /**
@@ -35,6 +38,13 @@ export default function DebriefAppel({
   grille?: Evaluation | null;
   onRecommencer: () => void;
 }) {
+  // La progression se lit sur l appareil, une fois la grille rangée.
+  const [progression, setProgression] = useState<ReturnType<typeof suivre> | null>(null);
+  useEffect(() => {
+    if (!grille) return;
+    const t = setTimeout(() => setProgression(suivre(historiqueDepuisStockage(window.localStorage), grille.oral)), 300);
+    return () => clearTimeout(t);
+  }, [grille]);
   const minutes = Math.round(dureeS / 60);
   const nbQuestions = historique.filter((m) => m.role === "assistant").length;
   return (
@@ -55,6 +65,7 @@ export default function DebriefAppel({
       </div>
 
       {grille && <GrilleVue evaluation={grille} />}
+      {grille && progression && <ProgressionGrille progression={progression} />}
 
       {phase === "debrief" && (
         <div className="card teaser" aria-busy="true">

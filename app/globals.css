@@ -297,6 +297,38 @@ p a, .etat-vide-secondaire a, .onboarding-alt a, .teaser a, .report-note a { tex
 .lp-trend-flat .lp-trend-icon { color: var(--gold); }
 .lp-trend-locked { opacity: 0.6; }
 
+/* L'échange du hero : une illustration de l'appel, pas une capture. Les
+   répliques du jury s'alignent à gauche, les tiennes à droite — la même
+   asymétrie que dans une conversation qu'on lit. */
+.lp-echange { display: flex; flex-direction: column; gap: 10px; max-width: 620px; margin: 40px auto 0; text-align: left; }
+.lp-tour { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 18px; max-width: 84%; box-shadow: 0 2px 10px rgba(11, 43, 41, 0.05); }
+.lp-tour p { margin: 0; font-size: 0.95rem; line-height: 1.55; }
+.lp-tour-qui { display: block; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; color: var(--dim); margin-bottom: 5px; }
+.lp-tour-jury { align-self: flex-start; border-left: 3px solid var(--violet); }
+.lp-tour-jury .lp-tour-qui { color: var(--violet); }
+.lp-tour-toi { align-self: flex-end; background: var(--bg2); }
+
+/* La grille : chaque ligne porte son poids, et le total est calculé — c'est
+   tout l'argument, autant qu'il se lise d'un coup d'œil. */
+.lp-grille-demo { display: flex; flex-direction: column; gap: 8px; }
+.lp-grille-ligne { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
+.lp-grille-ligne b { font-size: 0.95rem; font-weight: 600; min-width: 0; }
+.lp-grille-poids { font-size: 0.78rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+.lp-grille-note { font-size: 0.86rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lp-note-bien { color: var(--ok); }
+.lp-note-moyen { color: var(--gold); }
+.lp-note-faible { color: var(--danger); }
+.lp-note-vide { color: var(--dim); font-weight: 500; font-style: italic; }
+.lp-grille-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 16px 18px; border-radius: 12px; background: var(--violet); color: #fff; margin-top: 4px; }
+.lp-grille-total span { font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 640px) {
+  .lp-tour { max-width: 92%; }
+  .lp-grille-ligne { grid-template-columns: minmax(0, 1fr) auto; }
+  .lp-grille-poids { grid-column: 2; }
+  .lp-grille-note { grid-column: 1 / -1; }
+}
+
 /* pastilles */
 .lp-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
 .lp-pill { font-size: 0.86rem; color: var(--txt); background: var(--card); border: 1px solid var(--line); border-radius: 99px; padding: 7px 16px; }

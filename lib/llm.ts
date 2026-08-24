@@ -30,6 +30,8 @@ interface Fournisseur {
   url: string;
   cle: () => string | undefined;
   modele: () => string;
+  /** Quand l'URL dépend d'une variable (Cloudflare : l'identifiant de compte). */
+  urlDynamique?: () => string;
 }
 
 const FOURNISSEURS: Record<string, Fournisseur> = {
@@ -45,16 +47,88 @@ const FOURNISSEURS: Record<string, Fournisseur> = {
     cle: () => process.env.GROQ_API_KEY,
     modele: () => process.env.GROQ_MODEL ?? "openai/gpt-oss-120b",
   },
+  nvidia: {
+    nom: "nvidia",
+    url: "https://integrate.api.nvidia.com/v1/chat/completions",
+    cle: () => process.env.NVIDIA_API_KEY,
+    modele: () => process.env.NVIDIA_MODEL ?? "meta/llama-3.3-70b-instruct",
+  },
+  openrouter: {
+    nom: "openrouter",
+    url: "https://openrouter.ai/api/v1/chat/completions",
+    cle: () => process.env.OPENROUTER_API_KEY,
+    modele: () => process.env.OPENROUTER_MODEL ?? "meta-llama/llama-3.3-70b-instruct:free",
+  },
+  cerebras: {
+    nom: "cerebras",
+    url: "https://api.cerebras.ai/v1/chat/completions",
+    cle: () => process.env.CEREBRAS_API_KEY,
+    modele: () => process.env.CEREBRAS_MODEL ?? "llama3.3-70b",
+  },
+  zai: {
+    nom: "zai",
+    url: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+    cle: () => process.env.ZAI_API_KEY,
+    modele: () => process.env.ZAI_MODEL ?? "glm-4-flash",
+  },
+  ovh: {
+    nom: "ovh",
+    url: "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",
+    cle: () => process.env.OVH_API_KEY,
+    modele: () => process.env.OVH_MODEL ?? "Meta-Llama-3_3-70B-Instruct",
+  },
+  huggingface: {
+    nom: "huggingface",
+    url: "https://router.huggingface.co/v1/chat/completions",
+    cle: () => process.env.HF_API_KEY,
+    modele: () => process.env.HF_MODEL ?? "meta-llama/Llama-3.1-8B-Instruct",
+  },
+  kilo: {
+    nom: "kilo",
+    url: "https://api.kilo.ai/api/gateway/v1/chat/completions",
+    cle: () => process.env.KILO_API_KEY,
+    modele: () => process.env.KILO_MODEL ?? "nvidia/nemotron-3-super-120b-a12b:free",
+  },
+  cloudflare: {
+    nom: "cloudflare",
+    url: "",
+    cle: () => process.env.CLOUDFLARE_API_KEY,
+    modele: () => process.env.CLOUDFLARE_MODEL ?? "@cf/meta/llama-4-scout-17b-16e-instruct",
+    // L'URL porte l'identifiant de compte : elle se construit à l'appel.
+    urlDynamique: () => {
+      const compte = process.env.CLOUDFLARE_ACCOUNT_ID;
+      return compte ? `https://api.cloudflare.com/client/v4/accounts/${compte}/ai/v1/chat/completions` : "";
+    },
+  },
+  cohere: {
+    nom: "cohere",
+    url: "https://api.cohere.com/compatibility/v1/chat/completions",
+    cle: () => process.env.COHERE_API_KEY,
+    modele: () => process.env.COHERE_MODEL ?? "command-a-03-2025",
+  },
 };
 
+const SECOURS = ["nvidia", "cerebras", "openrouter", "cloudflare", "zai", "cohere", "huggingface", "ovh", "kilo"];
+
+/**
+ * L'ordre d'essai. Les deux premiers sont ceux qu'on maîtrise (Mistral pour
+ * le français, Groq pour la latence) ; Gemini ne voit jamais un document
+ * confidentiel en premier ; le reste est du secours, essayé seulement si les
+ * précédents tombent.
+ */
 const ORDRES: Record<NonNullable<OptionsIA["priorite"]>, string[]> = {
-  qualite: ["mistral", "groq", "gemini"],
-  rapide: ["groq", "mistral", "gemini"],
+  qualite: ["mistral", "groq", "gemini", ...SECOURS],
+  rapide: ["groq", "cerebras", "mistral", "gemini", ...SECOURS.filter((n) => n !== "cerebras")],
 };
 
 /** Les fournisseurs dont la clé est présente, dans l'ordre d'essai. */
 export function fournisseursDisponibles(priorite: OptionsIA["priorite"] = "qualite"): string[] {
-  return ORDRES[priorite].filter((n) => (n === "gemini" ? geminiConfigure() : Boolean(FOURNISSEURS[n]?.cle())));
+  return ORDRES[priorite].filter((n) => {
+    if (n === "gemini") return geminiConfigure();
+    const f = FOURNISSEURS[n];
+    if (!f?.cle()) return false;
+    return f.urlDynamique ? Boolean(f.urlDynamique()) : true;
+  });
 }
 
 export function iaConfiguree(): boolean {
@@ -105,7 +179,7 @@ async function viaOpenAICompatible(f: Fournisseur, prompt: string, options: Opti
   const messages: Message[] = options.messages ? [{ role: "system", content: prompt }, ...options.messages] : [{ role: "user", content: prompt }];
   const json = options.json ?? true;
   try {
-    const reponse = await fetch(f.url, {
+    const reponse = await fetch(f.urlDynamique ? f.urlDynamique() : f.url, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${cle}` },
       body: JSON.stringify({
@@ -132,4 +206,24 @@ async function viaOpenAICompatible(f: Fournisseur, prompt: string, options: Opti
   } catch {
     return { ok: false, status: 504, code: "reseau", erreur: "L'IA a pris trop de temps ou est injoignable. Réessaie." };
   }
+}
+
+export interface EtatFournisseur {
+  nom: string;
+  ok: boolean;
+  msDelai: number;
+  modele: string;
+  detail?: string;
+}
+
+/**
+ * Interroge un fournisseur avec une question minuscule pour savoir s'il
+ * répond vraiment — une clé présente ne veut pas dire une clé valide.
+ */
+export async function testerFournisseur(nom: string): Promise<EtatFournisseur> {
+  const debut = Date.now();
+  const modele = nom === "gemini" ? (process.env.GEMINI_MODEL ?? "gemini-3.6-flash") : (FOURNISSEURS[nom]?.modele() ?? "?");
+  const prompt = 'Réponds exactement ceci, sans rien ajouter : {"ok":true}';
+  const r = nom === "gemini" ? await viaGemini(prompt, { maxOutputTokens: 60 }) : FOURNISSEURS[nom] ? await viaOpenAICompatible(FOURNISSEURS[nom], prompt, { maxOutputTokens: 60, timeoutMs: 20_000 }) : { ok: false as const, status: 503, code: "inconnu", erreur: "Fournisseur inconnu." };
+  return { nom, ok: r.ok, msDelai: Date.now() - debut, modele, ...(r.ok ? {} : { detail: `${r.status} ${r.code}` }) };
 }

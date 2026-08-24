@@ -149,7 +149,7 @@ function AppelInner() {
   const [fiche, setFiche] = useState<FicheLecture | null>(null);
   const [lecture, setLecture] = useState(false);
   /** Ce que le jury a réellement lu : on le montre, plutôt que de le laisser croire. */
-  const [lu, setLu] = useState<{ passes: number; caracteres: number } | null>(null);
+  const [lu, setLu] = useState<{ passes: number; total: number; caracteres: number } | null>(null);
   const evaluationRef = useRef<Evaluation | null>(null);
 
   const voixRef = useRef<SpeechSynthesisVoice | null>(null);
@@ -608,7 +608,13 @@ function AppelInner() {
             <span className="carte-titre">
               <Icone nom="memoire" taille={15} /> Ce que le jury a compris de ton dossier
             </span>
-            {lu && <p className="appel-fiche-lu">Lu en entier : {Math.round(lu.caracteres / 1800)} pages, en {lu.passes} passe{lu.passes > 1 ? "s" : ""}.</p>}
+            {lu && (
+              <p className={`appel-fiche-lu${lu.passes < lu.total ? " partiel" : ""}`}>
+                {lu.passes < lu.total
+                  ? `${lu.passes} partie${lu.passes > 1 ? "s" : ""} sur ${lu.total} lues — une partie n’a pas pu être analysée. Relance la lecture pour la compléter.`
+                  : `Lu en entier : ${Math.round(lu.caracteres / 1800)} pages, en ${lu.passes} passe${lu.passes > 1 ? "s" : ""}.`}
+              </p>
+            )}
             {fiche.sujet && <p className="appel-fiche-sujet">{fiche.sujet}</p>}
             {fiche.angles.length > 0 && (
               <>

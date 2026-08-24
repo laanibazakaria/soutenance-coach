@@ -11,7 +11,7 @@ import { lireCache, ecrireCache, empreinte } from "@/lib/ia-cache";
 import { lireCandidature } from "@/lib/entretien/persistance";
 import { lireProfil } from "@/lib/modules/persistance";
 import { MODULES, estModuleId } from "@/lib/modules";
-import { estRapport, extraitPourModele } from "@/lib/rapport";
+import { estRapport } from "@/lib/rapport";
 import { lireLangue, courte, type LangueCourte } from "@/lib/langue";
 import { lireProfilEtudiant, ligneContexteEtudiant } from "@/lib/etudiant";
 import { lireModulesActifs } from "@/lib/preferences";
@@ -25,7 +25,7 @@ import { useCamera } from "../hooks/useCamera";
 import ConstatsCamera from "@/app/components/ConstatsCamera";
 import { ligneContexteCamera, type BilanCamera } from "@/lib/camera";
 import { passagesPour } from "@/lib/memoire/client";
-import { contexteFiche, dossierSuffisant, LIMITES_LECTURE, type FicheLecture } from "@/lib/appel/lecture";
+import { contexteFiche, dossierSuffisant, DOSSIER_MAX, type FicheLecture } from "@/lib/appel/lecture";
 import type { Evaluation } from "@/lib/grille";
 import DebriefAppel from "./DebriefAppel";
 
@@ -87,9 +87,9 @@ function dossierCompletPourLecture(mode: ModeAppel): string {
     return assemblerContexte(
       [
         { titre: "Diapositives de la soutenance", texte: deck ? deck.slides.map((x, i) => `[${i + 1}] ${x.texte}`).join("\n") : null },
-        { titre: "Mémoire déposé", texte: estRapport(rapport) ? extraitPourModele(rapport.texte, 45_000) : null },
+        { titre: "Mémoire déposé", texte: estRapport(rapport) ? rapport.texte : null },
       ],
-      LIMITES_LECTURE.dossierChars,
+      DOSSIER_MAX,
     );
   }
   if (mode === "entretien") {
@@ -100,7 +100,7 @@ function dossierCompletPourLecture(mode: ModeAppel): string {
             { titre: `Poste visé : ${c.poste}${c.entreprise ? ` chez ${c.entreprise}` : ""}`, texte: c.offre },
             { titre: "CV du candidat", texte: c.cvTexte },
           ],
-          LIMITES_LECTURE.dossierChars,
+          DOSSIER_MAX,
         )
       : "";
   }
@@ -110,7 +110,7 @@ function dossierCompletPourLecture(mode: ModeAppel): string {
     const m = MODULES[mode];
     return assemblerContexte(
       [...m.champs.map((ch) => ({ titre: ch.titreContexte, texte: pr.champs[ch.id] })), { titre: "Dossier", texte: pr.documentTexte }],
-      LIMITES_LECTURE.dossierChars,
+      DOSSIER_MAX,
     );
   }
   return "";
@@ -148,6 +148,8 @@ function AppelInner() {
   /** Ce que le jury a compris du dossier : lu une fois, gardé tant que le dossier ne change pas. */
   const [fiche, setFiche] = useState<FicheLecture | null>(null);
   const [lecture, setLecture] = useState(false);
+  /** Ce que le jury a réellement lu : on le montre, plutôt que de le laisser croire. */
+  const [lu, setLu] = useState<{ passes: number; caracteres: number } | null>(null);
   const evaluationRef = useRef<Evaluation | null>(null);
 
   const voixRef = useRef<SpeechSynthesisVoice | null>(null);
@@ -606,6 +608,7 @@ function AppelInner() {
             <span className="carte-titre">
               <Icone nom="memoire" taille={15} /> Ce que le jury a compris de ton dossier
             </span>
+            {lu && <p className="appel-fiche-lu">Lu en entier : {Math.round(lu.caracteres / 1800)} pages, en {lu.passes} passe{lu.passes > 1 ? "s" : ""}.</p>}
             {fiche.sujet && <p className="appel-fiche-sujet">{fiche.sujet}</p>}
             {fiche.angles.length > 0 && (
               <>

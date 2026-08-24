@@ -27,11 +27,15 @@ export interface FicheLecture {
 }
 
 /**
- * Le jury lit le dossier ENTIER, ou presque : 60 000 caractères, soit un
- * mémoire de cent pages. Avec 12 000, il ne voyait que la page de garde et
- * l'introduction — et posait donc toujours les mêmes questions de surface.
+ * Le jury lit le dossier ENTIER, ligne à ligne. Un document ne tient pas
+ * toujours en un seul appel : on le découpe en passes de 45 000 caractères
+ * (une trentaine de pages), et le jury complète ses notes à chaque passe.
+ * Douze passes couvrent une thèse de trois cents pages.
  */
-export const LIMITES_LECTURE = { dossierChars: 60_000, ligneChars: 240, listeMax: 6 } as const;
+export const LIMITES_LECTURE = { passeChars: 45_000, passesMax: 12, ligneChars: 240, listeMax: 6 } as const;
+
+/** Tout ce qu'on peut lire en une lecture, toutes passes comprises. */
+export const DOSSIER_MAX = LIMITES_LECTURE.passeChars * LIMITES_LECTURE.passesMax;
 
 const PERSONNAGES: Record<ModeAppel, string> = {
   soutenance: "le rapporteur d'un jury de soutenance d'école d'ingénieurs",
@@ -40,8 +44,49 @@ const PERSONNAGES: Record<ModeAppel, string> = {
   concours: "un jury d'admission qui a lu le dossier de candidature",
 };
 
-export function construirePromptLecture(mode: ModeAppel, dossier: string): string {
-  return `Tu es ${PERSONNAGES[mode]}. Tu viens de lire le dossier ci-dessous, seul, avant la séance. Tu prends des notes pour toi — pas pour le candidat.
+/**
+ * Découpe le dossier en passes, en coupant à une fin de ligne : on ne scinde
+ * pas une phrase entre deux lectures.
+ *
+ * Cette fonction ne perd JAMAIS de texte — c'est tout l'enjeu : le jury doit
+ * lire chaque ligne. Le nombre de passes n'est pas borné ici ; c'est à
+ * l'appelant de décider combien il en lit, et de le dire honnêtement.
+ */
+export function decouperDossier(dossier: string, taille: number = LIMITES_LECTURE.passeChars): string[] {
+  const t = dossier.trim();
+  if (t.length === 0) return [];
+  if (t.length <= taille) return [t];
+  const passes: string[] = [];
+  let reste = t;
+  while (reste.length > taille) {
+    const fenetre = reste.slice(0, taille);
+    const coupure = Math.max(fenetre.lastIndexOf("\n"), fenetre.lastIndexOf(". "));
+    const fin = coupure > taille * 0.5 ? coupure + 1 : taille;
+    passes.push(reste.slice(0, fin).trim());
+    reste = reste.slice(fin).trim();
+  }
+  if (reste.length > 0) passes.push(reste);
+  return passes;
+}
+
+/**
+ * Les passes réellement lues quand le document dépasse le budget. On garde
+ * le début — c'est là qu'est le sujet — ET la fin, où vivent les limites et
+ * la conclusion : sauter la fin reviendrait à manquer les vraies questions.
+ */
+export function passesARetenir(passes: string[], budget: number = LIMITES_LECTURE.passesMax): string[] {
+  if (passes.length <= budget) return passes;
+  return [...passes.slice(0, budget - 1), passes[passes.length - 1]!];
+}
+
+export function construirePromptLecture(mode: ModeAppel, dossier: string, passe?: { numero: number; total: number; dejaNote?: FicheLecture }): string {
+  const suite = passe && passe.total > 1;
+  const situation = suite
+    ? `Tu lis un document long, en plusieurs fois. Voici la partie ${passe.numero} sur ${passe.total} — la suite exacte de ce que tu viens de lire.`
+    : "Tu viens de lire le dossier ci-dessous, seul, avant la séance.";
+  const notes = suite && passe.dejaNote ? `\nCE QUE TU AS DÉJÀ NOTÉ (ne le répète pas ; complète, corrige si cette partie te contredit)\n${resumerPourSuite(passe.dejaNote)}\n` : "";
+
+  return `Tu es ${PERSONNAGES[mode]}. ${situation} Tu prends des notes pour toi — pas pour le candidat.
 
 CE QUE TU NOTES
 - Le sujet, en une phrase, tel que TU l'as compris (si c'est confus, dis-le).
@@ -55,12 +100,59 @@ RÈGLES
 - Chaque fragilité doit pointer quelque chose de PRÉCIS dans le dossier, pas une généralité applicable à n'importe quel travail.
 - Si le dossier est trop mince pour dire quoi que ce soit, écris-le dans "sujet" et laisse les listes courtes.
 - En français, à la troisième personne, factuel.
-
-LE DOSSIER
-${dossier.slice(0, LIMITES_LECTURE.dossierChars)}
+${notes}
+LE DOSSIER${suite ? ` — PARTIE ${passe.numero}/${passe.total}` : ""}
+${dossier.slice(0, LIMITES_LECTURE.passeChars)}
 
 Réponds en JSON strict :
 {"sujet":"une phrase","compris":["…"],"chiffres":["… : … "],"fragilites":["…"],"angles":["…"]}`;
+}
+
+/** Un résumé compact des notes déjà prises, pour la passe suivante. */
+function resumerPourSuite(f: FicheLecture): string {
+  const l = (titre: string, xs: string[]) => (xs.length > 0 ? `${titre} : ${xs.join(" | ")}` : "");
+  return [f.sujet ? `Sujet : ${f.sujet}` : "", l("Acquis", f.compris), l("Chiffres", f.chiffres), l("Fragilités", f.fragilites)].filter(Boolean).join("\n");
+}
+
+/**
+ * Réunit les notes de toutes les passes en une seule fiche. On garde l'ordre
+ * de découverte et on écarte les redites : deux passes qui relèvent le même
+ * chiffre ne doivent pas le lister deux fois.
+ */
+export function fusionnerFiches(fiches: FicheLecture[]): FicheLecture | null {
+  const utiles = fiches.filter(Boolean);
+  if (utiles.length === 0) return null;
+  if (utiles.length === 1) return utiles[0]!;
+
+  const cle = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .trim()
+      .slice(0, 60);
+  const reunir = (get: (f: FicheLecture) => string[], max: number) => {
+    const vues = new Set<string>();
+    const sortie: string[] = [];
+    for (const f of utiles) {
+      for (const x of get(f)) {
+        const k = cle(x);
+        if (k.length < 3 || vues.has(k)) continue;
+        vues.add(k);
+        sortie.push(x);
+      }
+    }
+    return sortie.slice(0, max);
+  };
+
+  // Le sujet le plus complet l'emporte : la dernière passe a vu tout le document.
+  const sujet = [...utiles].reverse().map((f) => f.sujet).find((s) => s.length > 0) ?? "";
+  return {
+    sujet,
+    compris: reunir((f) => f.compris, LIMITES_LECTURE.listeMax + 2),
+    chiffres: reunir((f) => f.chiffres, LIMITES_LECTURE.listeMax + 4),
+    fragilites: reunir((f) => f.fragilites, LIMITES_LECTURE.listeMax + 2),
+    angles: reunir((f) => f.angles, LIMITES_LECTURE.listeMax + 2),
+  };
 }
 
 function liste(v: unknown, max = LIMITES_LECTURE.listeMax): string[] {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { construirePromptLecture, parseLecture, contexteFiche, dossierSuffisant, LIMITES_LECTURE } from "../../lib/appel/lecture";
+import { construirePromptLecture, parseLecture, contexteFiche, dossierSuffisant, decouperDossier, fusionnerFiches, LIMITES_LECTURE, DOSSIER_MAX } from "../../lib/appel/lecture";
 
 const FICHE = {
   sujet: "Comparaison de deux modèles de transcription sur des appels commerciaux.",
@@ -26,7 +26,7 @@ describe("lecture du dossier — la consigne", () => {
 
   it("borne le dossier envoyé", () => {
     const p = construirePromptLecture("soutenance", "a".repeat(50_000));
-    expect(p.length).toBeLessThan(LIMITES_LECTURE.dossierChars + 2000);
+    expect(p.length).toBeLessThan(LIMITES_LECTURE.passeChars + 2000);
   });
 });
 
@@ -84,10 +84,10 @@ describe("lecture du dossier — la profondeur", () => {
   it("laisse passer un mémoire entier, pas seulement son introduction", () => {
     // Un mémoire de cent pages fait environ 200 000 caractères ; on doit en
     // envoyer largement plus que l'introduction.
-    expect(LIMITES_LECTURE.dossierChars).toBeGreaterThanOrEqual(60_000);
+    expect(DOSSIER_MAX).toBeGreaterThanOrEqual(200_000);
     const memoire = "Chapitre. ".repeat(6000);
     const p = construirePromptLecture("soutenance", memoire);
-    expect(p.length).toBeGreaterThan(55_000);
+    expect(p.length).toBeGreaterThan(40_000);
   });
 
   it("garde la fin du document, là où sont les limites et la conclusion", async () => {
@@ -97,5 +97,81 @@ describe("lecture du dossier — la profondeur", () => {
     expect(extrait).toContain("DEBUT");
     expect(extrait).toContain("CONCLUSION ET LIMITES");
     expect(extrait.length).toBeLessThanOrEqual(45_200);
+  });
+});
+
+describe("lecture du dossier — lire chaque ligne", () => {
+  it("découpe un long document en passes, sans rien perdre", () => {
+    const doc = Array.from({ length: 4000 }, (_, i) => `Ligne ${i} du mémoire, avec du contenu.`).join("\n");
+    const passes = decouperDossier(doc, 10_000);
+    expect(passes.length).toBeGreaterThan(3);
+    // Chaque passe tient dans la taille, et la première comme la dernière ligne sont là.
+    expect(passes.every((x) => x.length <= 10_000)).toBe(true);
+    expect(passes[0]).toContain("Ligne 0 ");
+    expect(passes[passes.length - 1]).toContain("Ligne 3999 ");
+  });
+
+  it("coupe à une fin de ligne, jamais au milieu d'une phrase", () => {
+    const doc = Array.from({ length: 500 }, (_, i) => `Phrase numéro ${i} qui doit rester entière.`).join("\n");
+    for (const passe of decouperDossier(doc, 2000)) {
+      expect(passe.endsWith("entière.")).toBe(true);
+    }
+  });
+
+  it("garde un document court en une seule passe", () => {
+    expect(decouperDossier("Un dossier bref.", 10_000)).toEqual(["Un dossier bref."]);
+    expect(decouperDossier("   ")).toEqual([]);
+  });
+
+  it("annonce la partie en cours et rappelle les notes déjà prises", () => {
+    const p = construirePromptLecture("soutenance", "suite du document", { numero: 3, total: 5, dejaNote: { sujet: "Transcription", compris: [], chiffres: ["WER 8,2 %"], fragilites: ["Échantillon de douze"], angles: [] } });
+    expect(p).toContain("partie 3 sur 5");
+    expect(p).toContain("PARTIE 3/5");
+    expect(p).toContain("ne le répète pas");
+    expect(p).toContain("WER 8,2 %");
+    expect(p).toContain("Échantillon de douze");
+  });
+
+  it("réunit les notes de toutes les passes sans doublon", () => {
+    const a = { sujet: "Sujet vu au début", compris: ["Acquis A"], chiffres: ["WER : 8,2 %"], fragilites: ["Douze fichiers, c'est peu"], angles: ["La méthode"] };
+    const b = { sujet: "Sujet complet vu à la fin", compris: ["Acquis B"], chiffres: ["WER :  8,2 %", "Coût : 0,21 $"], fragilites: ["Douze fichiers c est peu", "La darija absente"], angles: ["Le coût"] };
+    const f = fusionnerFiches([a, b])!;
+    // Le sujet le plus tardif l'emporte : la dernière passe a tout vu.
+    expect(f.sujet).toBe("Sujet complet vu à la fin");
+    expect(f.chiffres).toEqual(["WER : 8,2 %", "Coût : 0,21 $"]);
+    expect(f.fragilites).toEqual(["Douze fichiers, c'est peu", "La darija absente"]);
+    expect(f.angles).toEqual(["La méthode", "Le coût"]);
+  });
+
+  it("rend la fiche telle quelle s'il n'y a qu'une passe, et null s'il n'y en a aucune", () => {
+    const a = { sujet: "S", compris: [], chiffres: [], fragilites: ["f"], angles: [] };
+    expect(fusionnerFiches([a])).toBe(a);
+    expect(fusionnerFiches([])).toBeNull();
+  });
+});
+
+describe("lecture du dossier — ne jamais perdre la fin", () => {
+  it("ne coupe rien : la somme des passes vaut le document", () => {
+    const doc = Array.from({ length: 2000 }, (_, i) => `Ligne ${i}.`).join("\n");
+    const passes = decouperDossier(doc, 3000);
+    const recolle = passes.join("\n");
+    expect(recolle.replace(/\s+/g, " ")).toBe(doc.replace(/\s+/g, " "));
+    expect(passes[passes.length - 1]).toContain("Ligne 1999.");
+  });
+
+  it("quand le document dépasse le budget, garde le début ET la fin", async () => {
+    const { passesARetenir } = await import("../../lib/appel/lecture");
+    const passes = Array.from({ length: 20 }, (_, i) => `partie ${i}`);
+    const retenues = passesARetenir(passes, 5);
+    expect(retenues).toHaveLength(5);
+    expect(retenues[0]).toBe("partie 0");
+    // La dernière partie — conclusion, limites — est toujours lue.
+    expect(retenues[retenues.length - 1]).toBe("partie 19");
+  });
+
+  it("laisse tout passer quand ça tient dans le budget", async () => {
+    const { passesARetenir } = await import("../../lib/appel/lecture");
+    const passes = ["a", "b", "c"];
+    expect(passesARetenir(passes, 12)).toEqual(passes);
   });
 });

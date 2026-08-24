@@ -26,7 +26,12 @@ export interface FicheLecture {
   angles: string[];
 }
 
-export const LIMITES_LECTURE = { dossierChars: 12_000, ligneChars: 240, listeMax: 6 } as const;
+/**
+ * Le jury lit le dossier ENTIER, ou presque : 60 000 caractères, soit un
+ * mémoire de cent pages. Avec 12 000, il ne voyait que la page de garde et
+ * l'introduction — et posait donc toujours les mêmes questions de surface.
+ */
+export const LIMITES_LECTURE = { dossierChars: 60_000, ligneChars: 240, listeMax: 6 } as const;
 
 const PERSONNAGES: Record<ModeAppel, string> = {
   soutenance: "le rapporteur d'un jury de soutenance d'école d'ingénieurs",

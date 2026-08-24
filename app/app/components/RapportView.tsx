@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { lireCache, ecrireCache } from "@/lib/ia-cache";
 import { estRapport, empreinteRapport, LIMITES_RAPPORT, type Rapport } from "@/lib/rapport";
-import { extraireDeckPDF, ExtractionError } from "@/lib/slides/extract";
+import { extraireDeck, ExtractionError } from "@/lib/slides/extract";
 import { LIBELLES_CATEGORIES } from "@/lib/jury";
 import type { JuryQuestion } from "@/lib/slides/types";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
@@ -61,10 +61,10 @@ export default function RapportView() {
   async function deposer(file: File) {
     setLecture(true);
     try {
-      const deck = await extraireDeckPDF(file);
+      const deck = await extraireDeck(file);
       const texte = deck.slides.map((s) => s.texte).join("\n\n").slice(0, LIMITES_RAPPORT.texteChars);
       if (deck.slides.length < LIMITES_RAPPORT.pagesMin || texte.trim().length < 500) {
-        throw new ExtractionError("Ce document est trop court ou sans texte lisible (scanné ?). Dépose le PDF texte de ton mémoire.");
+        throw new ExtractionError("Ce document est trop court ou sans texte lisible (scanné ?). Dépose le PDF texte de ton mémoire, ou ton .pptx.");
       }
       const r: Rapport = { nomFichier: file.name, pages: deck.slides.length, texte, misAJourLe: new Date().toISOString() };
       ecrireCache(window.localStorage, CLE_RAPPORT, r);
@@ -110,7 +110,7 @@ export default function RapportView() {
       <input
         ref={fileRef}
         type="file"
-        accept="application/pdf,.pdf"
+        accept="application/pdf,.pdf,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
         hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
@@ -129,7 +129,7 @@ export default function RapportView() {
         </div>
         <div className="list-actions">
           <button className="btn small" onClick={() => fileRef.current?.click()} disabled={lecture}>
-            {lecture ? "Lecture…" : rapport ? "Changer de document" : <><Icone nom="memoire" /> Déposer le PDF</>}
+            {lecture ? "Lecture…" : rapport ? "Changer de document" : <><Icone nom="memoire" /> Déposer mon document</>}
           </button>
           {rapport && (
             <button className="btn small primary" onClick={() => void generer()} disabled={generation}>
@@ -138,7 +138,7 @@ export default function RapportView() {
           )}
         </div>
       </div>
-      {!rapport && <p className="report-note" style={{ textAlign: "left", marginTop: 10 }}>Lu dans ton navigateur, seul le texte est conservé — jamais le fichier. Un mémoire de 40 à 100 pages convient.</p>}
+      {!rapport && <p className="report-note" style={{ textAlign: "left", marginTop: 10 }}>Lu dans ton navigateur, seul le texte est conservé — jamais le fichier. PDF ou PowerPoint (.pptx). Un mémoire de 40 à 100 pages convient.</p>}
       {questions && (
         <>
           <button className="link-btn" style={{ marginTop: 12 }} onClick={() => setOuvert((v) => !v)} aria-expanded={ouvert}>

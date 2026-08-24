@@ -11,7 +11,7 @@ import { lireCache, ecrireCache, empreinte } from "@/lib/ia-cache";
 import { lireCandidature } from "@/lib/entretien/persistance";
 import { lireProfil } from "@/lib/modules/persistance";
 import { MODULES, estModuleId } from "@/lib/modules";
-import { estRapport } from "@/lib/rapport";
+import { estRapport, extraitPourModele } from "@/lib/rapport";
 import { lireLangue, courte, type LangueCourte } from "@/lib/langue";
 import { lireProfilEtudiant, ligneContexteEtudiant } from "@/lib/etudiant";
 import { lireModulesActifs } from "@/lib/preferences";
@@ -25,7 +25,7 @@ import { useCamera } from "../hooks/useCamera";
 import ConstatsCamera from "@/app/components/ConstatsCamera";
 import { ligneContexteCamera, type BilanCamera } from "@/lib/camera";
 import { passagesPour } from "@/lib/memoire/client";
-import { contexteFiche, dossierSuffisant, type FicheLecture } from "@/lib/appel/lecture";
+import { contexteFiche, dossierSuffisant, LIMITES_LECTURE, type FicheLecture } from "@/lib/appel/lecture";
 import type { Evaluation } from "@/lib/grille";
 import DebriefAppel from "./DebriefAppel";
 
@@ -70,6 +70,48 @@ function contexteDepuisAppareil(mode: ModeAppel): string {
       ...m.champs.map((ch) => ({ titre: ch.titreContexte, texte: p.champs[ch.id] })),
       { titre: "Dossier", texte: p.documentTexte },
     ]));
+  }
+  return "";
+}
+
+/**
+ * Le dossier complet, pour la lecture : les diapositives en entier et le
+ * mémoire jusqu à 60 000 caractères. Le contexte des tours reste court (la
+ * latence compte à chaque question) ; la lecture, elle, a le temps.
+ */
+function dossierCompletPourLecture(mode: ModeAppel): string {
+  const st = window.localStorage;
+  if (mode === "soutenance") {
+    const deck = listeDeckSauvegarde(st);
+    const rapport = lireCache<unknown>(st, CLE_RAPPORT);
+    return assemblerContexte(
+      [
+        { titre: "Diapositives de la soutenance", texte: deck ? deck.slides.map((x, i) => `[${i + 1}] ${x.texte}`).join("\n") : null },
+        { titre: "Mémoire déposé", texte: estRapport(rapport) ? extraitPourModele(rapport.texte, 45_000) : null },
+      ],
+      LIMITES_LECTURE.dossierChars,
+    );
+  }
+  if (mode === "entretien") {
+    const c = lireCandidature(st);
+    return c
+      ? assemblerContexte(
+          [
+            { titre: `Poste visé : ${c.poste}${c.entreprise ? ` chez ${c.entreprise}` : ""}`, texte: c.offre },
+            { titre: "CV du candidat", texte: c.cvTexte },
+          ],
+          LIMITES_LECTURE.dossierChars,
+        )
+      : "";
+  }
+  if (estModuleId(mode)) {
+    const pr = lireProfil(st, mode);
+    if (!pr) return "";
+    const m = MODULES[mode];
+    return assemblerContexte(
+      [...m.champs.map((ch) => ({ titre: ch.titreContexte, texte: pr.champs[ch.id] })), { titre: "Dossier", texte: pr.documentTexte }],
+      LIMITES_LECTURE.dossierChars,
+    );
   }
   return "";
 }
@@ -261,7 +303,7 @@ function AppelInner() {
     setLecture(true);
     setErreur(null);
     try {
-      const r = await fetch("/api/appel/lecture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, dossier: contexte }) });
+      const r = await fetch("/api/appel/lecture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, dossier: dossierCompletPourLecture(mode) || contexte }) });
       const j = (await r.json()) as { fiche?: FicheLecture; erreur?: string };
       if (!r.ok || !j.fiche) throw new Error(j.erreur ?? "La lecture n'a rien donné.");
       ecrireCache(window.localStorage, cleFiche(mode, contexte), j.fiche);

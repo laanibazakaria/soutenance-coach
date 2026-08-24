@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { extraireDeckPDF, ExtractionError } from "@/lib/slides/extract";
+import { extraireDeck, ExtractionError } from "@/lib/slides/extract";
 import { analyserDeck, repartirTemps } from "@/lib/slides/analyse";
 import {
   genererQuestions,
@@ -80,7 +80,7 @@ export default function SlidesPage() {
     setErreur(null);
     setChargement(true);
     try {
-      const d = await extraireDeckPDF(file);
+      const d = await extraireDeck(file);
       if (!supportExploitable(d)) {
         setErreur(
           "Ce PDF ne contient pas de texte extractible — il est probablement fait d'images. L'analyse a besoin du texte de tes diapositives.",
@@ -180,7 +180,7 @@ export default function SlidesPage() {
       <input
         ref={fileRef}
         type="file"
-        accept="application/pdf,.pdf"
+        accept="application/pdf,.pdf,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
         hidden
         onChange={(e) => {
           const f = e.target.files?.[0];

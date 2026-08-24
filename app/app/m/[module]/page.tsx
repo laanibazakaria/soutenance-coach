@@ -9,7 +9,7 @@ import { LIBELLES_CATEGORIES_ENTRETIEN, type QuestionEntretien } from "@/lib/ent
 import { lireCache, ecrireCache } from "@/lib/ia-cache";
 import { listSessions } from "@/lib/storage";
 import { dateDuJour, joursEntre } from "@/lib/parcours";
-import { extraireDeckPDF, ExtractionError } from "@/lib/slides/extract";
+import { extraireDeck, ExtractionError } from "@/lib/slides/extract";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import { useToast } from "@/app/components/Toast";
 import { telechargerIcs } from "@/lib/ics";
@@ -229,7 +229,7 @@ function Formulaire({ m, initial, onValider, onAnnuler }: { m: ModuleOral; initi
     setLecture(true);
     setErreur(null);
     try {
-      const deck = await extraireDeckPDF(file);
+      const deck = await extraireDeck(file);
       const texte = deck.slides.map((s) => s.texte).join("\n");
       if (texte.trim().length < 50) throw new ExtractionError("Ce PDF ne contient pas de texte lisible (document scanné ?). Exporte-le en PDF texte.");
       setDocumentTexte(texte);
@@ -291,7 +291,7 @@ function Formulaire({ m, initial, onValider, onAnnuler }: { m: ModuleOral; initi
             <input
               ref={fileRef}
               type="file"
-              accept="application/pdf,.pdf"
+              accept="application/pdf,.pdf,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
               hidden
               onChange={(e) => {
                 const f = e.target.files?.[0];

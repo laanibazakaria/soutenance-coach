@@ -79,3 +79,23 @@ describe("lecture du dossier — ce qu'on remet au jury", () => {
     expect(dossierSuffisant("x".repeat(400))).toBe(true);
   });
 });
+
+describe("lecture du dossier — la profondeur", () => {
+  it("laisse passer un mémoire entier, pas seulement son introduction", () => {
+    // Un mémoire de cent pages fait environ 200 000 caractères ; on doit en
+    // envoyer largement plus que l'introduction.
+    expect(LIMITES_LECTURE.dossierChars).toBeGreaterThanOrEqual(60_000);
+    const memoire = "Chapitre. ".repeat(6000);
+    const p = construirePromptLecture("soutenance", memoire);
+    expect(p.length).toBeGreaterThan(55_000);
+  });
+
+  it("garde la fin du document, là où sont les limites et la conclusion", async () => {
+    const { extraitPourModele } = await import("../../lib/rapport");
+    const texte = "DEBUT " + "x".repeat(100_000) + " CONCLUSION ET LIMITES";
+    const extrait = extraitPourModele(texte, 45_000);
+    expect(extrait).toContain("DEBUT");
+    expect(extrait).toContain("CONCLUSION ET LIMITES");
+    expect(extrait.length).toBeLessThanOrEqual(45_200);
+  });
+});

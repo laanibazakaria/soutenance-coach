@@ -53,3 +53,19 @@ export async function extraireDeckPDF(file: File): Promise<Deck> {
 
   return { nomFichier: file.name, slides };
 }
+
+/**
+ * Le point d'entrée des écrans : PDF ou PowerPoint. Ils n'ont pas à savoir
+ * de quel format vient le support.
+ */
+export async function extraireDeck(file: File): Promise<Deck> {
+  const nom = file.name.toLowerCase();
+  if (nom.endsWith(".pptx")) {
+    const { extraireDeckPPTX } = await import("./pptx");
+    return extraireDeckPPTX(file);
+  }
+  if (nom.endsWith(".ppt")) {
+    throw new ExtractionError("L'ancien format .ppt n'est pas lisible. Enregistre-le en .pptx (Fichier → Enregistrer sous) ou exporte-le en PDF.");
+  }
+  return extraireDeckPDF(file);
+}

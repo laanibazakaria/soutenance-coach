@@ -24,6 +24,7 @@ import { useEcouteSegments } from "../hooks/useEcouteSegments";
 import { useCamera } from "../hooks/useCamera";
 import ConstatsCamera from "@/app/components/ConstatsCamera";
 import { ligneContexteCamera, type BilanCamera } from "@/lib/camera";
+import { passagesPour } from "@/lib/memoire/client";
 import DebriefAppel from "./DebriefAppel";
 
 type Phase = "idle" | "jury-reflechit" | "jury-parle" | "ecoute" | "debrief" | "fini";
@@ -195,8 +196,13 @@ function AppelInner() {
       setPhase("jury-reflechit");
       let replique = "";
       let fin = false;
+      // Les passages du mémoire les plus proches de la dernière réponse : le
+      // jury interroge sur le document déposé, pas sur des généralités.
+      const derniere = [...hist].reverse().find((m) => m.role === "user")?.content ?? "";
+      const extraits = mode === "soutenance" ? await passagesPour(derniere || contexte.slice(0, 800)).catch(() => null) : null;
+      const contexteComplet = extraits ? `${contexte}\n\n${extraits}` : contexte;
       try {
-        const r = await fetch("/api/appel/tour", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, contexte, langue, dureeMin, ecouleS: Math.round((Date.now() - debutRef.current) / 1000), historique: hist }) });
+        const r = await fetch("/api/appel/tour", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, contexte: contexteComplet, langue, dureeMin, ecouleS: Math.round((Date.now() - debutRef.current) / 1000), historique: hist }) });
         const j = (await r.json()) as { replique?: string; fin?: boolean; erreur?: string };
         if (!r.ok || !j.replique) throw new Error(j.erreur ?? "Le jury ne répond pas.");
         replique = j.replique;

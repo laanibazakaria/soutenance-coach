@@ -8,6 +8,7 @@ import { extraireDeckPDF, ExtractionError } from "@/lib/slides/extract";
 import { LIBELLES_CATEGORIES } from "@/lib/jury";
 import type { JuryQuestion } from "@/lib/slides/types";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
+import { indexerMemoire, memoireIndexe } from "@/lib/memoire/client";
 import { useToast } from "@/app/components/Toast";
 import { Icone } from "@/app/components/Icone";
 import ListeQuestions from "./ListeQuestions";
@@ -26,6 +27,8 @@ export default function RapportView() {
   const [lecture, setLecture] = useState(false);
   const [generation, setGeneration] = useState(false);
   const [ouvert, setOuvert] = useState(false);
+  const [indexation, setIndexation] = useState<{ fait: number; total: number } | null>(null);
+  const [passagesPrets, setPassagesPrets] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
 
@@ -37,8 +40,23 @@ export default function RapportView() {
       setQuestions(ok ? lireCache<JuryQuestion[]>(window.localStorage, cleQuestionsRapport(ok.texte)) : null);
     };
     lire();
+    void memoireIndexe().then((i) => setPassagesPrets(i?.passages.length ?? null));
     return surSynchronisation(lire);
   }, []);
+
+  /** L'index de recherche : pendant l'appel, le jury citera les bons passages. */
+  async function construireIndex(texte: string, nomFichier: string) {
+    setIndexation({ fait: 0, total: 1 });
+    const r = await indexerMemoire(texte, nomFichier, (fait, total) => setIndexation({ fait, total }));
+    setIndexation(null);
+    if (r.ok) {
+      setPassagesPrets(r.passages);
+      toast.success(`Mémoire indexé : ${r.passages} passages. Le jury pourra t'interroger dessus.`);
+    } else {
+      setPassagesPrets(null);
+      toast.error(r.message ?? "L'index du mémoire n'a pas pu être construit.");
+    }
+  }
 
   async function deposer(file: File) {
     setLecture(true);
@@ -54,6 +72,7 @@ export default function RapportView() {
       setQuestions(lireCache<JuryQuestion[]>(window.localStorage, cleQuestionsRapport(texte)));
       void pousserTout();
       toast.success(`${deck.slides.length} pages lues. Seul le texte est conservé.`);
+      await construireIndex(texte, file.name);
     } catch (e) {
       toast.error(e instanceof ExtractionError ? e.message : "Le document n'a pas pu être lu.");
     } finally {

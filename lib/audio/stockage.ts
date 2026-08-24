@@ -9,9 +9,12 @@ const STORE = "audio";
 function ouvrir(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === "undefined") return reject(new Error("IndexedDB indisponible"));
-    const req = indexedDB.open(BASE, 1);
+    const req = indexedDB.open(BASE, 2);
     req.onupgradeneeded = () => {
-      if (!req.result.objectStoreNames.contains(STORE)) req.result.createObjectStore(STORE);
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+      // La version 2 ajoute les passages du mémoire : les deux modules ouvrent la même base.
+      if (!db.objectStoreNames.contains("memoire")) db.createObjectStore("memoire");
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);

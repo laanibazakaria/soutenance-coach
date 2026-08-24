@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Icone, IconeBadge } from "@/app/components/Icone";
-import type { Debrief, Message, Persona } from "@/lib/appel";
+import { membreParId, type Debrief, type Message, type Persona } from "@/lib/appel";
 import type { BilanCamera } from "@/lib/camera";
 import ConstatsCamera from "@/app/components/ConstatsCamera";
 import GrilleVue from "@/app/components/GrilleVue";
@@ -136,6 +136,7 @@ export default function DebriefAppel({
         <div className="appel-dialogue appel-dialogue-complet">
           {historique.map((m, i) => (
             <p key={i} className={`appel-bulle appel-bulle-${m.role}`}>
+              {m.role === "assistant" && m.membre && <span className="appel-qui">{membreParId(persona.mode, m.membre).nom}</span>}
               {m.content}
             </p>
           ))}

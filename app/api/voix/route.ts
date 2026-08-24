@@ -8,7 +8,8 @@ import { NextResponse } from "next/server";
  * envoyé est la réplique du jury — jamais la parole de l'étudiant.
  */
 const MODELE = process.env.GEMINI_TTS_MODEL ?? "gemini-3.1-flash-tts-preview";
-const VOIX = { jury: "Charon", recruteur: "Kore" } as const;
+/** Quatre timbres nettement différents, un par membre du jury. */
+const VOIX = { grave: "Charon", claire: "Kore", vive: "Puck", posee: "Enceladus", jury: "Charon", recruteur: "Kore" } as const;
 const cache = new Map<string, { pcm: Buffer; rate: number }>();
 
 export async function POST(request: Request) {
@@ -23,7 +24,8 @@ export async function POST(request: Request) {
   const texte = typeof corps.texte === "string" ? corps.texte.trim().slice(0, 600) : "";
   if (texte.length < 2) return NextResponse.json({ erreur: "Texte manquant." }, { status: 400 });
   const langue = corps.langue === "en" ? "en" : "fr";
-  const voix = corps.voix === "recruteur" ? VOIX.recruteur : VOIX.jury;
+  const demande = typeof corps.voix === "string" ? corps.voix : "grave";
+  const voix = (VOIX as Record<string, string>)[demande] ?? VOIX.grave;
   const cleCache = `${voix}|${langue}|${texte}`;
   const enCache = cache.get(cleCache);
   if (enCache) {

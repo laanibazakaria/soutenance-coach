@@ -20,6 +20,7 @@ export async function POST(request: Request) {
     contexte: typeof corps.contexte === "string" ? corps.contexte.slice(0, LIMITES_APPEL.contexteChars) : "",
     langue: corps.langue === "en" ? ("en" as const) : ("fr" as const),
     dureeMin: typeof corps.dureeMin === "number" ? Math.round(corps.dureeMin) : 10,
+    historique,
   };
   const quota = await verifierQuota(request);
   if (!quota.ok) return quota.reponse;

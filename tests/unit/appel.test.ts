@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { assemblerContexte, construirePromptTour, construirePromptDebrief, parseTour, parseDebrief, validerHistorique, paroleCandidat, PERSONAS, LIMITES_APPEL } from "../../lib/appel";
 
-const ctx = { mode: "soutenance" as const, contexte: "## Slides\nProjet de transcription audio, WER 12 %.", langue: "fr" as const, dureeMin: 10 };
+const ctx = { mode: "soutenance" as const, contexte: "## Slides\nProjet de transcription audio, WER 12 %.", langue: "fr" as const, dureeMin: 10, historique: [] };
 
 describe("appel avec le jury — contexte", () => {
   it("assemble les parties non vides et respecte la limite", () => {
@@ -17,18 +17,19 @@ describe("appel avec le jury — contexte", () => {
 describe("appel avec le jury — tours", () => {
   it("ouvre, continue, puis conclut selon le temps", () => {
     const debut = construirePromptTour(ctx, 0);
-    expect(debut).toContain("Phase : ouverture");
-    expect(debut).toContain(PERSONAS.soutenance.ouverture);
+    expect(debut).toContain("tout début");
+    expect(debut).toContain("Ne dis jamais"); // les formules toutes faites sont interdites, pas suggérées
+    expect(debut).toContain("Le rapporteur");
     expect(debut).toContain("WER 12 %");
-    expect(construirePromptTour(ctx, 300)).toContain("Phase : milieu");
+    expect(construirePromptTour({ ...ctx, historique: [{ role: "assistant", content: "q", membre: "rapporteur" }] }, 300)).toContain("Continue l’oral".replace("’", "'"));
     const fin = construirePromptTour(ctx, 580);
-    expect(fin).toContain("Phase : conclusion");
+    expect(fin).toContain("C'est la fin");
     expect(fin).toContain('"fin"');
     expect(construirePromptTour({ ...ctx, contexte: "", langue: "en" }, 0)).toContain("Speak English");
   });
 
   it("parse une réplique, tolère les fences, borne la longueur", () => {
-    expect(parseTour('{"replique": "Pourquoi le WER ?", "fin": false}')).toEqual({ replique: "Pourquoi le WER ?", fin: false });
+    expect(parseTour('{"replique": "Pourquoi le WER ?", "fin": false}')).toMatchObject({ replique: "Pourquoi le WER ?", fin: false });
     expect(parseTour('```json\n{"replique": "Merci, c\'est terminé.", "fin": true}\n```')?.fin).toBe(true);
     expect(parseTour('{"replique": ""}')).toBeNull();
     expect(parseTour("pas du json")).toBeNull();

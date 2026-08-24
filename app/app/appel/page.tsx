@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Icone, IconeBadge } from "@/app/components/Icone";
 import { useToast } from "@/app/components/Toast";
-import { PERSONAS, DUREES_APPEL, assemblerContexte, paroleCandidat, type ModeAppel, type Message, type Debrief } from "@/lib/appel";
+import { PERSONAS, DUREES_APPEL, MEMBRES, membreParId, assemblerContexte, paroleCandidat, type ModeAppel, type Message, type Debrief } from "@/lib/appel";
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCache, ecrireCache } from "@/lib/ia-cache";
 import { lireCandidature } from "@/lib/entretien/persistance";
@@ -111,6 +111,8 @@ function AppelInner() {
   const segments = useEcouteSegments();
   const camera = useCamera();
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  /** Questions posées lors des appels précédents : le jury ne se répète pas d un appel à l autre. */
+  const dejaPoseesRef = useRef<string[]>([]);
 
   useEffect(() => {
     const a = (lireModulesActifs(window.localStorage) ?? ["soutenance"]) as ModeAppel[];
@@ -120,6 +122,7 @@ function AppelInner() {
     setMode(initial);
     setLangue(courte(lireLangue(window.localStorage)));
     setSupporte({ micro: getRecognitionCtor() !== null || segments.disponible(), voix: voixDisponible() });
+    dejaPoseesRef.current = lireCache<string[]>(window.localStorage, "appel:questions-posees") ?? [];
   }, [params]);
 
   useEffect(() => {
@@ -166,6 +169,10 @@ function AppelInner() {
         toast.info("Appel terminé sans réponse : rien à débriefer.");
         return;
       }
+      // Ce que le jury vient de demander rejoint la mémoire des appels.
+      const posees = hist.filter((m) => m.role === "assistant").map((m) => m.content);
+      dejaPoseesRef.current = [...posees, ...dejaPoseesRef.current].slice(0, 40);
+      ecrireCache(window.localStorage, "appel:questions-posees", dejaPoseesRef.current);
       const vuCamera = camera.recolter();
       camera.eteindre();
       setBilanCamera(vuCamera);
@@ -216,6 +223,7 @@ function AppelInner() {
       if (arreteRef.current) return;
       setPhase("jury-reflechit");
       let replique = "";
+      let membre = MEMBRES[mode][0]!.id;
       let fin = false;
       // Les passages du mémoire les plus proches de la dernière réponse : le
       // jury interroge sur le document déposé, pas sur des généralités.
@@ -223,10 +231,11 @@ function AppelInner() {
       const extraits = mode === "soutenance" ? await passagesPour(derniere || contexte.slice(0, 800)).catch(() => null) : null;
       const contexteComplet = extraits ? `${contexte}\n\n${extraits}` : contexte;
       try {
-        const r = await fetch("/api/appel/tour", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, contexte: contexteComplet, langue, dureeMin, ecouleS: Math.round((Date.now() - debutRef.current) / 1000), historique: hist }) });
-        const j = (await r.json()) as { replique?: string; fin?: boolean; erreur?: string };
+        const r = await fetch("/api/appel/tour", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, contexte: contexteComplet, langue, dureeMin, ecouleS: Math.round((Date.now() - debutRef.current) / 1000), historique: hist, dejaPosees: dejaPoseesRef.current }) });
+        const j = (await r.json()) as { replique?: string; fin?: boolean; membre?: string; erreur?: string };
         if (!r.ok || !j.replique) throw new Error(j.erreur ?? "Le jury ne répond pas.");
         replique = j.replique;
+        membre = j.membre ?? membre;
         fin = j.fin === true;
         if (hist.length === 0) signalerAppelIa();
       } catch (e) {
@@ -240,12 +249,12 @@ function AppelInner() {
         return;
       }
       if (arreteRef.current) return;
-      const nouveau: Message[] = [...hist, { role: "assistant", content: replique }];
+      const nouveau: Message[] = [...hist, { role: "assistant", content: replique, membre }];
       historiqueRef.current = nouveau;
       setHistorique(nouveau);
       setPhase("jury-parle");
       let dit = false;
-      if (voixNaturelle) dit = await parlerNaturel(replique, langue, mode === "entretien" ? "recruteur" : "jury");
+      if (voixNaturelle) dit = await parlerNaturel(replique, langue, membreParId(mode, membre).voix);
       if (!dit && !arreteRef.current) {
         if (supporte.voix) await parler(replique, langue, voixRef.current, { debit: 1.02 });
         else await new Promise((r) => setTimeout(r, Math.min(8000, 800 + replique.length * 45)));

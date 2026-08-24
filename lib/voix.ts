@@ -99,7 +99,9 @@ function obtenirContexte(): AudioContext {
  * morceaux PCM sont joués au fil de leur arrivée (premier son ~1,7 s).
  * Résout `false` si ça échoue (→ repli sur la voix du navigateur).
  */
-export async function parlerNaturel(texte: string, langue: "fr" | "en", voix: "jury" | "recruteur" = "jury"): Promise<boolean> {
+export type Timbre = "grave" | "claire" | "vive" | "posee";
+
+export async function parlerNaturel(texte: string, langue: "fr" | "en", voix: Timbre = "grave"): Promise<boolean> {
   let annule = false;
   try {
     const ctx = obtenirContexte();

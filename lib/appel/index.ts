@@ -52,9 +52,62 @@ export const PERSONAS: Record<ModeAppel, Persona> = {
 export const DUREES_APPEL = [5, 10, 15] as const;
 export const LIMITES_APPEL = { contexteChars: 7000, repliqueChars: 500, reponseChars: 3000, toursMax: 30 } as const;
 
+/** Un membre du jury : sa fonction, ce qu'il cherche, et la voix qui le dit. */
+export interface MembreJury {
+  id: string;
+  /** Comme on l'annonce à l'oral : « Le rapporteur ». */
+  nom: string;
+  /** Ce qu'il est, pour le modèle. */
+  role: string;
+  /** Son obsession — ce sur quoi il revient toujours. */
+  obsession: string;
+  /** Voix de synthèse : des timbres nettement différents. */
+  voix: "grave" | "claire" | "vive" | "posee";
+}
+
+/**
+ * Un vrai oral, ce sont plusieurs personnes qui ne cherchent pas la même
+ * chose et qui se passent la parole. C'est ce qui le rend inconfortable —
+ * et donc utile à répéter.
+ */
+export const MEMBRES: Record<ModeAppel, MembreJury[]> = {
+  soutenance: [
+    { id: "rapporteur", nom: "Le rapporteur", role: "le rapporteur, qui a lu le mémoire ligne à ligne", obsession: "la méthode, les chiffres, ce que le document dit vraiment — il cite des passages et relève les incohérences", voix: "grave" },
+    { id: "presidente", nom: "La présidente du jury", role: "la présidente du jury, qui cadre la séance", obsession: "la contribution personnelle du candidat, la portée du travail, le respect du temps — elle pose les questions larges et recadre", voix: "claire" },
+    { id: "encadrant", nom: "L'encadrant", role: "l'encadrant du stage, plutôt bienveillant", obsession: "ce que le candidat a fait lui-même, les difficultés rencontrées et comment il s'en est sorti — il tend des perches, mais n'accepte pas le flou", voix: "posee" },
+  ],
+  entretien: [
+    { id: "rh", nom: "La chargée de recrutement", role: "la chargée de recrutement", obsession: "le parcours, la motivation pour CE poste, la disponibilité, le comportement en équipe", voix: "claire" },
+    { id: "technique", nom: "Le manager technique", role: "le manager technique, futur responsable direct", obsession: "les compétences réelles : il demande des cas concrets, des choix techniques, ce qui a raté", voix: "grave" },
+  ],
+  pitch: [
+    { id: "investisseur", nom: "L'investisseur", role: "un investisseur du jury", obsession: "le marché, le modèle économique, la traction — il est sceptique sur les promesses sans preuve", voix: "grave" },
+    { id: "technique", nom: "L'experte technique", role: "une experte technique du jury", obsession: "la faisabilité, ce qui existe déjà, la vraie difficulté du produit", voix: "claire" },
+    { id: "terrain", nom: "Le professionnel du secteur", role: "un professionnel du secteur visé", obsession: "l'usage réel : qui s'en sert, dans quel contexte, et pourquoi il paierait", voix: "vive" },
+  ],
+  concours: [
+    { id: "president", nom: "Le président du jury", role: "le président du jury d'admission", obsession: "le projet professionnel, la cohérence du parcours, le « pourquoi nous »", voix: "grave" },
+    { id: "specialiste", nom: "La spécialiste de la discipline", role: "une enseignante-chercheuse de la discipline", obsession: "les connaissances du domaine et le recul : elle demande d'argumenter, de nuancer", voix: "claire" },
+    { id: "professionnel", nom: "Le professionnel", role: "un professionnel invité au jury", obsession: "le réalisme du projet et la connaissance du métier visé", voix: "posee" },
+  ],
+};
+
+/** Le membre qui a parlé en dernier, d'après l'historique annoté. */
+export function membrePrecedent(historique: Message[], membres: MembreJury[]): MembreJury | null {
+  for (let i = historique.length - 1; i >= 0; i--) {
+    const m = historique[i]!;
+    if (m.role !== "assistant") continue;
+    const trouve = membres.find((x) => m.membre === x.id);
+    if (trouve) return trouve;
+  }
+  return null;
+}
+
 export interface Message {
   role: "user" | "assistant";
   content: string;
+  /** Quel membre du jury parle (répliques du jury seulement). */
+  membre?: string;
 }
 
 export interface ContexteAppel {
@@ -63,6 +116,10 @@ export interface ContexteAppel {
   contexte: string;
   langue: "fr" | "en";
   dureeMin: number;
+  /** L'échange en cours : sert à savoir qui a parlé en dernier. */
+  historique: Message[];
+  /** Questions posées lors d'appels PRÉCÉDENTS, à ne pas reposer. */
+  dejaPosees?: string[];
 }
 
 /** Assemble le contexte à partir de ce qu'on a, sans dépasser la limite. */
@@ -73,42 +130,74 @@ export function assemblerContexte(parties: Array<{ titre: string; texte?: string
   return utiles.map((p) => `## ${p.titre}\n${p.texte!.trim().slice(0, part)}`).join("\n\n");
 }
 
-/** Le prompt système d'un tour : qui est le jury, ce qu'il sait, comment il parle. */
+/**
+ * Le prompt d'un tour : qui compose le jury, ce qu'il sait, comment il parle.
+ *
+ * Rien d'écrit en dur dans la bouche du jury : une phrase d'ouverture donnée
+ * en exemple, le modèle la récite mot pour mot, et tous les appels commencent
+ * pareil. On décrit donc l'intention et on interdit explicitement les
+ * formules toutes faites.
+ */
 export function construirePromptTour(c: ContexteAppel, ecouleS: number): string {
   const p = PERSONAS[c.mode];
+  const membres = MEMBRES[c.mode];
   const totalS = c.dureeMin * 60;
   const resteS = Math.max(0, totalS - ecouleS);
-  const phase = resteS <= 45 ? "conclusion" : ecouleS < 30 ? "ouverture" : "milieu";
+  const phase = resteS <= 45 ? "conclusion" : c.historique.length === 0 ? "ouverture" : "milieu";
   const langue = c.langue === "en" ? "Speak English only." : "Tu parles uniquement en français, naturel, à l'oral (pas de listes, pas de markdown).";
+  const precedent = membrePrecedent(c.historique, membres);
+  const dejaPosees = (c.dejaPosees ?? []).slice(0, 25);
+
   return [
-    `Tu es ${p.role}. Tu mènes un oral en direct, à la voix, avec un candidat. ${langue}`,
-    `Axes à couvrir au fil de l'entretien (pas forcément dans l'ordre, pas tous si le temps manque) : ${p.axes.map((a, i) => `${i + 1}) ${a}`).join(" ; ")}.`,
-    "Règles : une seule question à la fois, courte (une ou deux phrases). Réagis à ce que le candidat vient de dire : si c'est vague, demande un exemple ou un chiffre ; si c'est faux ou incohérent avec le dossier, fais-le remarquer calmement ; si c'est solide, dis-le en trois mots et passe à autre chose. Ne répète pas une question déjà posée. Ne donne pas la réponse. Ne commente jamais la forme (débit, hésitations).",
-    c.contexte ? `Ce que tu sais du candidat et de son dossier (tu peux y faire référence précisément) :\n${c.contexte}` : "Tu n'as pas de dossier : pose des questions générales de ce type d'oral, puis creuse ce que le candidat raconte.",
-    `Temps : ${Math.round(ecouleS / 60)} min écoulées sur ${c.dureeMin}. Phase : ${phase}.`,
+    `Tu joues TOUT un jury d'oral, en direct, à la voix. ${langue}`,
+    `LE JURY (${membres.length} personnes distinctes, qui ne cherchent pas la même chose) :\n${membres.map((m) => `- ${m.id} — ${m.nom} : ${m.role}. Ce qui l'intéresse : ${m.obsession}.`).join("\n")}`,
+    `À chaque tour, UNE SEULE personne parle. Choisis laquelle selon ce que le candidat vient de dire : celui dont c'est le domaine enchaîne. Fais tourner la parole — deux questions d'affilée de la même personne, seulement si elle creuse vraiment sa réponse précédente.${precedent ? ` La dernière personne à avoir parlé était « ${precedent.id} ».` : ""}`,
+    `Axes à couvrir au fil de l'oral (pas dans l'ordre, pas tous) : ${p.axes.map((a, i) => `${i + 1}) ${a}`).join(" ; ")}.`,
+    "COMMENT ON PARLE : une seule question à la fois, une ou deux phrases, comme à l'oral. Réagis à ce qui vient d'être dit : si c'est vague, demande un exemple ou un chiffre précis ; si ça contredit le dossier, relève-le calmement en citant le dossier ; si c'est solide, dis-le en trois mots et passe à autre chose. Ne donne jamais la réponse. Ne commente jamais la forme (débit, hésitations, « euh »).",
+    "INTERDIT : les formules de jury de théâtre. Ne dis jamais « Merci pour cette présentation », « Nous allons passer aux questions », « Pouvez-vous résumer en une phrase », ni aucune formule d'accueil passe-partout. Entre dans le vif du sujet comme quelqu'un qui a lu le dossier et qui a déjà une question en tête.",
+    c.contexte ? `LE DOSSIER DU CANDIDAT (tu l'as lu, cite-le précisément) :\n${c.contexte}` : "Tu n'as pas de dossier : pose des questions générales de ce type d'oral, puis creuse ce que le candidat raconte.",
+    dejaPosees.length > 0 ? `DÉJÀ POSÉ lors de précédents entraînements — trouve autre chose :\n${dejaPosees.map((q: string) => `- ${q}`).join("\n")}` : "",
+    `Temps : ${Math.round(ecouleS / 60)} min écoulées sur ${c.dureeMin}.`,
     phase === "conclusion"
-      ? "C'est la fin : remercie, conclus en une phrase, et mets \"fin\" à true."
+      ? 'C\'est la fin : la personne qui préside remercie, conclut en une phrase, et tu mets "fin" à true.'
       : phase === "ouverture"
-        ? `Si l'historique est vide, commence par : « ${p.ouverture} » suivi de ta première question. Sinon, continue.`
-        : "Continue l'entretien.",
-    'Réponds en JSON strict : {"replique": "ce que tu dis, tel quel", "fin": false}',
-  ].join("\n\n");
+        ? "C'est le tout début : quelqu'un du jury ouvre avec SA première question, formulée à sa manière, ancrée dans le dossier si tu en as un. Pas de préambule."
+        : "Continue l'oral.",
+    `Réponds en JSON strict : {"membre": "${membres[0]!.id}", "replique": "ce que cette personne dit, tel quel", "fin": false}`,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 export interface Tour {
   replique: string;
   fin: boolean;
+  /** Identifiant du membre qui parle — toujours un membre connu du mode. */
+  membre: string;
 }
 
-export function parseTour(brut: string): Tour | null {
+export function parseTour(brut: string, mode: ModeAppel = "soutenance"): Tour | null {
   try {
     const nettoye = brut.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "");
-    const j = JSON.parse(nettoye) as { replique?: unknown; fin?: unknown };
+    const j = JSON.parse(nettoye) as { replique?: unknown; fin?: unknown; membre?: unknown };
     if (typeof j.replique !== "string" || j.replique.trim() === "") return null;
-    return { replique: j.replique.trim().slice(0, LIMITES_APPEL.repliqueChars), fin: j.fin === true };
+    const membres = MEMBRES[mode];
+    const demande = typeof j.membre === "string" ? j.membre.trim().toLowerCase() : "";
+    const trouve = membres.find((m) => m.id === demande);
+    return {
+      replique: j.replique.trim().slice(0, LIMITES_APPEL.repliqueChars),
+      fin: j.fin === true,
+      membre: (trouve ?? membres[0]!).id,
+    };
   } catch {
     return null;
   }
+}
+
+/** Le membre par son identifiant, avec repli sur le premier du jury. */
+export function membreParId(mode: ModeAppel, id: string | undefined): MembreJury {
+  const membres = MEMBRES[mode];
+  return membres.find((m) => m.id === id) ?? membres[0]!;
 }
 
 /** Nettoie l'historique reçu du client : rôles connus, textes bornés, pas plus de N tours. */

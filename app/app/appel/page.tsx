@@ -399,7 +399,15 @@ function AppelInner() {
   const enAppelApercu = phase === "jury-reflechit" || phase === "jury-parle" || phase === "ecoute";
   const apercu = (
     <div className={`appel-video${camera.etat === "active" ? " visible" : ""}${enAppelApercu ? "" : " appel-video-lanceur"}`}>
-      <video ref={videoRef} muted playsInline aria-label="Aperçu de ta caméra" />
+      <video
+        ref={(el) => {
+          videoRef.current = el;
+          camera.attacher(el);
+        }}
+        muted
+        playsInline
+        aria-label="Aperçu de ta caméra"
+      />
       <span className="appel-video-etat">{camera.etat === "chargement" ? "Caméra…" : "Sur ton appareil"}</span>
     </div>
   );
@@ -513,6 +521,7 @@ function AppelInner() {
         <div className="appel-dialogue" aria-label="Échange">
           {historique.slice(-6).map((m, i) => (
             <p key={i} className={`appel-bulle appel-bulle-${m.role}`}>
+              {m.role === "assistant" && m.membre && <span className="appel-qui">{membreParId(mode, m.membre).nom}</span>}
               {m.content}
             </p>
           ))}

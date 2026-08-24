@@ -45,6 +45,8 @@ export interface Camera {
   /** Le flux à brancher sur un <video> d'aperçu. */
   flux: MediaStream | null;
   allumer: (video: HTMLVideoElement) => Promise<boolean>;
+  /** À brancher sur le <video> : React recrée lélément quand lécran change. */
+  attacher: (video: HTMLVideoElement | null) => void;
   eteindre: () => void;
   /** Le bilan de ce qui a été observé, puis remise à zéro. */
   recolter: () => BilanCamera | null;
@@ -60,6 +62,8 @@ export function useCamera(): Camera {
   const imagesRef = useRef<ImageVisage[]>([]);
   const compteurRef = useRef(0);
   const debutRef = useRef(0);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const fluxRef = useRef<MediaStream | null>(null);
 
   const eteindre = useCallback(() => {
     if (boucleRef.current !== null) {
@@ -134,9 +138,13 @@ export function useCamera(): Camera {
         if (maintenant - dernier < 1000 / IMAGES_PAR_SECONDE) return;
         dernier = maintenant;
         const d = detecteurRef.current;
-        if (!d || video.readyState < 2) return;
+        const v = videoRef.current;
+        // L'écran change (lancement → appel) : React recrée le <video>. Sans
+        // suivre l'élément courant, on analyserait une vidéo détachée — et le
+        // bilan dirait « aucun visage » du début à la fin.
+        if (!d || !v || v.readyState < 2 || v.videoWidth === 0) return;
         try {
-          const res = d.detectForVideo(video, maintenant) as {
+          const res = d.detectForVideo(v, maintenant) as {
             faceBlendshapes?: Array<{ categories: Forme[] }>;
             facialTransformationMatrixes?: Array<{ data: number[] }>;
           };
@@ -170,6 +178,16 @@ export function useCamera(): Camera {
     [],
   );
 
+  /** Rebranche le flux quand React remonte lélément vidéo ailleurs dans larbre. */
+  const attacher = useCallback((video: HTMLVideoElement | null) => {
+    videoRef.current = video;
+    if (!video || !fluxRef.current) return;
+    if (video.srcObject !== fluxRef.current) {
+      video.srcObject = fluxRef.current;
+      void video.play().catch(() => {});
+    }
+  }, []);
+
   const recolter = useCallback((): BilanCamera | null => {
     const images = imagesRef.current;
     imagesRef.current = [];
@@ -178,5 +196,5 @@ export function useCamera(): Camera {
     return analyserImages(images);
   }, []);
 
-  return { etat, flux, allumer, eteindre, recolter, imagesRef: compteurRef };
+  return { etat, flux, allumer, attacher, eteindre, recolter, imagesRef: compteurRef };
 }

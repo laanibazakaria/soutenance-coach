@@ -5,6 +5,8 @@ import { Icone, IconeBadge } from "@/app/components/Icone";
 import type { Debrief, Message, Persona } from "@/lib/appel";
 import type { BilanCamera } from "@/lib/camera";
 import ConstatsCamera from "@/app/components/ConstatsCamera";
+import GrilleVue from "@/app/components/GrilleVue";
+import type { Evaluation } from "@/lib/grille";
 
 /**
  * Le débrief après l'appel : le diagnostic, ce qui a marché (avec tes mots),
@@ -19,6 +21,7 @@ export default function DebriefAppel({
   dureeS,
   sessionId,
   camera = null,
+  grille = null,
   onRecommencer,
 }: {
   phase: "debrief" | "fini";
@@ -29,6 +32,7 @@ export default function DebriefAppel({
   dureeS: number;
   sessionId: string | null;
   camera?: BilanCamera | null;
+  grille?: Evaluation | null;
   onRecommencer: () => void;
 }) {
   const minutes = Math.round(dureeS / 60);
@@ -49,6 +53,8 @@ export default function DebriefAppel({
           </p>
         </div>
       </div>
+
+      {grille && <GrilleVue evaluation={grille} />}
 
       {phase === "debrief" && (
         <div className="card teaser" aria-busy="true">

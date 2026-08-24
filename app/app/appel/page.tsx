@@ -25,6 +25,7 @@ import { useCamera } from "../hooks/useCamera";
 import ConstatsCamera from "@/app/components/ConstatsCamera";
 import { ligneContexteCamera, type BilanCamera } from "@/lib/camera";
 import { passagesPour } from "@/lib/memoire/client";
+import type { Evaluation } from "@/lib/grille";
 import DebriefAppel from "./DebriefAppel";
 
 type Phase = "idle" | "jury-reflechit" | "jury-parle" | "ecoute" | "debrief" | "fini";
@@ -95,6 +96,8 @@ function AppelInner() {
   const [voixNaturelle, setVoixNaturelle] = useState(false);
   const [cameraVoulue, setCameraVoulue] = useState(true);
   const [bilanCamera, setBilanCamera] = useState<BilanCamera | null>(null);
+  const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
+  const evaluationRef = useRef<Evaluation | null>(null);
 
   const voixRef = useRef<SpeechSynthesisVoice | null>(null);
   const recRef = useRef<SpeechRecognition | null>(null);
@@ -172,15 +175,33 @@ function AppelInner() {
       const parole = paroleCandidat(hist);
       saveSession(window.localStorage, { id, startedAt: new Date(debutRef.current).toISOString(), durationMs: dureeMs, transcript: parole, wordCount: countWords(parole), mode });
       setSessionId(id);
+      // La grille part en parallèle du débrief : deux regards, une seule attente.
+      const echange = hist.map((m) => `${m.role === "assistant" ? "JURY" : "CANDIDAT"} : ${m.content}`).join("\n\n");
+      const grillePromise = fetch("/api/grille", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ oral: mode, echange, contexte: contexte.slice(0, 4000), mesures: ligneContexteCamera(vuCamera) ?? undefined, dureeMin }),
+      })
+        .then((r) => (r.ok ? (r.json() as Promise<{ evaluation?: Evaluation }>) : null))
+        .then((j) => {
+          evaluationRef.current = j?.evaluation ?? null;
+          setEvaluation(evaluationRef.current);
+        })
+        .catch(() => {
+          evaluationRef.current = null;
+          setEvaluation(null);
+        });
       try {
         const r = await fetch("/api/appel/debrief", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, contexte: [contexte, ligneContexteCamera(vuCamera)].filter(Boolean).join("\n\n"), langue, dureeMin, historique: hist }) });
         const j = (await r.json()) as { debrief?: Debrief; erreur?: string };
         if (!r.ok || !j.debrief) throw new Error(j.erreur ?? "Débrief indisponible.");
         signalerAppelIa();
-        ecrireCache(window.localStorage, `appel:${id}`, { mode, dureeMin, dialogue: hist, debrief: j.debrief, camera: vuCamera, date: new Date().toISOString() });
+        await grillePromise;
+        ecrireCache(window.localStorage, `appel:${id}`, { mode, dureeMin, dialogue: hist, debrief: j.debrief, camera: vuCamera, grille: evaluationRef.current, date: new Date().toISOString() });
         setDebrief(j.debrief);
       } catch (e) {
-        ecrireCache(window.localStorage, `appel:${id}`, { mode, dureeMin, dialogue: hist, debrief: null, camera: vuCamera, date: new Date().toISOString() });
+        await grillePromise;
+        ecrireCache(window.localStorage, `appel:${id}`, { mode, dureeMin, dialogue: hist, debrief: null, camera: vuCamera, grille: evaluationRef.current, date: new Date().toISOString() });
         setErreur(e instanceof Error ? e.message : "Débrief indisponible.");
       }
       signalerSynchronisation();
@@ -378,7 +399,7 @@ function AppelInner() {
   const enAppel = phase === "jury-reflechit" || phase === "jury-parle" || phase === "ecoute";
 
   if (phase === "fini" || phase === "debrief") {
-    return <DebriefAppel phase={phase} debrief={debrief} erreur={erreur} historique={historique} persona={p} dureeS={ecouleS} sessionId={sessionId} camera={bilanCamera} onRecommencer={() => setPhase("idle")} />;
+    return <DebriefAppel phase={phase} debrief={debrief} erreur={erreur} historique={historique} persona={p} dureeS={ecouleS} sessionId={sessionId} camera={bilanCamera} grille={evaluation} onRecommencer={() => setPhase("idle")} />;
   }
 
   if (!enAppel) {

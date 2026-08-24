@@ -57,7 +57,8 @@ const FOURNISSEURS: Record<string, Fournisseur> = {
     nom: "openrouter",
     url: "https://openrouter.ai/api/v1/chat/completions",
     cle: () => process.env.OPENROUTER_API_KEY,
-    modele: () => process.env.OPENROUTER_MODEL ?? "meta-llama/llama-3.3-70b-instruct:free",
+    // Vérifié : rend un JSON propre en français ; les Nemotron laissent fuir leur raisonnement.
+    modele: () => process.env.OPENROUTER_MODEL ?? "google/gemma-4-31b-it:free",
   },
   cerebras: {
     nom: "cerebras",

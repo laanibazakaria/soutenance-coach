@@ -37,7 +37,7 @@ body {
   font-family: var(--font-app), "Segoe UI", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   line-height: 1.6;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 a { color: var(--violet2); text-decoration: none; }
@@ -558,10 +558,10 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
 
 
 /* ═══════════════ Coquille de l'application (bureau + mobile) ═══════════════ */
-.shell { display: flex; min-height: 100vh; }
+.shell { display: flex; min-height: 100dvh; }
 .sidebar {
   width: 240px; flex: none; background: #fff; border-right: 1px solid var(--line);
-  position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100dvh; display: flex; flex-direction: column;
   padding: 18px 14px 16px; overflow-y: auto;
 }
 .sidebar-brand { flex: none; padding: 4px 10px 10px; }
@@ -788,13 +788,13 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
 .accueil-nouveau { font-size: 0.62rem; font-weight: 700; color: var(--violet); background: var(--violet-dim); padding: 1px 7px; border-radius: 5px; letter-spacing: 0.02em; }
 .accueil-bandeau {
   display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; border-radius: 18px; padding: 26px 30px; margin-top: 6px;
+  background: linear-gradient(135deg, #0f3d3a 0%, #0b2b29 100%); color: #fff; border-radius: 18px; padding: 26px 30px; margin-top: 6px;
 }
 .accueil-bandeau-titre { display: inline-flex; align-items: center; gap: 8px; font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
 .accueil-bandeau-titre .icone { color: var(--gold-vif); }
 .accueil-bandeau p { color: rgba(255, 255, 255, 0.72); font-size: 0.9rem; max-width: 520px; line-height: 1.55; }
-.accueil-bandeau-btn { background: var(--gold-vif); color: #0f172a; border: none; font-weight: 800; padding: 13px 26px; font-size: 1rem; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3); }
-.accueil-bandeau-btn:hover { background: #ffe04d; color: #0f172a; }
+.accueil-bandeau-btn { background: var(--gold-vif); color: #0b2b29; border: none; font-weight: 800; padding: 13px 26px; font-size: 1rem; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3); }
+.accueil-bandeau-btn:hover { background: #fbbf24; color: #0b2b29; }
 .choix-carte .icone-badge { margin-bottom: 10px; }
 
 @media (max-width: 860px) {
@@ -1085,6 +1085,19 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
   .suivi-courbe { display: none; }
 }
 
+
+/* ═══════════════ Finitions de mise en page ═══════════════ */
+
+/* Les boutons des cartes d'un même rang s'alignent, quelle que soit la
+   longueur du texte au-dessus : sinon la ligne d'appels à l'action ondule. */
+.accueil-carte { display: flex; flex-direction: column; }
+.accueil-carte > .btn { margin-top: auto; align-self: flex-start; }
+.accueil-carte > .accueil-lien-hub { margin-top: 10px; }
+
+/* Pas de mot esseulé en fin de titre. */
+h1, h2, h3, .list-title, .accueil-bonjour, .porte-formulaire h1 { text-wrap: balance; }
+p, .session-meta, .kpi-detail, .grille-constat { text-wrap: pretty; }
+
 /* ═══════════════ Micro-interactions ═══════════════ */
 @keyframes pageEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 button, a[role="button"] { transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, opacity 0.15s ease; }
@@ -1136,7 +1149,7 @@ input[type="checkbox"]:focus { box-shadow: none; outline: 2px solid var(--violet
 .connexion { padding-top: 4px; }
 
 /* ═══════════════ Pages légales ═══════════════ */
-.legal { min-height: 100vh; background: var(--bg); }
+.legal { min-height: 100dvh; background: var(--bg); }
 .legal-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 28px; background: #fff; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
 .legal-nav { display: flex; align-items: center; gap: 18px; font-size: 0.9rem; }
 .legal-nav a { color: var(--muted); }

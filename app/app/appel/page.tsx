@@ -7,7 +7,7 @@ import { Icone, IconeBadge } from "@/app/components/Icone";
 import { useToast } from "@/app/components/Toast";
 import { PERSONAS, DUREES_APPEL, MEMBRES, membreParId, assemblerContexte, paroleCandidat, type ModeAppel, type Message, type Debrief } from "@/lib/appel";
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
-import { lireCache, ecrireCache } from "@/lib/ia-cache";
+import { lireCache, ecrireCache, empreinte } from "@/lib/ia-cache";
 import { lireCandidature } from "@/lib/entretien/persistance";
 import { lireProfil } from "@/lib/modules/persistance";
 import { MODULES, estModuleId } from "@/lib/modules";
@@ -18,15 +18,21 @@ import { lireModulesActifs } from "@/lib/preferences";
 import { saveSession, countWords } from "@/lib/storage";
 import { pousserTout, signalerSynchronisation } from "@/lib/sync/client";
 import { signalerAppelIa } from "@/lib/usage-client";
-import { voixDisponible, meilleureVoix, parler, taire, voixNavigateurExcellente, parlerNaturel, taireNaturel } from "@/lib/voix";
+import { voixDisponible, meilleureVoix, voixParTimbre, parler, taire, voixNavigateurExcellente, parlerNaturel, taireNaturel, type VoixMembre } from "@/lib/voix";
 import { CLE_RAPPORT } from "../components/RapportView";
 import { useEcouteSegments } from "../hooks/useEcouteSegments";
 import { useCamera } from "../hooks/useCamera";
 import ConstatsCamera from "@/app/components/ConstatsCamera";
 import { ligneContexteCamera, type BilanCamera } from "@/lib/camera";
 import { passagesPour } from "@/lib/memoire/client";
+import { contexteFiche, dossierSuffisant, type FicheLecture } from "@/lib/appel/lecture";
 import type { Evaluation } from "@/lib/grille";
 import DebriefAppel from "./DebriefAppel";
+
+/** Une fiche de lecture par dossier : si le dossier change, le jury relit. */
+function cleFiche(mode: ModeAppel, dossier: string): string {
+  return `appel-lecture:${mode}:${empreinte(dossier)}`;
+}
 
 type Phase = "idle" | "jury-reflechit" | "jury-parle" | "ecoute" | "debrief" | "fini";
 
@@ -97,9 +103,14 @@ function AppelInner() {
   const [cameraVoulue, setCameraVoulue] = useState(true);
   const [bilanCamera, setBilanCamera] = useState<BilanCamera | null>(null);
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
+  /** Ce que le jury a compris du dossier : lu une fois, gardé tant que le dossier ne change pas. */
+  const [fiche, setFiche] = useState<FicheLecture | null>(null);
+  const [lecture, setLecture] = useState(false);
   const evaluationRef = useRef<Evaluation | null>(null);
 
   const voixRef = useRef<SpeechSynthesisVoice | null>(null);
+  /** Une voix par membre du jury : sinon tout le monde parle pareil. */
+  const voixMembresRef = useRef<Record<string, VoixMembre> | null>(null);
   const recRef = useRef<SpeechRecognition | null>(null);
   const finalRef = useRef("");
   const silenceRef = useRef<number | null>(null);
@@ -113,6 +124,7 @@ function AppelInner() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   /** Questions posées lors des appels précédents : le jury ne se répète pas d un appel à l autre. */
   const dejaPoseesRef = useRef<string[]>([]);
+  const ficheRef = useRef<FicheLecture | null>(null);
 
   useEffect(() => {
     const a = (lireModulesActifs(window.localStorage) ?? ["soutenance"]) as ModeAppel[];
@@ -126,7 +138,9 @@ function AppelInner() {
   }, [params]);
 
   useEffect(() => {
-    setContexte(contexteDepuisAppareil(mode));
+    const c = contexteDepuisAppareil(mode);
+    setContexte(c);
+    setFiche(c ? lireCache<FicheLecture>(window.localStorage, cleFiche(mode, c)) : null);
   }, [mode]);
 
   // L'aperçu démarre avant l'appel : on se cadre pendant qu'on choisit sa durée,
@@ -143,6 +157,10 @@ function AppelInner() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cameraVoulue, phase]);
+
+  useEffect(() => {
+    ficheRef.current = fiche;
+  }, [fiche]);
 
   useEffect(() => {
     if (phase === "idle" || phase === "fini" || phase === "debrief") return;
@@ -233,6 +251,31 @@ function AppelInner() {
     [camera, contexte, dureeMin, langue, mode, nettoyerEcoute, toast],
   );
 
+  /** Le jury lit le dossier — une fois par dossier, mis en cache. */
+  const lireDossier = useCallback(async (): Promise<FicheLecture | null> => {
+    const deja = lireCache<FicheLecture>(window.localStorage, cleFiche(mode, contexte));
+    if (deja) {
+      setFiche(deja);
+      return deja;
+    }
+    setLecture(true);
+    setErreur(null);
+    try {
+      const r = await fetch("/api/appel/lecture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, dossier: contexte }) });
+      const j = (await r.json()) as { fiche?: FicheLecture; erreur?: string };
+      if (!r.ok || !j.fiche) throw new Error(j.erreur ?? "La lecture n'a rien donné.");
+      ecrireCache(window.localStorage, cleFiche(mode, contexte), j.fiche);
+      signalerAppelIa();
+      setFiche(j.fiche);
+      return j.fiche;
+    } catch (e) {
+      setErreur(e instanceof Error ? e.message : "La lecture du dossier a échoué.");
+      return null;
+    } finally {
+      setLecture(false);
+    }
+  }, [contexte, mode]);
+
   const tourDuJury = useCallback(
     async (hist: Message[]) => {
       if (arreteRef.current) return;
@@ -244,7 +287,8 @@ function AppelInner() {
       // jury interroge sur le document déposé, pas sur des généralités.
       const derniere = [...hist].reverse().find((m) => m.role === "user")?.content ?? "";
       const extraits = mode === "soutenance" ? await passagesPour(derniere || contexte.slice(0, 800)).catch(() => null) : null;
-      const contexteComplet = extraits ? `${contexte}\n\n${extraits}` : contexte;
+      const notes = contexteFiche(ficheRef.current);
+      const contexteComplet = [contexte, notes, extraits].filter(Boolean).join("\n\n");
       try {
         const r = await fetch("/api/appel/tour", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, contexte: contexteComplet, langue, dureeMin, ecouleS: Math.round((Date.now() - debutRef.current) / 1000), historique: hist, dejaPosees: dejaPoseesRef.current }) });
         const j = (await r.json()) as { replique?: string; fin?: boolean; membre?: string; erreur?: string };
@@ -271,7 +315,11 @@ function AppelInner() {
       let dit = false;
       if (voixNaturelle) dit = await parlerNaturel(replique, langue, membreParId(mode, membre).voix);
       if (!dit && !arreteRef.current) {
-        if (supporte.voix) await parler(replique, langue, voixRef.current, { debit: 1.02 });
+        if (supporte.voix) {
+          const timbre = membreParId(mode, membre).voix;
+          const v = voixMembresRef.current?.[timbre];
+          await parler(replique, langue, v?.voix ?? voixRef.current, { debit: v?.debit ?? 1.02, hauteur: v?.hauteur });
+        }
         else await new Promise((r) => setTimeout(r, Math.min(8000, 800 + replique.length * 45)));
       }
       if (arreteRef.current) return;
@@ -395,7 +443,10 @@ function AppelInner() {
     // Déjà allumée depuis l'écran de lancement : on ne rattrape que le cas où
     // la personne vient de cocher la case.
     if (cameraVoulue && videoRef.current && camera.etat !== "active") void camera.allumer(videoRef.current);
-    if (supporte.voix) voixRef.current = await meilleureVoix(langue);
+    if (supporte.voix) {
+      voixRef.current = await meilleureVoix(langue);
+      voixMembresRef.current = await voixParTimbre(langue);
+    }
     setVoixNaturelle(!voixNavigateurExcellente(voixRef.current));
     // Un premier « parler » vide débloque la synthèse vocale sur mobile (geste utilisateur requis).
     if (supporte.voix) await parler(" ", langue, voixRef.current);
@@ -430,6 +481,9 @@ function AppelInner() {
   const mm = Math.floor(ecouleS / 60);
   const ss = String(ecouleS % 60).padStart(2, "0");
   const enAppel = phase === "jury-reflechit" || phase === "jury-parle" || phase === "ecoute";
+  /** Un jury n interroge pas à l aveugle : sans dossier, pas d appel. */
+  const pret = dossierSuffisant(contexte);
+  const lienDossier = mode === "soutenance" ? "/app/soutenance" : mode === "entretien" ? "/app/entretien" : `/app/m/${mode}`;
 
   if (phase === "fini" || phase === "debrief") {
     return <DebriefAppel phase={phase} debrief={debrief} erreur={erreur} historique={historique} persona={p} dureeS={ecouleS} sessionId={sessionId} camera={bilanCamera} grille={evaluation} onRecommencer={() => setPhase("idle")} />;
@@ -489,24 +543,69 @@ function AppelInner() {
           </span>
         </label>
         <div className="appel-contexte">
-          <IconeBadge nom={contexte ? "valide" : "alerte"} teinte={contexte ? "vert" : "or"} taille={32} />
+          <IconeBadge nom={pret ? "valide" : "alerte"} teinte={pret ? "vert" : "or"} taille={32} />
           <span>
-            {contexte ? (
+            {pret ? (
               <>
-                <b>Le {p.nom.toLowerCase()} connaît ton dossier</b>
-                <small>{Math.round(contexte.length / 1000)} k caractères : il posera des questions précises sur ce que tu as déposé.</small>
+                <b>Le {p.nom.toLowerCase()} a ton dossier</b>
+                <small>{Math.round(contexte.length / 1000)} k caractères déposés. Il le lit avant de te parler, puis t&apos;interroge dessus.</small>
               </>
             ) : (
               <>
-                <b>Aucun dossier pour cet oral</b>
-                <small>Il posera des questions générales. Dépose tes slides, ton CV ou ton dossier dans le module pour des questions sur ton projet.</small>
+                <b>Dépose ton dossier d&apos;abord</b>
+                <small>Un jury n&apos;interroge pas à l&apos;aveugle. Dépose tes diapositives et ton mémoire (ou ton CV et l&apos;offre) : il les lira avant l&apos;appel.</small>
               </>
             )}
           </span>
         </div>
-        <button className="btn primary big lanceur-btn" onClick={() => void demarrer()} disabled={!supporte.micro}>
-          <Icone nom="micro" /> Lancer l&apos;appel avec le {p.nom.toLowerCase()}
-        </button>
+
+        {fiche && (
+          <div className="appel-fiche">
+            <span className="carte-titre">
+              <Icone nom="memoire" taille={15} /> Ce que le jury a compris de ton dossier
+            </span>
+            {fiche.sujet && <p className="appel-fiche-sujet">{fiche.sujet}</p>}
+            {fiche.angles.length > 0 && (
+              <>
+                <b>Ce qu&apos;il compte creuser</b>
+                <ol>
+                  {fiche.angles.map((a, i) => (
+                    <li key={i}>{a}</li>
+                  ))}
+                </ol>
+              </>
+            )}
+            {fiche.fragilites.length > 0 && (
+              <>
+                <b>Les fragilités qu&apos;il a repérées</b>
+                <ul>
+                  {fiche.fragilites.map((f, i) => (
+                    <li key={i}>{f}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+            <p className="report-note" style={{ textAlign: "left" }}>
+              Tu vois ses notes avant lui : c&apos;est fait exprès. Travaille ces points — il n&apos;ira pas poser exactement ces questions, mais il ira par là.
+            </p>
+          </div>
+        )}
+
+        {pret ? (
+          <button className="btn primary big lanceur-btn" onClick={() => void demarrer()} disabled={!supporte.micro || lecture}>
+            {lecture ? (
+              "Le jury lit ton dossier…"
+            ) : (
+              <>
+                <Icone nom="micro" /> {fiche ? `Lancer l'appel avec le ${p.nom.toLowerCase()}` : "Faire lire mon dossier, puis lancer l'appel"}
+              </>
+            )}
+          </button>
+        ) : (
+          <Link href={lienDossier} className="btn primary big lanceur-btn">
+            <Icone nom="memoire" /> Déposer mon dossier
+          </Link>
+        )}
         <p className="lanceur-note">
           Il parle, tu réponds, il rebondit. Quand tu as fini de répondre, tais-toi deux secondes — ou appuie sur « J&apos;ai fini ». Un appel compte pour un seul appel IA sur ton quota, plus un pour le débrief.
         </p>

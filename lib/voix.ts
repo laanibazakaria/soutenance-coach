@@ -41,7 +41,7 @@ export async function meilleureVoix(langue: "fr" | "en"): Promise<SpeechSynthesi
 let enCours: SpeechSynthesisUtterance | null = null;
 
 /** Dit le texte, et se résout quand c'est fini (ou interrompu). */
-export function parler(texte: string, langue: "fr" | "en", voix: SpeechSynthesisVoice | null, options: { debit?: number } = {}): Promise<void> {
+export function parler(texte: string, langue: "fr" | "en", voix: SpeechSynthesisVoice | null, options: { debit?: number; hauteur?: number } = {}): Promise<void> {
   return new Promise((resolve) => {
     if (!voixDisponible()) return resolve();
     window.speechSynthesis.cancel();
@@ -49,7 +49,7 @@ export function parler(texte: string, langue: "fr" | "en", voix: SpeechSynthesis
     u.lang = langue === "en" ? "en-US" : "fr-FR";
     if (voix) u.voice = voix;
     u.rate = options.debit ?? 1;
-    u.pitch = 1;
+    u.pitch = options.hauteur ?? 1;
     let fini = false;
     const terminer = () => {
       if (fini) return;
@@ -178,4 +178,50 @@ export function taireNaturel(): void {
     void contexteAudio.close().catch(() => {});
     contexteAudio = null;
   }
+}
+
+/**
+ * Un timbre par membre du jury. Deux leviers, parce qu'un seul ne suffit
+ * pas : une voix différente quand le navigateur en a plusieurs (Edge en a
+ * treize en français), et une hauteur propre — qui, elle, s'entend même
+ * quand une seule voix est installée.
+ */
+const TIMBRES: Record<Timbre, { fr: string[]; en: string[]; hauteur: number; debit: number }> = {
+  grave: { fr: ["Henri", "Remy", "Jérôme", "Alain", "Claude", "Paul"], en: ["Andrew", "Guy", "Christopher"], hauteur: 0.82, debit: 0.98 },
+  claire: { fr: ["Denise", "Vivienne", "Éloise", "Julie", "Céline"], en: ["Ava", "Emma", "Jenny"], hauteur: 1.12, debit: 1.04 },
+  vive: { fr: ["Josephine", "Brigitte", "Amélie", "Charline"], en: ["Aria", "Michelle"], hauteur: 1.2, debit: 1.1 },
+  posee: { fr: ["Maurice", "Yves", "Thomas", "Antoine"], en: ["Brian", "Eric"], hauteur: 0.94, debit: 0.95 },
+};
+
+export interface VoixMembre {
+  voix: SpeechSynthesisVoice | null;
+  hauteur: number;
+  debit: number;
+}
+
+/**
+ * Attribue une voix distincte à chaque timbre : on ne réutilise jamais la
+ * même tant qu'il en reste une libre, sinon deux membres du jury auraient la
+ * même voix et la mise en scène tomberait à plat.
+ */
+export async function voixParTimbre(langue: "fr" | "en"): Promise<Record<Timbre, VoixMembre>> {
+  const toutes = await listerVoix();
+  const prefixe = langue === "en" ? "en" : "fr";
+  const candidates = toutes.filter((v) => v.lang.toLowerCase().startsWith(prefixe));
+  const prises = new Set<string>();
+  const sortie = {} as Record<Timbre, VoixMembre>;
+
+  for (const timbre of Object.keys(TIMBRES) as Timbre[]) {
+    const t = TIMBRES[timbre];
+    const noms = langue === "en" ? t.en : t.fr;
+    const choisie =
+      noms.map((n) => candidates.find((v) => v.name.includes(n) && !prises.has(v.name))).find(Boolean) ??
+      candidates.find((v) => /natural|neural|online/i.test(v.name) && !prises.has(v.name)) ??
+      candidates.find((v) => !prises.has(v.name)) ??
+      candidates[0] ??
+      null;
+    if (choisie) prises.add(choisie.name);
+    sortie[timbre] = { voix: choisie ?? null, hauteur: t.hauteur, debit: t.debit };
+  }
+  return sortie;
 }

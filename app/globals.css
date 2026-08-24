@@ -1098,6 +1098,17 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
 h1, h2, h3, .list-title, .accueil-bonjour, .porte-formulaire h1 { text-wrap: balance; }
 p, .session-meta, .kpi-detail, .grille-constat { text-wrap: pretty; }
 
+
+/* ── Les notes de lecture du jury, avant l'appel ── */
+.appel-fiche { background: var(--bg2); border: 1px solid var(--violet-border); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; text-align: left; }
+.appel-fiche .carte-titre { margin-bottom: 8px; }
+.appel-fiche-sujet { font-size: 0.95rem; font-weight: 600; color: var(--txt); margin-bottom: 12px; line-height: 1.5; }
+.appel-fiche b { display: block; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 10px 0 5px; }
+.appel-fiche ol, .appel-fiche ul { margin: 0 0 4px; padding-left: 20px; }
+.appel-fiche li { font-size: 0.9rem; color: var(--txt); line-height: 1.55; margin-bottom: 4px; }
+.appel-fiche ul li::marker { color: var(--gold); }
+.appel-fiche ol li::marker { color: var(--violet); font-weight: 700; }
+
 /* ═══════════════ Micro-interactions ═══════════════ */
 @keyframes pageEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 button, a[role="button"] { transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, opacity 0.15s ease; }

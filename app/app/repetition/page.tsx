@@ -231,7 +231,7 @@ export default function RepetitionPage() {
       <div className="ia-invite">
         <h2><Icone nom="slides" /> Répéter avec mes slides</h2>
         <p>Il faut d&apos;abord déposer ton support : la répétition affiche chaque diapositive et chronomètre le temps que tu passes dessus.</p>
-        <Link href="/app/slides" className="btn primary">
+        <Link href="/app/documents" className="btn primary">
           <Icone nom="document" /> Déposer mes slides
         </Link>
       </div>
@@ -260,7 +260,7 @@ export default function RepetitionPage() {
             <div>
               <b>{deck.nomFichier}</b> · {deck.slides.length} diapositives
             </div>
-            <Link href="/app/slides" className="btn small">
+            <Link href="/app/documents" className="btn small">
               Changer de support
             </Link>
           </div>

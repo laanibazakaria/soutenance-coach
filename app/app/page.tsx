@@ -9,6 +9,9 @@ import type { SessionRecord } from "@/lib/types";
 import { TOUS_LES_MODULES, lireModulesActifs, sauverModulesActifs, resumerModules, type ModuleActif, type ResumeModule } from "@/lib/preferences";
 import { pousserTout, surSynchronisation, signalerSynchronisation } from "@/lib/sync/client";
 import { lireCache } from "@/lib/ia-cache";
+import { listeDeckSauvegarde } from "@/lib/slides/persistance";
+import { estRapport } from "@/lib/rapport";
+import { CLE_RAPPORT } from "./components/RapportView";
 import type { Serie } from "@/lib/quotidien";
 import { chiffresSemaine, dateLongue, salutation } from "@/lib/accueil";
 import { useUsage } from "@/lib/usage-client";
@@ -38,6 +41,7 @@ function AccueilInner() {
   const [resumes, setResumes] = useState<ResumeModule[]>([]);
   const [serie, setSerie] = useState<Serie | null>(null);
   const [maintenant, setMaintenant] = useState<Date | null>(null);
+  const [dossierPret, setDossierPret] = useState(false);
   const { data: session } = useSession();
   const usage = useUsage();
 
@@ -50,6 +54,12 @@ function AccueilInner() {
       setResumes(a ? resumerModules(window.localStorage, s, a) : []);
       setSerie(lireCache<Serie>(window.localStorage, "serie"));
       setMaintenant(new Date());
+      // Le jury n'interroge pas à l'aveugle : sans dossier, l'appel refuse. Autant
+      // que l'accueil envoie au dépôt plutôt qu'au mur.
+      setDossierPret(
+        listeDeckSauvegarde(window.localStorage) !== null ||
+          estRapport(lireCache<unknown>(window.localStorage, CLE_RAPPORT)),
+      );
     };
     lire();
     return surSynchronisation(lire);
@@ -267,7 +277,7 @@ function AccueilInner() {
         <EtatVide
           icone="micro"
           titre="Ta première session : deux minutes"
-          texte="Parle comme si le jury était en face. À la fin, quatre mesures honnêtes — sans note, sans jugement — et chaque session suivante te montre ta progression."
+          texte="Parle comme si le jury était en face. À la fin, quatre mesures calculées — pas une impression — et chaque session suivante te montre ta progression."
           action={{ libelle: "Lancer ma première session →", href: "/app/session" }}
           secondaire={
             <a href="/demo-capture.html?vers=/app">Voir l&apos;application avec un exemple rempli</a>
@@ -306,10 +316,14 @@ function AccueilInner() {
             <Icone nom="appel" taille={18} /> L&apos;appel avec le jury IA
             <span className="accueil-nouveau">Nouveau</span>
           </span>
-          <p>Un vrai oral en direct : le jury parle, tu réponds au micro, il rebondit sur ce que tu viens de dire. Puis le débrief complet — ce qui a marché, les moments manqués, le plan d&apos;action.</p>
+          <p>
+            {dossierPret
+              ? "Un vrai oral en direct : le jury parle, tu réponds au micro, il rebondit sur ce que tu viens de dire. Puis le débrief complet — ce qui a marché, les moments manqués, le plan d'action."
+              : "Un vrai oral en direct : le jury parle, tu réponds au micro, il rebondit. Mais il lit ton dossier avant de t'interroger — c'est par là qu'on commence."}
+          </p>
         </div>
-        <Link href="/app/appel" className="btn accueil-bandeau-btn">
-          Lancer l&apos;appel →
+        <Link href={dossierPret ? "/app/appel" : "/app/documents"} className="btn accueil-bandeau-btn">
+          {dossierPret ? "Lancer l'appel →" : "Déposer mon dossier →"}
         </Link>
       </section>
     </div>

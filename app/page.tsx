@@ -8,7 +8,7 @@ const OUTILS: ReadonlyArray<{ icone: NomIcone; titre: string; texte: string }> =
   { icone: "calendrier", titre: "Le parcours J-X", texte: "Ta date, ton format, et chaque jour ce qu'il faut faire : les étapes prouvées par ton activité se cochent seules." },
   { icone: "slides", titre: "Répéter avec tes slides", texte: "La diapositive à l'écran, un chrono par diapositive comparé au minutage de ton pitch. Tu sauras laquelle mange le temps." },
   { icone: "fiches", titre: "Les fiches à mémoriser", texte: "Chiffres, définitions, choix à justifier, questions pièges — tirés de tes slides, révisés avec rappel espacé." },
-  { icone: "message", titre: "L'avis du coach", texte: "Ce que tu as oublié de tes diapositives, ce qui était confus, quoi dire autrement. Des conseils, jamais une note." },
+  { icone: "message", titre: "L'avis du coach", texte: "Ce que tu as oublié de tes diapositives, ce qui était confus, quoi dire autrement. Des conseils, et une note calculée sur douze critères pondérés — jamais improvisée." },
   { icone: "soutenance", titre: "Le jury qui t'interroge", texte: "Des questions propres à ton projet, tu réponds au micro, et un avis de jury sur chaque réponse." },
   { icone: "entretien", titre: "L'entretien d'embauche", texte: "Ton CV et l'offre : les questions que ce recruteur te posera, « présentez-vous » en 2 minutes, une simulation RH ou technique qui relance, la méthode STAR." },
   { icone: "pitch", titre: "Le pitch de projet", texte: "Concours d'innovation, startup, hackathon : ton dossier, les questions d'un jury d'innovation, un pitch de 3 minutes chronométré, la preuve avant la promesse." },
@@ -262,7 +262,9 @@ export default function LandingPage() {
             Un modèle de langage se trompe de manière <i>plausible</i> : une note fausse ressemble à
             une note juste, et rien ne la distingue. Ici, <b>chaque mesure est calculée par du code
             déterministe et testé</b> — plus de 200 tests automatisés le vérifient à chaque modification.
-            L&apos;IA, elle, rédige : un pitch, des questions, des fiches, un avis — jamais une note.
+            L&apos;IA, elle, juge chaque critère et rédige : un pitch, des questions, des fiches, un avis. La
+            note, c&apos;est le code qui la calcule à partir de ces critères et de leurs poids — jamais
+            le modèle.
           </p>
           <p className="lp-p">
             Et quand les données ne suffisent pas, l&apos;application <b>s&apos;abstient</b> : elle

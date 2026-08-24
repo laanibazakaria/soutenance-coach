@@ -20,8 +20,8 @@ export const ONGLETS_MODULES: ReadonlyArray<{ id: string; racines: readonly stri
       { href: "/app/slides", label: "Slides" },
       { href: "/app/repetition", label: "Répéter" },
       { href: "/app/fiches", label: "Fiches" },
-      { href: "/app/soutenance-blanche", label: "Blanche" },
-      { href: "/app/appel?mode=soutenance", label: "Appel IA" },
+      { href: "/app/soutenance-blanche", label: "Soutenance blanche" },
+      { href: "/app/appel?mode=soutenance", label: "Appel avec le jury" },
       { href: "/app/guide", label: "Guide", exact: true },
     ],
   },
@@ -30,7 +30,7 @@ export const ONGLETS_MODULES: ReadonlyArray<{ id: string; racines: readonly stri
     racines: ["/app/entretien", "/app/guide-entretien"],
     onglets: [
       { href: "/app/entretien", label: "Préparer", exact: true },
-      { href: "/app/appel?mode=entretien", label: "Appel IA" },
+      { href: "/app/appel?mode=entretien", label: "Appel avec le jury" },
       { href: "/app/guide-entretien", label: "Guide" },
     ],
   },
@@ -39,7 +39,7 @@ export const ONGLETS_MODULES: ReadonlyArray<{ id: string; racines: readonly stri
     racines: ["/app/m/pitch", "/app/guide-pitch"],
     onglets: [
       { href: "/app/m/pitch", label: "Préparer", exact: true },
-      { href: "/app/appel?mode=pitch", label: "Appel IA" },
+      { href: "/app/appel?mode=pitch", label: "Appel avec le jury" },
       { href: "/app/guide-pitch", label: "Guide" },
     ],
   },
@@ -48,7 +48,7 @@ export const ONGLETS_MODULES: ReadonlyArray<{ id: string; racines: readonly stri
     racines: ["/app/m/concours", "/app/guide-concours"],
     onglets: [
       { href: "/app/m/concours", label: "Préparer", exact: true },
-      { href: "/app/appel?mode=concours", label: "Appel IA" },
+      { href: "/app/appel?mode=concours", label: "Appel avec le jury" },
       { href: "/app/guide-concours", label: "Guide" },
     ],
   },

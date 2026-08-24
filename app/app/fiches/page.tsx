@@ -55,7 +55,7 @@ export default function FichesPage() {
       <div className="ia-invite">
         <h2><Icone nom="fiches" /> Fiches à mémoriser</h2>
         <p>Dépose d&apos;abord ton support : les fiches sont tirées de tes diapositives — tes chiffres, tes définitions, tes choix à justifier.</p>
-        <Link href="/app/slides" className="btn primary">
+        <Link href="/app/documents" className="btn primary">
           <Icone nom="document" /> Déposer mes slides
         </Link>
       </div>

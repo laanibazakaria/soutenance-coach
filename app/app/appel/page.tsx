@@ -75,6 +75,16 @@ function contexteDepuisAppareil(mode: ModeAppel): string {
 }
 
 /**
+ * Dire la taille d'un dossier en pages, pas en caractères : « environ 42 pages »
+ * parle à qui a déposé un mémoire ; « 96 k caractères » ne parle à personne.
+ * Deux mille signes la page, la mesure courante d'un texte académique.
+ */
+function mesurerDossier(dossier: string): string {
+  const pages = Math.max(1, Math.round(dossier.length / 2000));
+  return `Environ ${pages} page${pages > 1 ? "s" : ""}`;
+}
+
+/**
  * Le dossier complet, pour la lecture : les diapositives en entier et le
  * mémoire jusqu à 60 000 caractères. Le contexte des tours reste court (la
  * latence compte à chaque question) ; la lecture, elle, a le temps.
@@ -137,6 +147,7 @@ function AppelInner() {
   const [ecouleS, setEcouleS] = useState(0);
   const [supporte, setSupporte] = useState({ micro: true, voix: true });
   const [contexte, setContexte] = useState("");
+  const [tailleDossier, setTailleDossier] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [debrief, setDebrief] = useState<Debrief | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -183,6 +194,7 @@ function AppelInner() {
 
   useEffect(() => {
     const c = contexteDepuisAppareil(mode);
+    setTailleDossier(mesurerDossier(dossierCompletPourLecture(mode)));
     setContexte(c);
     setFiche(c ? lireCache<FicheLecture>(window.localStorage, cleFiche(mode, c)) : null);
   }, [mode]);
@@ -592,7 +604,7 @@ function AppelInner() {
             {pret ? (
               <>
                 <b>Le {p.nom.toLowerCase()} a ton dossier</b>
-                <small>{Math.round(contexte.length / 1000)} k caractères déposés. Il le lit avant de te parler, puis t&apos;interroge dessus.</small>
+                <small>{tailleDossier} déposés — il les lit en entier, ligne à ligne, avant de te parler.</small>
               </>
             ) : (
               <>
@@ -659,6 +671,10 @@ function AppelInner() {
         )}
         <p className="lanceur-note">
           Il parle, tu réponds, il rebondit. Quand tu as fini de répondre, tais-toi deux secondes — ou appuie sur « J&apos;ai fini ». Un appel compte pour un seul appel IA sur ton quota, plus un pour le débrief.
+        </p>
+        <p className="report-note">
+          L&apos;appel ne travaille que les questions. Pour rejouer l&apos;oral entier, ton exposé
+          chronométré compris, passe par <Link href="/app/soutenance-blanche">la soutenance blanche</Link>.
         </p>
       </div>
     );

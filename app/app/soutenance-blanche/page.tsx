@@ -166,6 +166,11 @@ export default function SoutenanceBlanchePage() {
             </Link>
           </div>
           <p className="report-note">Compte 25 à 35 minutes. Prévois le micro, un verre d&apos;eau, et personne dans la pièce — comme le jour J.</p>
+          <p className="report-note">
+            Elle rejoue l&apos;oral entier, ton exposé compris. Si tu veux seulement travailler les
+            questions, en un quart d&apos;heure, prends{" "}
+            <Link href="/app/appel?mode=soutenance">l&apos;appel avec le jury</Link>.
+          </p>
         </div>
       </div>
     );

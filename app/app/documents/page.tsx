@@ -23,7 +23,8 @@ export const dynamic = "force-static";
 /** Le mot juste : « 41 pages · 12 k mots », pas « objet enregistré ». */
 function detailDeck(d: Deck): string {
   const mots = d.slides.reduce((n, s) => n + s.texte.split(/\s+/).filter(Boolean).length, 0);
-  return `${d.slides.length} diapositive${d.slides.length > 1 ? "s" : ""} · ${Math.round(mots / 100) / 10} k mots lus`;
+  const compte = mots < 1000 ? `${mots} mots lus` : `${Math.round(mots / 100) / 10} k mots lus`;
+  return `${d.slides.length} diapositive${d.slides.length > 1 ? "s" : ""} · ${compte}`;
 }
 
 /**
@@ -118,7 +119,7 @@ export default function DocumentsPage() {
           </p>
         </div>
         {prets > 0 && (
-          <Link href="/app/appel?mode=soutenance" className="btn primary">
+          <Link href="/app/appel?mode=soutenance" className={`btn${prets === 2 ? " primary" : ""}`}>
             <Icone nom="appel" /> Lancer l&apos;appel
           </Link>
         )}

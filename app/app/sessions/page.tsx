@@ -143,9 +143,6 @@ function SessionsInner() {
           <Link href="/app/bilan" className="btn small">
             <Icone nom="document" /> Bilan
           </Link>
-          <Link href="/app/session" className="btn small primary">
-            <Icone nom="micro" /> Nouvelle session
-          </Link>
         </div>
       </div>
       <label className="champ champ-large recherche">

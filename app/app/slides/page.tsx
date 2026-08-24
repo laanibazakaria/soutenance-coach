@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { extraireDeck, ExtractionError } from "@/lib/slides/extract";
 import { analyserDeck, repartirTemps } from "@/lib/slides/analyse";
 import {
   genererQuestions,
   selectionnerPourEntrainement,
-  supportExploitable,
   LIBELLES_CATEGORIES,
 } from "@/lib/jury";
-import { sauverDeck, listeDeckSauvegarde } from "@/lib/slides/persistance";
+import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { cleCache, lireCache, ecrireCache } from "@/lib/ia-cache";
 import { pitchEnTexte, type Pitch } from "@/lib/pitch";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
@@ -45,10 +43,7 @@ function corpsPour(deck: Deck, dureeMinutes: number) {
 export default function SlidesPage() {
   const [deck, setDeck] = useState<Deck | null>(null);
   const [duree, setDuree] = useState(15);
-  const [erreur, setErreur] = useState<string | null>(null);
-  const [chargement, setChargement] = useState(false);
   const [onglet, setOnglet] = useState<Onglet>("analyse");
-  const fileRef = useRef<HTMLInputElement>(null);
 
   // Résultats IA, par support + durée (cache local pour ne pas redemander).
   const [questionsIA, setQuestionsIA] = useState<JuryQuestion[] | null>(null);
@@ -75,31 +70,6 @@ export default function SlidesPage() {
     setPitch(lireCache<Pitch>(window.localStorage, cleCache("pitch", textes, String(duree))));
     setErreurIA(null);
   }, [deck, duree]);
-
-  async function charger(file: File) {
-    setErreur(null);
-    setChargement(true);
-    try {
-      const d = await extraireDeck(file);
-      if (!supportExploitable(d)) {
-        setErreur(
-          "Ce PDF ne contient pas de texte extractible — il est probablement fait d'images. L'analyse a besoin du texte de tes diapositives.",
-        );
-        setDeck(null);
-      } else {
-        setDeck(d);
-        sauverDeck(window.localStorage, d);
-        void pousserTout();
-      }
-    } catch (e) {
-      setErreur(
-        e instanceof ExtractionError ? e.message : "Impossible de lire ce fichier. Réessaie avec un autre PDF.",
-      );
-      setDeck(null);
-    } finally {
-      setChargement(false);
-    }
-  }
 
   async function genererQuestionsIA() {
     if (!deck) return;
@@ -177,38 +147,21 @@ export default function SlidesPage() {
         </Link>
       </div>
 
-      <input
-        ref={fileRef}
-        type="file"
-        accept="application/pdf,.pdf,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-        hidden
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) void charger(f);
-          e.target.value = "";
-        }}
-      />
-
       {!deck && (
         <div className="dropzone">
           <IconeBadge nom="document" taille={56} />
-          <h2>Dépose ton PDF</h2>
+          <h2>Aucun support déposé</h2>
           <p>
-            Exporte tes slides en PDF (PowerPoint : Fichier → Exporter → PDF), puis charge-les ici.
+            Dépose tes diapositives — PDF ou PowerPoint — dans tes documents : c&apos;est de là que partent l&apos;analyse,
+            le pitch et les questions du jury.
           </p>
-          <button className="btn primary" onClick={() => fileRef.current?.click()} disabled={chargement}>
-            {chargement ? "Lecture en cours…" : "Choisir un fichier PDF"}
-          </button>
+          <Link href="/app/documents" className="btn primary">
+            <Icone nom="document" /> Déposer mes diapositives →
+          </Link>
           <p className="dropzone-note">
             <Icone nom="cadenas" /> Ton fichier est lu dans ton navigateur. Seul le texte des diapositives est envoyé à
-            l&apos;IA pour le pitch et les questions — jamais le PDF.
+            l&apos;IA — jamais le fichier.
           </p>
-        </div>
-      )}
-
-      {erreur && (
-        <div className="warn" role="alert">
-          {erreur}
         </div>
       )}
 
@@ -223,9 +176,9 @@ export default function SlidesPage() {
               <Link href="/app/repetition" className="btn small">
                 <Icone nom="slides" /> Répéter avec ces slides
               </Link>
-              <button className="btn small" onClick={() => fileRef.current?.click()}>
+              <Link href="/app/documents" className="btn small">
                 Changer de fichier
-              </button>
+              </Link>
             </div>
           </div>
 

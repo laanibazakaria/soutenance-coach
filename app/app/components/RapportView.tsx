@@ -1,20 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { lireCache, ecrireCache } from "@/lib/ia-cache";
-import { estRapport, empreinteRapport, LIMITES_RAPPORT, type Rapport } from "@/lib/rapport";
-import { extraireDeck, ExtractionError } from "@/lib/slides/extract";
+import { estRapport, empreinteRapport, type Rapport } from "@/lib/rapport";
 import { LIBELLES_CATEGORIES } from "@/lib/jury";
 import type { JuryQuestion } from "@/lib/slides/types";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
-import { indexerMemoire, memoireIndexe } from "@/lib/memoire/client";
+import { memoireIndexe } from "@/lib/memoire/client";
 import { useToast } from "@/app/components/Toast";
 import { Icone } from "@/app/components/Icone";
 import ListeQuestions from "./ListeQuestions";
 
 export const CLE_RAPPORT = "rapport:texte";
 export const cleQuestionsRapport = (texte: string) => `questions-rapport:${empreinteRapport(texte)}`;
+
+/** « 97 mots lus », pas « 0.1k mots lus » : arrondir en milliers sous mille efface le nombre. */
+function motsLus(texte: string): string {
+  const n = texte.split(/\s+/).filter(Boolean).length;
+  return n < 1000 ? `${n} mots lus` : `${Math.round(n / 100) / 10} k mots lus`;
+}
 
 /**
  * Le mémoire, le rapport ou la thèse : déposé en PDF (lu dans le navigateur,
@@ -24,12 +29,9 @@ export const cleQuestionsRapport = (texte: string) => `questions-rapport:${empre
 export default function RapportView() {
   const [rapport, setRapport] = useState<Rapport | null | undefined>(undefined);
   const [questions, setQuestions] = useState<JuryQuestion[] | null>(null);
-  const [lecture, setLecture] = useState(false);
   const [generation, setGeneration] = useState(false);
   const [ouvert, setOuvert] = useState(false);
-  const [indexation, setIndexation] = useState<{ fait: number; total: number } | null>(null);
   const [passagesPrets, setPassagesPrets] = useState<number | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -43,42 +45,6 @@ export default function RapportView() {
     void memoireIndexe().then((i) => setPassagesPrets(i?.passages.length ?? null));
     return surSynchronisation(lire);
   }, []);
-
-  /** L'index de recherche : pendant l'appel, le jury citera les bons passages. */
-  async function construireIndex(texte: string, nomFichier: string, pages?: string[]) {
-    setIndexation({ fait: 0, total: 1 });
-    const r = await indexerMemoire(texte, nomFichier, (fait, total) => setIndexation({ fait, total }), pages);
-    setIndexation(null);
-    if (r.ok) {
-      setPassagesPrets(r.passages);
-      toast.success(`Mémoire indexé : ${r.passages} passages. Le jury pourra t'interroger dessus.`);
-    } else {
-      setPassagesPrets(null);
-      toast.error(r.message ?? "L'index du mémoire n'a pas pu être construit.");
-    }
-  }
-
-  async function deposer(file: File) {
-    setLecture(true);
-    try {
-      const deck = await extraireDeck(file);
-      const texte = deck.slides.map((s) => s.texte).join("\n\n").slice(0, LIMITES_RAPPORT.texteChars);
-      if (deck.slides.length < LIMITES_RAPPORT.pagesMin || texte.trim().length < 500) {
-        throw new ExtractionError("Ce document est trop court ou sans texte lisible (scanné ?). Dépose le PDF texte de ton mémoire, ou ton .pptx.");
-      }
-      const r: Rapport = { nomFichier: file.name, pages: deck.slides.length, texte, misAJourLe: new Date().toISOString() };
-      ecrireCache(window.localStorage, CLE_RAPPORT, r);
-      setRapport(r);
-      setQuestions(lireCache<JuryQuestion[]>(window.localStorage, cleQuestionsRapport(texte)));
-      void pousserTout();
-      toast.success(`${deck.slides.length} pages lues. Seul le texte est conservé.`);
-      await construireIndex(texte, file.name, deck.slides.map((s) => s.texte));
-    } catch (e) {
-      toast.error(e instanceof ExtractionError ? e.message : "Le document n'a pas pu être lu.");
-    } finally {
-      setLecture(false);
-    }
-  }
 
   async function generer() {
     if (!rapport) return;
@@ -107,30 +73,19 @@ export default function RapportView() {
 
   return (
     <section className="card rapport" id="rapport">
-      <input
-        ref={fileRef}
-        type="file"
-        accept="application/pdf,.pdf,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-        hidden
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) void deposer(f);
-          e.target.value = "";
-        }}
-      />
       <div className="list-head" style={{ margin: 0 }}>
         <div>
           <h2 className="list-title" style={{ margin: 0 }}>
             <Icone nom="memoire" /> Ton mémoire, ton rapport, ta thèse
           </h2>
           <p className="session-meta">
-            {rapport ? `${rapport.nomFichier} · ${rapport.pages} pages · ${Math.round(rapport.texte.split(/\s+/).length / 100) / 10}k mots lus` : "Le rapporteur l'a lu de près : c'est là qu'il prend ses questions de fond."}
+            {rapport ? `${rapport.nomFichier} · ${rapport.pages} pages · ${motsLus(rapport.texte)}${passagesPrets ? ` · ${passagesPrets} passages indexés` : ""}` : "Le rapporteur l'a lu de près : c'est là qu'il prend ses questions de fond."}
           </p>
         </div>
         <div className="list-actions">
-          <button className="btn small" onClick={() => fileRef.current?.click()} disabled={lecture}>
-            {lecture ? "Lecture…" : rapport ? "Changer de document" : <><Icone nom="memoire" /> Déposer mon document</>}
-          </button>
+          <Link href="/app/documents" className={`btn small${rapport ? "" : " primary"}`}>
+            {rapport ? "Changer de document" : <><Icone nom="memoire" /> Déposer mon document</>}
+          </Link>
           {rapport && (
             <button className="btn small primary" onClick={() => void generer()} disabled={generation}>
               {generation ? "Le rapporteur lit…" : questions ? <><Icone nom="rafraichir" /> Régénérer</> : <><Icone nom="etincelles" /> Questions du rapporteur</>}
@@ -138,7 +93,7 @@ export default function RapportView() {
           )}
         </div>
       </div>
-      {!rapport && <p className="report-note" style={{ textAlign: "left", marginTop: 10 }}>Lu dans ton navigateur, seul le texte est conservé — jamais le fichier. PDF ou PowerPoint (.pptx). Un mémoire de 40 à 100 pages convient.</p>}
+      {!rapport && <p className="report-note" style={{ textAlign: "left", marginTop: 10 }}>Il se dépose avec le reste de ton dossier, dans <Link href="/app/documents">tes documents</Link>. PDF ou PowerPoint (.pptx) ; un mémoire de 40 à 100 pages convient.</p>}
       {questions && (
         <>
           <button className="link-btn" style={{ marginTop: 12 }} onClick={() => setOuvert((v) => !v)} aria-expanded={ouvert}>

@@ -240,12 +240,12 @@ function PiedUtilisateur() {
   );
 }
 
-/** Onglets du bas (mobile) : accueil, sessions, enregistrer, mon premier oral, guides. */
+/** Onglets du bas (mobile) : l'ordre du parcours — déposer, répéter, revoir.
+ *  La barre latérale est masquée sous 900 px : ces cinq onglets sont toute la
+ *  navigation, d'où la place donnée aux documents plutôt qu'au premier module,
+ *  déjà atteignable depuis l'accueil. */
 export function OngletsMobiles() {
   const chemin = usePathname();
-  const actifs = useModulesActifs();
-  const premier = TOUS_LES_MODULES.find((m) => actifs.includes(m.id));
-  const moduleCourant = moduleDuChemin(chemin)?.id;
   const onglet = (href: string, label: string, icone: React.ReactNode, actif: boolean) => (
     <Link key={href} href={href} className={`mobile-tab${actif ? " active" : ""}`} aria-current={actif ? "page" : undefined}>
       <span className="sidebar-icone">{icone}</span>
@@ -255,13 +255,11 @@ export function OngletsMobiles() {
   return (
     <nav className="mobile-tabs" aria-label="Sections">
       {onglet("/app", "Accueil", I.accueil, chemin === "/app")}
-      {onglet("/app/sessions", "Sessions", I.sessions, chemin.startsWith("/app/sessions"))}
+      {onglet("/app/documents", "Documents", I.documents, chemin.startsWith("/app/documents"))}
       <Link href="/app/session" className="mobile-tab mobile-tab-record" aria-label="Nouvelle session">
         <span className="mobile-record">{I.micro}</span>
       </Link>
-      {premier
-        ? onglet(premier.hub, premier.nom.split(" ")[0], ICONES_MODULES[premier.id], moduleCourant === premier.id)
-        : onglet("/app?choisir=1", "Oraux", I.plus, false)}
+      {onglet("/app/sessions", "Sessions", I.sessions, chemin.startsWith("/app/sessions"))}
       {onglet("/app/guides", "Guides", I.guides, chemin === "/app/guides")}
     </nav>
   );

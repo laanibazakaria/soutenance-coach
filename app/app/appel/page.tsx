@@ -604,7 +604,7 @@ function AppelInner() {
             {pret ? (
               <>
                 <b>Le {p.nom.toLowerCase()} a ton dossier</b>
-                <small>{tailleDossier} déposés — il les lit en entier, ligne à ligne, avant de te parler.</small>
+                <small>{tailleDossier} dans ton dossier — il les lit en entier, ligne à ligne, avant de te parler.</small>
               </>
             ) : (
               <>

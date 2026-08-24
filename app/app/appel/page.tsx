@@ -38,6 +38,8 @@ type Phase = "idle" | "jury-reflechit" | "jury-parle" | "ecoute" | "debrief" | "
 
 const MODES: ModeAppel[] = ["soutenance", "entretien", "pitch", "concours"];
 const SILENCE_MS = 2600;
+/** Deux réponses vides d'affilée : on propose une sortie, sans présumer pourquoi. */
+const SILENCES_AVANT_ALERTE = 2;
 const REPONSE_MAX_MS = 150_000;
 
 function getRecognitionCtor(): (new () => SpeechRecognition) | null {
@@ -142,7 +144,17 @@ function AppelInner() {
   const [dureeMin, setDureeMin] = useState<number>(10);
   const [langue, setLangue] = useState<LangueCourte>("fr");
   const [phase, setPhase] = useState<Phase>("idle");
+
+  // On marque le document plutôt que de faire descendre un drapeau jusqu'au
+  // bandeau, qui vit dans la mise en page et ne connaît pas cette page.
+  useEffect(() => {
+    const enCours = phase !== "idle" && phase !== "debrief";
+    document.body.classList.toggle("appel-en-cours", enCours);
+    return () => document.body.classList.remove("appel-en-cours");
+  }, [phase]);
   const [historique, setHistorique] = useState<Message[]>([]);
+  const dernierMembre = [...historique].reverse().find((m) => m.role === "assistant" && m.membre)?.membre;
+  const membreCourant = dernierMembre ? membreParId(mode, dernierMembre) : null;
   const [interim, setInterim] = useState("");
   const [ecouleS, setEcouleS] = useState(0);
   const [supporte, setSupporte] = useState({ micro: true, voix: true });
@@ -169,6 +181,8 @@ function AppelInner() {
   const recRef = useRef<SpeechRecognition | null>(null);
   const finalRef = useRef("");
   const silenceRef = useRef<number | null>(null);
+  const silencesRef = useRef(0);
+  const [muet, setMuet] = useState(false);
   const maxRef = useRef<number | null>(null);
   const debutRef = useRef(0);
   const arreteRef = useRef(false);
@@ -437,7 +451,17 @@ function AppelInner() {
       nettoyerEcoute();
       const texte = finalRef.current.trim();
       setInterim("");
-      const nouveau: Message[] = texte ? [...hist, { role: "user", content: texte }] : [...hist, { role: "user", content: langue === "en" ? "(silence)" : "(silence)" }];
+      if (texte) {
+        silencesRef.current = 0;
+        setMuet(false);
+      } else {
+        silencesRef.current += 1;
+      }
+      // Deux blancs de suite : on le signale pendant l'appel plutôt qu'au
+      // débrief. Micro coupé ou candidat bloqué, la suite est la même — le jury
+      // ne doit pas continuer à empiler des questions dans le vide.
+      if (silencesRef.current >= SILENCES_AVANT_ALERTE) setMuet(true);
+      const nouveau: Message[] = texte ? [...hist, { role: "user", content: texte }] : [...hist, { role: "user", content: "(silence)" }];
       historiqueRef.current = nouveau;
       setHistorique(nouveau);
       void tourDuJury(nouveau);
@@ -694,10 +718,11 @@ function AppelInner() {
           <div className={`appel-avatar${phase === "jury-parle" ? " parle" : phase === "jury-reflechit" ? " reflechit" : ""}`}>
             <Icone nom={mode} taille={40} />
           </div>
+          {membreCourant && <p className="appel-membre">{membreCourant.nom}</p>}
           <p className="appel-etat" aria-live="polite">
             {phase === "jury-reflechit" && "Le jury réfléchit…"}
-            {phase === "jury-parle" && "Le jury parle — écoute."}
-            {phase === "ecoute" && "À toi. Il t'écoute."}
+            {phase === "jury-parle" && `${membreCourant?.nom ?? "Le jury"} parle — écoute.`}
+            {phase === "ecoute" && `À toi. ${membreCourant?.nom ?? "Le jury"} t'écoute.`}
           </p>
         </div>
         <div className="appel-dialogue" aria-label="Échange">
@@ -714,6 +739,12 @@ function AppelInner() {
           )}
         </div>
         <div className="actions appel-actions">
+          {muet && (
+            <p className="appel-muet" role="status">
+              Rien n&apos;a été capté depuis {silencesRef.current} questions. Vérifie que ton micro
+              est autorisé — ou raccroche et reprends quand tu es prêt.
+            </p>
+          )}
           {phase === "ecoute" && (
             <button className="btn primary" onClick={() => finirReponseRef.current()}>
               <Icone nom="check" /> J&apos;ai fini ma réponse

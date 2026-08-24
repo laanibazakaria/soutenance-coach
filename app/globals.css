@@ -623,6 +623,13 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
 .hero::after { content: ""; position: absolute; right: -80px; top: -120px; width: 320px; height: 320px; border-radius: 50%; background: rgba(245, 158, 11, 0.18); filter: blur(2px); }
 .hero::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px); background-size: 28px 28px; mask-image: linear-gradient(to bottom, rgba(11, 43, 41, 0.7), transparent); pointer-events: none; }
 .hero-inner { max-width: 920px; margin: 0 auto; padding: 0 28px; position: relative; }
+
+/* Un oral en cours n'a pas besoin d'un titre de page : la question du jury et
+   l'état du micro sont tout ce qui compte à cet instant. Le bandeau se replie,
+   et réapparaît au débrief. */
+body.appel-en-cours .hero { padding: 0; max-height: 0; }
+body.appel-en-cours .hero-inner { visibility: hidden; }
+body.appel-en-cours .module-tabs { display: none; }
 .hero-section { display: inline-block; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; color: rgba(255, 255, 255, 0.8); background: rgba(255, 255, 255, 0.14); border-radius: 99px; padding: 4px 12px; margin-bottom: 12px; }
 .hero-titre { color: #fff; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 6px; }
 .hero-sous { color: rgba(255, 255, 255, 0.82); max-width: 640px; font-size: 0.95rem; line-height: 1.55; }
@@ -967,6 +974,8 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
 @keyframes onde { 0% { transform: scale(0.9); opacity: 0.6; } 100% { transform: scale(1.35); opacity: 0; } }
 @keyframes respire { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 .appel-etat { font-weight: 600; color: var(--muted); font-size: 0.95rem; }
+.appel-membre { font-weight: 700; font-size: 0.86rem; color: var(--violet); letter-spacing: 0.01em; }
+.appel-muet { width: 100%; text-align: center; font-size: 0.86rem; color: #92400e; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 12px; padding: 10px 14px; margin-bottom: 4px; }
 .appel-ecoute .appel-etat { color: var(--violet); }
 .appel-dialogue { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; padding: 4px 2px; margin-bottom: 16px; }
 .appel-dialogue-complet { max-height: none; margin-top: 10px; }

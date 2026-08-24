@@ -170,11 +170,23 @@ export function construirePromptTour(c: ContexteAppel, ecouleS: number): string 
   return [
     `Tu joues TOUT un jury d'oral, en direct, à la voix. ${langue}`,
     `LE JURY (${membres.length} personnes distinctes, qui ne cherchent pas la même chose) :\n${membres.map((m) => `- ${m.id} — ${m.nom} : ${m.role}. Ce qui l'intéresse : ${m.obsession}.`).join("\n")}`,
-    `À chaque tour, UNE SEULE personne parle. Choisis laquelle selon ce que le candidat vient de dire : celui dont c'est le domaine enchaîne. Fais tourner la parole — deux questions d'affilée de la même personne, seulement si elle creuse vraiment sa réponse précédente.${precedent ? ` La dernière personne à avoir parlé était « ${precedent.id} ».` : ""}`,
+    `À chaque tour, UNE SEULE personne parle. Choisis laquelle selon ce que le candidat vient de dire : celui dont c'est le domaine enchaîne. Fais tourner la parole — deux questions d'affilée de la même personne, seulement si elle creuse vraiment sa réponse précédente, ou si le candidat n'a rien répondu (voir plus bas).${precedent ? ` La dernière personne à avoir parlé était « ${precedent.id} ».` : ""}`,
     `Axes à couvrir au fil de l'oral (pas dans l'ordre, pas tous) : ${p.axes.map((a, i) => `${i + 1}) ${a}`).join(" ; ")}.`,
     "COMMENT ON PARLE : une seule question à la fois, une ou deux phrases, comme à l'oral. Réagis à ce qui vient d'être dit : si c'est vague, demande un exemple ou un chiffre précis ; si ça contredit le dossier, relève-le calmement en citant le dossier ; si c'est solide, dis-le en trois mots et passe à autre chose. Ne donne jamais la réponse. Ne commente jamais la forme (débit, hésitations, « euh »).",
+    // Le client envoie « (silence) » quand le candidat n'a rien dit. Sans
+    // consigne, le modèle traitait ce vide comme une réponse : il enchaînait
+    // une question plus dure, en tenant pour acquis ce qui n'avait jamais été
+    // confirmé. Un jury, devant un blanc, relance — il n'empile pas.
+    "SI LE CANDIDAT N'A RIEN DIT (sa dernière réponse est « (silence) » ou vide) : ne pose PAS de nouvelle question et n'ajoute aucun reproche. La même personne reprend la parole, reformule sa question plus simplement ou la découpe en deux, ou propose de passer à autre chose. Un silence n'est jamais un aveu : n'en déduis rien, et ne traite pas comme acquis ce que le candidat n'a pas dit.",
+    // Le jury cite le dossier ligne à ligne, ce qui rend ses erreurs très
+    // crédibles : une référence inventée ressemble trait pour trait à une
+    // vraie. D'où l'exigence de ne citer que ce qu'on a sous les yeux.
+    "CE QUE TU CITES : ne cite une page, une ligne ou un chiffre que s'il figure vraiment dans le dossier ci-dessous. Si tu n'es pas sûr, dis « il me semble que » ou demande au candidat de te le confirmer. Quand tu tires une conclusion de ce que tu as lu, pose-la comme une question (« dois-je comprendre que… ? ») et non comme un fait établi.",
     "INTERDIT : les formules de jury de théâtre. Ne dis jamais « Merci pour cette présentation », « Nous allons passer aux questions », « Pouvez-vous résumer en une phrase », ni aucune formule d'accueil passe-partout. Entre dans le vif du sujet comme quelqu'un qui a lu le dossier et qui a déjà une question en tête.",
-    c.contexte ? `LE DOSSIER DU CANDIDAT (tu l'as lu, cite-le précisément) :\n${c.contexte}` : "Tu n'as pas de dossier : pose des questions générales de ce type d'oral, puis creuse ce que le candidat raconte.",
+    c.contexte
+      ? `CE QUE TU AS SOUS LES YEUX — un extrait du dossier, pas le dossier entier. Cite mot pour mot ce qui suit ; au-delà, tu te souviens du sens, pas des numéros. N'invente jamais un numéro de page, de ligne, d'annexe ou de figure absent de cet extrait : demande plutôt au candidat de te dire où ça se trouve. Et ne te contredis pas d'un tour à l'autre sur un même détail.
+${c.contexte}`
+      : "Tu n'as pas de dossier : pose des questions générales de ce type d'oral, puis creuse ce que le candidat raconte.",
     dejaPosees.length > 0 ? `DÉJÀ POSÉ lors de précédents entraînements — trouve autre chose :\n${dejaPosees.map((q: string) => `- ${q}`).join("\n")}` : "",
     `Temps : ${Math.round(ecouleS / 60)} min écoulées sur ${c.dureeMin}.`,
     phase === "conclusion"

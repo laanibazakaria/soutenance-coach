@@ -1,0 +1,74 @@
+import { describe, it, expect } from "vitest";
+import { construirePromptTour, type ContexteAppel } from "./index";
+
+/**
+ * Un appel réel a montré le défaut : le candidat n'a rien dit, le client a
+ * envoyé « (silence) », et le jury a enchaîné une question plus dure en tenant
+ * pour acquis ce qui n'avait jamais été confirmé. Le prompt ne disait rien de
+ * ce cas. Ces tests gardent la consigne en place.
+ */
+const base = (historique: ContexteAppel["historique"]): ContexteAppel => ({
+  mode: "soutenance",
+  contexte: "## Mémoire\nUn travail sur la détection d'anomalies.",
+  langue: "fr",
+  dureeMin: 10,
+  historique,
+});
+
+describe("le jury devant un silence", () => {
+  it("reçoit la conduite à tenir : relancer, jamais empiler", () => {
+    const p = construirePromptTour(base([]), 60);
+    expect(p).toContain("SI LE CANDIDAT N'A RIEN DIT");
+    expect(p).toContain("ne pose PAS de nouvelle question");
+  });
+
+  it("est prévenu qu'un silence n'est pas un aveu", () => {
+    const p = construirePromptTour(base([]), 60);
+    expect(p).toContain("Un silence n'est jamais un aveu");
+  });
+
+  it("garde le droit de reprendre la parole après un blanc", () => {
+    // La règle de rotation interdit deux tours d'affilée : sans exception
+    // nommée, les deux consignes se contrediraient.
+    const p = construirePromptTour(base([]), 60);
+    expect(p).toContain("ou si le candidat n'a rien répondu");
+  });
+});
+
+describe("ce que le jury a le droit de citer", () => {
+  it("n'invente ni page, ni ligne, ni chiffre", () => {
+    const p = construirePromptTour(base([]), 60);
+    expect(p).toContain("CE QUE TU CITES");
+    expect(p).toContain("que s'il figure vraiment dans le dossier");
+  });
+
+  it("pose ses déductions en question, pas en fait établi", () => {
+    const p = construirePromptTour(base([]), 60);
+    expect(p).toContain("et non comme un fait établi");
+  });
+});
+
+/**
+ * Un appel réel a produit trois affirmations contradictoires sur « la ligne 123
+ * de l'annexe A » : un async, puis un async sans await, puis un await bien
+ * présent. Le prompt ordonnait « cite-le précisément » alors que le modèle ne
+ * tient qu'un extrait de 7 000 signes — on lui demandait d'être précis sur ce
+ * qu'il n'a pas sous les yeux.
+ */
+describe("le dossier tel qu'il est présenté au jury", () => {
+  it("annonce un extrait, pas le dossier entier", () => {
+    const p = construirePromptTour(base([]), 60);
+    expect(p).toContain("un extrait du dossier, pas le dossier entier");
+    expect(p).not.toContain("cite-le précisément");
+  });
+
+  it("interdit les numéros inventés", () => {
+    const p = construirePromptTour(base([]), 60);
+    expect(p).toContain("N'invente jamais un numéro de page");
+  });
+
+  it("demande la cohérence d'un tour à l'autre", () => {
+    const p = construirePromptTour(base([]), 60);
+    expect(p).toContain("ne te contredis pas");
+  });
+});

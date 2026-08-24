@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decouper, similarite, retrouver, contextePassages, LIMITES_MEMOIRE, type PassageVectorise } from "../../lib/memoire";
+import { decouper, decouperPages, similarite, retrouver, contextePassages, LIMITES_MEMOIRE, type PassageVectorise } from "../../lib/memoire";
 
 const paragraphe = (mot: string, n: number) => Array.from({ length: n }, () => mot).join(" ");
 
@@ -85,5 +85,33 @@ describe("mémoire — retrouver les bons passages", () => {
     expect(bloc).toContain("douze fichiers");
     expect(bloc).toContain("n'invente rien");
     expect(contextePassages([])).toBeNull();
+  });
+});
+
+describe("mémoire — découpage page par page", () => {
+  it("étiquette chaque passage avec sa page", () => {
+    const p = decouperPages(["Introduction au problème de la transcription automatique des appels.", "La méthode repose sur douze fichiers annotés à la main par deux relecteurs."]);
+    expect(p.map((x) => x.section)).toEqual(["page 1", "page 2"]);
+    expect(p[1]!.texte).toContain("douze fichiers");
+  });
+
+  it("saute les pages de garde et les pages vides", () => {
+    const p = decouperPages(["", "   ", "Sommaire", "Un vrai paragraphe de contenu, assez long pour compter comme un passage utile."]);
+    expect(p).toHaveLength(1);
+    expect(p[0]!.section).toBe("page 4");
+  });
+
+  it("découpe une page trop longue en gardant son numéro", () => {
+    const longue = "Cette phrase mesure environ soixante-dix caractères pour le test. ".repeat(60);
+    const p = decouperPages(["Page courte mais suffisamment longue pour être retenue ici.", longue]);
+    expect(p.length).toBeGreaterThan(2);
+    expect(p.filter((x) => x.section === "page 2").length).toBeGreaterThan(1);
+    expect(p.every((x) => x.texte.length <= 2000)).toBe(true);
+  });
+
+  it("cite la page dans le contexte remis au jury", () => {
+    const passages = decouperPages(["Le taux d'erreur mot passe de 8,2 % à 6,9 % après le changement de modèle."]).map((x) => ({ ...x, vecteur: [1, 0] }));
+    const bloc = contextePassages(retrouver([1, 0], passages, 1))!;
+    expect(bloc).toContain("[Passage 1 — page 1]");
   });
 });

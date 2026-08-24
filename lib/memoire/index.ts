@@ -93,6 +93,24 @@ export function decouper(texte: string, limites = LIMITES_MEMOIRE): Passage[] {
   return passages;
 }
 
+/**
+ * Découpe un mémoire page par page : chaque passage sait d'où il vient, et le
+ * jury peut dire « à la page 12, vous écrivez… » — ce qu'un vrai rapporteur
+ * fait. C'est la voie normale, l'extraction PDF nous rendant des pages.
+ */
+export function decouperPages(pages: string[], limites = LIMITES_MEMOIRE): Passage[] {
+  const passages: Passage[] = [];
+  pages.forEach((contenu, i) => {
+    const propre = (contenu ?? "").trim();
+    if (propre.length < 40) return; // page de garde, page blanche, table des matières vide
+    for (const morceau of couperTexte(propre, limites)) {
+      if (passages.length >= limites.passagesMax) return;
+      passages.push({ numero: passages.length + 1, section: `page ${i + 1}`, texte: morceau });
+    }
+  });
+  return passages;
+}
+
 /** Similarité cosinus entre deux vecteurs de même taille. */
 export function similarite(a: number[], b: number[]): number {
   const n = Math.min(a.length, b.length);

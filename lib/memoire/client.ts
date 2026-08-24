@@ -1,6 +1,6 @@
 "use client";
 
-import { decouper, retrouver, contextePassages, LIMITES_MEMOIRE, type PassageVectorise } from "./index";
+import { decouper, decouperPages, retrouver, contextePassages, LIMITES_MEMOIRE, type PassageVectorise } from "./index";
 import { empreinte, lireIndex, sauverIndex, effacerIndex, type MemoireIndexee } from "./stockage";
 
 /**
@@ -35,12 +35,12 @@ export interface ResultatIndexation {
  * Découpe le mémoire et calcule les vecteurs. Si le document n'a pas changé,
  * on ne refait rien : c'est gratuit et instantané.
  */
-export async function indexerMemoire(texte: string, nomFichier: string, surAvancement?: (fait: number, total: number) => void): Promise<ResultatIndexation> {
+export async function indexerMemoire(texte: string, nomFichier: string, surAvancement?: (fait: number, total: number) => void, pages?: string[]): Promise<ResultatIndexation> {
   const marque = empreinte(texte);
   const existant = await lireIndex();
   if (existant?.empreinte === marque && existant.passages.length > 0) return { ok: true, passages: existant.passages.length };
 
-  const passages = decouper(texte);
+  const passages = pages && pages.length > 0 ? decouperPages(pages) : decouper(texte);
   if (passages.length === 0) return { ok: false, passages: 0, message: "Le document semble vide." };
 
   const vectorises: PassageVectorise[] = [];

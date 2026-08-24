@@ -45,9 +45,9 @@ export default function RapportView() {
   }, []);
 
   /** L'index de recherche : pendant l'appel, le jury citera les bons passages. */
-  async function construireIndex(texte: string, nomFichier: string) {
+  async function construireIndex(texte: string, nomFichier: string, pages?: string[]) {
     setIndexation({ fait: 0, total: 1 });
-    const r = await indexerMemoire(texte, nomFichier, (fait, total) => setIndexation({ fait, total }));
+    const r = await indexerMemoire(texte, nomFichier, (fait, total) => setIndexation({ fait, total }), pages);
     setIndexation(null);
     if (r.ok) {
       setPassagesPrets(r.passages);
@@ -72,7 +72,7 @@ export default function RapportView() {
       setQuestions(lireCache<JuryQuestion[]>(window.localStorage, cleQuestionsRapport(texte)));
       void pousserTout();
       toast.success(`${deck.slides.length} pages lues. Seul le texte est conservé.`);
-      await construireIndex(texte, file.name);
+      await construireIndex(texte, file.name, deck.slides.map((s) => s.texte));
     } catch (e) {
       toast.error(e instanceof ExtractionError ? e.message : "Le document n'a pas pu être lu.");
     } finally {

@@ -35,6 +35,25 @@ interface Fournisseur {
 }
 
 const FOURNISSEURS: Record<string, Fournisseur> = {
+  /**
+   * OmniRoute (MIT) : une passerelle qui expose 350 fournisseurs derrière un
+   * seul point d entrée compatible OpenAI, avec son propre repli quand un
+   * quota tombe. Elle s'exécute chez soi (`npx omniroute`, port 20128) — donc
+   * elle n existe que si OMNIROUTE_URL est renseignée, et une fonction
+   * serverless ne la voit que si elle est hébergée quelque part d'atteignable.
+   * Quand elle est là, elle passe devant : elle a bien plus de secours que nous.
+   */
+  omniroute: {
+    nom: "omniroute",
+    url: "",
+    cle: () => process.env.OMNIROUTE_API_KEY ?? (process.env.OMNIROUTE_URL ? "sans-cle" : undefined),
+    modele: () => process.env.OMNIROUTE_MODEL ?? "auto",
+    urlDynamique: () => {
+      const base = (process.env.OMNIROUTE_URL ?? "").trim().replace(/\/+$/, "");
+      if (!base) return "";
+      return base.endsWith("/chat/completions") ? base : `${base}/chat/completions`;
+    },
+  },
   mistral: {
     nom: "mistral",
     url: "https://api.mistral.ai/v1/chat/completions",
@@ -118,8 +137,8 @@ const SECOURS = ["nvidia", "cerebras", "openrouter", "cloudflare", "zai", "coher
  * précédents tombent.
  */
 const ORDRES: Record<NonNullable<OptionsIA["priorite"]>, string[]> = {
-  qualite: ["mistral", "groq", "gemini", ...SECOURS],
-  rapide: ["groq", "cerebras", "mistral", "gemini", ...SECOURS.filter((n) => n !== "cerebras")],
+  qualite: ["omniroute", "mistral", "groq", "gemini", ...SECOURS],
+  rapide: ["omniroute", "groq", "cerebras", "mistral", "gemini", ...SECOURS.filter((n) => n !== "cerebras")],
 };
 
 /** Les fournisseurs dont la clé est présente, dans l'ordre d'essai. */

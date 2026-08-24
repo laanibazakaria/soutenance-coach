@@ -129,6 +129,21 @@ function AppelInner() {
     setContexte(contexteDepuisAppareil(mode));
   }, [mode]);
 
+  // L'aperçu démarre avant l'appel : on se cadre pendant qu'on choisit sa durée,
+  // pas une fois que le jury a commencé à parler.
+  useEffect(() => {
+    if (phase !== "idle") return;
+    if (!cameraVoulue) {
+      camera.eteindre();
+      return;
+    }
+    const t = setTimeout(() => {
+      if (videoRef.current) void camera.allumer(videoRef.current);
+    }, 150);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cameraVoulue, phase]);
+
   useEffect(() => {
     if (phase === "idle" || phase === "fini" || phase === "debrief") return;
     const t = setInterval(() => setEcouleS(Math.round((Date.now() - debutRef.current) / 1000)), 1000);
@@ -377,8 +392,9 @@ function AppelInner() {
     arreteRef.current = false;
     debutRef.current = Date.now();
     setEcouleS(0);
-    // La caméra démarre en parallèle : un modèle lent ne doit jamais retarder le jury.
-    if (cameraVoulue && videoRef.current) void camera.allumer(videoRef.current);
+    // Déjà allumée depuis l'écran de lancement : on ne rattrape que le cas où
+    // la personne vient de cocher la case.
+    if (cameraVoulue && videoRef.current && camera.etat !== "active") void camera.allumer(videoRef.current);
     if (supporte.voix) voixRef.current = await meilleureVoix(langue);
     setVoixNaturelle(!voixNavigateurExcellente(voixRef.current));
     // Un premier « parler » vide débloque la synthèse vocale sur mobile (geste utilisateur requis).

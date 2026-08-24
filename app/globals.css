@@ -984,7 +984,7 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
 .porte .connexion-ou { margin: 16px 0; }
 .porte-champs { display: flex; flex-direction: column; gap: 12px; }
 .porte-champs .btn.big { justify-content: center; margin-top: 4px; }
-.porte-champs .champ small { color: var(--dim); font-weight: 400; }
+.porte-champs .champ small { color: var(--dim); font-weight: 400; font-size: 0.78rem; }
 .porte-bascule { font-size: 0.86rem; color: var(--muted); margin-top: 16px; }
 .porte-legal { font-size: 0.78rem; color: var(--dim); margin-top: 14px; }
 .porte-code { font-size: 1.5rem !important; letter-spacing: 0.4em; text-align: center; font-variant-numeric: tabular-nums; font-weight: 700; }
@@ -1145,6 +1145,12 @@ p, .session-meta, .kpi-detail, .grille-constat { text-wrap: pretty; }
   .documents-lien > .icone { display: none; }
 }
 
+/* ── Cibles tactiles : un lien-bouton mesuré fait 16 px de haut. On élargit la
+   zone touchable à 44 px sans bouger le texte d'un pixel. ── */
+@media (max-width: 768px), (pointer: coarse) {
+  .link-btn { padding-block: 14px; margin-block: -14px; }
+}
+
 /* ── Retour au clic : un bouton qui ne bouge pas sous le doigt donne
    l'impression que rien ne s'est passé. ── */
 .btn:active:not(:disabled), .format-btn:active, .link-btn:active, .card-hover:active,
@@ -1237,7 +1243,19 @@ input[type="checkbox"]:focus { box-shadow: none; outline: 2px solid var(--violet
 
 /* ═══════════════ Onglets de module ═══════════════ */
 .module-tabs { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; }
-.module-tabs-inner { max-width: 920px; margin: 0 auto; padding: 0 28px; display: flex; gap: 4px; overflow-x: auto; }
+.module-tabs-inner {
+  max-width: 920px; margin: 0 auto; padding: 0 28px; display: flex; gap: 4px; overflow-x: auto;
+  scrollbar-width: none;
+  /* Sept onglets font 550 px ; un téléphone en montre 375. Les deux premiers
+     dégradés sont attachés au contenu et masquent les deux suivants tant qu'on
+     est au bord : l'ombre n'apparaît donc que du côté où il reste à voir. */
+  background:
+    linear-gradient(to right, #fff 30%, rgba(255, 255, 255, 0)) left / 26px 100% no-repeat local,
+    linear-gradient(to left, #fff 30%, rgba(255, 255, 255, 0)) right / 26px 100% no-repeat local,
+    linear-gradient(to right, rgba(11, 43, 41, 0.14), rgba(11, 43, 41, 0)) left / 16px 100% no-repeat scroll,
+    linear-gradient(to left, rgba(11, 43, 41, 0.14), rgba(11, 43, 41, 0)) right / 16px 100% no-repeat scroll;
+}
+.module-tabs-inner::-webkit-scrollbar { display: none; }
 .module-tab { padding: 12px 14px; font-size: 0.86rem; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; font-weight: 500; }
 .module-tab:hover { color: var(--txt); }
 .module-tab.active { color: var(--violet); border-bottom-color: var(--violet); font-weight: 600; }

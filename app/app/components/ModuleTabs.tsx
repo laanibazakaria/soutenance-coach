@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -59,11 +60,21 @@ export function moduleDuChemin(chemin: string): (typeof ONGLETS_MODULES)[number]
 
 export default function ModuleTabs() {
   const chemin = usePathname();
+  const bande = useRef<HTMLDivElement>(null);
   const m = moduleDuChemin(chemin);
+
+  // Sept onglets tiennent sur 550 px ; un téléphone en montre 375. Sans cela,
+  // l'onglet où l'on se trouve peut rester hors de l'écran — on ne sait plus
+  // dans quelle section on est.
+  useEffect(() => {
+    const el = bande.current?.querySelector(".module-tab.active");
+    el?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [chemin]);
+
   if (!m) return null;
   return (
     <nav className="module-tabs" aria-label="Sections du module">
-      <div className="module-tabs-inner">
+      <div className="module-tabs-inner" ref={bande}>
         {m.onglets.map((o) => {
           const actif = o.exact ? chemin === o.href : chemin === o.href || chemin.startsWith(o.href + "/");
           return (

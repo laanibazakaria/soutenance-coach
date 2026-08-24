@@ -636,7 +636,7 @@ function AppelInner() {
                 </ul>
               </>
             )}
-            <p className="report-note" style={{ textAlign: "left" }}>
+            <p className="report-note a-gauche">
               Tu vois ses notes avant lui : c&apos;est fait exprès. Travaille ces points — il n&apos;ira pas poser exactement ces questions, mais il ira par là.
             </p>
           </div>

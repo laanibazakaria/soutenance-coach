@@ -133,7 +133,7 @@ export default function RepeterAvecAmi({ titre, persona, dureeS, questions, cle 
               </div>
             );
           })}
-          <p className="report-note" style={{ textAlign: "left" }}>Liens valables 30 jours. L&apos;ami n&apos;a besoin ni de compte ni d&apos;application.</p>
+          <p className="report-note a-gauche">Liens valables 30 jours. L&apos;ami n&apos;a besoin ni de compte ni d&apos;application.</p>
         </div>
       )}
     </section>

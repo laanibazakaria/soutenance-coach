@@ -93,7 +93,7 @@ export default function RapportView() {
           )}
         </div>
       </div>
-      {!rapport && <p className="report-note" style={{ textAlign: "left", marginTop: 10 }}>Il se dépose avec le reste de ton dossier, dans <Link href="/app/documents">tes documents</Link>. PDF ou PowerPoint (.pptx) ; un mémoire de 40 à 100 pages convient.</p>}
+      {!rapport && <p className="report-note a-gauche" style={{ marginTop: 10 }}>Il se dépose avec le reste de ton dossier, dans <Link href="/app/documents">tes documents</Link>. PDF ou PowerPoint (.pptx) ; un mémoire de 40 à 100 pages convient.</p>}
       {questions && (
         <>
           <button className="link-btn" style={{ marginTop: 12 }} onClick={() => setOuvert((v) => !v)} aria-expanded={ouvert}>
@@ -102,7 +102,7 @@ export default function RapportView() {
           {ouvert && (
             <div style={{ marginTop: 10 }}>
               <ListeQuestions questions={questions.map((q) => ({ id: q.id, categorie: LIBELLES_CATEGORIES[q.categorie], question: q.question, pourquoi: q.pourquoi, priorite: true }))} libellePourquoi="Pourquoi le rapporteur la pose" />
-              <p className="report-note" style={{ textAlign: "left" }}>
+              <p className="report-note a-gauche">
                 Les cinq premières sont déjà dans <Link href="/app/appel?mode=soutenance">l&apos;appel avec le jury</Link> et dans la soutenance blanche.
               </p>
             </div>

@@ -144,7 +144,7 @@ export default function DocumentsPage() {
         occupe={occupe === "rapport"}
         onFichier={(f) => void deposerRapport(f)}
       />
-      <p className="report-note" style={{ textAlign: "left" }}>
+      <p className="report-note a-gauche">
         Tout est lu dans ton navigateur : seul le texte est conservé, jamais le fichier. Tu peux remplacer un document à tout moment — le jury relira.
       </p>
 

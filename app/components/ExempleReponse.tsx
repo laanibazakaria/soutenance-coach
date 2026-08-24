@@ -81,7 +81,7 @@ export default function ExempleReponse({ question, pourquoi, contexte, persona, 
           À compléter avec tes vraies informations : {exemple.suppositions.join(" · ")}
         </p>
       )}
-      <p className="report-note" style={{ textAlign: "left" }}>Un exemple sur ton dossier, pas un corrigé : dis-le avec tes mots, pas les siens.</p>
+      <p className="report-note a-gauche">Un exemple sur ton dossier, pas un corrigé : dis-le avec tes mots, pas les siens.</p>
     </article>
   );
 }

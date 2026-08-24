@@ -91,7 +91,7 @@ export default function ProgressionGrille({ progression }: { progression: Progre
           {p.bloque.map((c) => (
             <Ligne key={c.id} c={c} />
           ))}
-          <p className="report-note" style={{ textAlign: "left" }}>
+          <p className="report-note a-gauche">
             Répéter à l&apos;identique ne suffira pas : sur ces points, change de méthode — écris la réponse, fais-la relire, ou demande à quelqu&apos;un de te la poser.
           </p>
         </div>

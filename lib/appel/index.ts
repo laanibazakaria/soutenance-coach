@@ -120,7 +120,23 @@ export interface ContexteAppel {
   historique: Message[];
   /** Questions posées lors d'appels PRÉCÉDENTS, à ne pas reposer. */
   dejaPosees?: string[];
+  /** Tirée au sort par la route : fait varier qui ouvre et par quel angle. */
+  graine?: number;
 }
+
+/**
+ * Par où le jury entre dans le sujet. Sans cela, le modèle attaque toujours
+ * par le chiffre le plus visible du dossier, et deux appels se ressemblent.
+ */
+export const ANGLES_OUVERTURE = [
+  "attaque par le chiffre le plus discutable du dossier",
+  "attaque par une limite que le dossier n'assume pas",
+  "attaque par le choix technique le moins justifié, en demandant l'alternative écartée",
+  "attaque par ce que le candidat a fait lui-même, et pas son équipe ou un outil",
+  "attaque par la portée : à qui ça sert vraiment, et qui s'en servirait demain",
+  "attaque par la façon dont le travail a été vérifié : comment sait-on que c'est vrai",
+  "attaque par un détail précis du dossier que peu de gens auraient remarqué",
+] as const;
 
 /** Assemble le contexte à partir de ce qu'on a, sans dépasser la limite. */
 export function assemblerContexte(parties: Array<{ titre: string; texte?: string | null }>, max: number = LIMITES_APPEL.contexteChars): string {
@@ -146,6 +162,9 @@ export function construirePromptTour(c: ContexteAppel, ecouleS: number): string 
   const phase = resteS <= 45 ? "conclusion" : c.historique.length === 0 ? "ouverture" : "milieu";
   const langue = c.langue === "en" ? "Speak English only." : "Tu parles uniquement en français, naturel, à l'oral (pas de listes, pas de markdown).";
   const precedent = membrePrecedent(c.historique, membres);
+  const graine = Math.abs(Math.round(c.graine ?? 0));
+  const ouvreur = membres[graine % membres.length]!;
+  const angle = ANGLES_OUVERTURE[graine % ANGLES_OUVERTURE.length]!;
   const dejaPosees = (c.dejaPosees ?? []).slice(0, 25);
 
   return [
@@ -161,7 +180,7 @@ export function construirePromptTour(c: ContexteAppel, ecouleS: number): string 
     phase === "conclusion"
       ? 'C\'est la fin : la personne qui préside remercie, conclut en une phrase, et tu mets "fin" à true.'
       : phase === "ouverture"
-        ? "C'est le tout début : quelqu'un du jury ouvre avec SA première question, formulée à sa manière, ancrée dans le dossier si tu en as un. Pas de préambule."
+        ? `C'est le tout début. C'est « ${ouvreur.id} » (${ouvreur.nom}) qui ouvre, avec SA première question, formulée à sa manière. Angle imposé pour cette fois : ${angle}. Pas de préambule, pas de politesses : la question, directement.`
         : "Continue l'oral.",
     `Réponds en JSON strict : {"membre": "${membres[0]!.id}", "replique": "ce que cette personne dit, tel quel", "fin": false}`,
   ]

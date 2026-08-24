@@ -66,3 +66,44 @@ describe("appel avec le jury — débrief", () => {
     expect(paroleCandidat(hist)).toBe("Parce que c'est standard, euh, et mesurable.");
   });
 });
+
+describe("appel avec le jury — variété entre deux appels", () => {
+  it("change d'ouvreur et d'angle selon la graine", () => {
+    const vus = new Set<string>();
+    for (let g = 0; g < 7; g++) {
+      const p = construirePromptTour({ ...ctx, graine: g }, 0);
+      const membre = /C'est « ([a-z]+) »/.exec(p)?.[1] ?? "";
+      const angle = /Angle imposé pour cette fois : ([^.]+)\./.exec(p)?.[1] ?? "";
+      expect(membre).not.toBe("");
+      expect(angle).not.toBe("");
+      vus.add(`${membre}|${angle}`);
+    }
+    // Sept graines, sept entrées en matière différentes.
+    expect(vus.size).toBe(7);
+  });
+
+  it("interdit les formules de jury de théâtre et n'en souffle aucune", () => {
+    const p = construirePromptTour({ ...ctx, graine: 3 }, 0);
+    expect(p).toContain("Ne dis jamais");
+    expect(p).toContain("Pas de préambule");
+    expect(p).not.toContain("commence par : «");
+  });
+
+  it("annonce qui a parlé en dernier pour faire tourner la parole", () => {
+    const p = construirePromptTour({ ...ctx, historique: [{ role: "assistant", content: "q", membre: "presidente" }, { role: "user", content: "r" }] }, 200);
+    expect(p).toContain('« presidente »');
+    expect(p).toContain("Fais tourner la parole");
+  });
+
+  it("transmet les questions déjà posées lors des appels précédents", () => {
+    const p = construirePromptTour({ ...ctx, dejaPosees: ["Pourquoi le WER ?", "Combien de fichiers ?"] }, 0);
+    expect(p).toContain("DÉJÀ POSÉ");
+    expect(p).toContain("- Pourquoi le WER ?");
+  });
+
+  it("donne un membre valide même si le modèle en invente un", () => {
+    expect(parseTour('{"replique":"Et le coût ?","membre":"martien"}', "soutenance")!.membre).toBe("rapporteur");
+    expect(parseTour('{"replique":"Et le coût ?","membre":"presidente"}', "soutenance")!.membre).toBe("presidente");
+    expect(parseTour('{"replique":"Et le coût ?"}', "entretien")!.membre).toBe("rh");
+  });
+});

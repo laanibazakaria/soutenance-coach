@@ -24,6 +24,7 @@ export async function POST(request: Request) {
     langue: corps.langue === "en" ? ("en" as const) : ("fr" as const),
     dureeMin: typeof corps.dureeMin === "number" && corps.dureeMin >= 3 && corps.dureeMin <= 30 ? Math.round(corps.dureeMin) : 10,
     historique,
+    graine: Math.floor(Math.random() * 10_000),
     dejaPosees: Array.isArray(corps.dejaPosees) ? (corps.dejaPosees as unknown[]).filter((q): q is string => typeof q === "string").map((q) => q.slice(0, 200)).slice(0, 25) : undefined,
   };
   const ecouleS = typeof corps.ecouleS === "number" && corps.ecouleS >= 0 ? Math.round(corps.ecouleS) : 0;

@@ -18,6 +18,7 @@ import { useUsage } from "@/lib/usage-client";
 import { useToast } from "@/app/components/Toast";
 import { Icone, IconeBadge, type NomIcone } from "@/app/components/Icone";
 import CarteQuotidien from "./components/CarteQuotidien";
+import ParcoursSimple from "./components/ParcoursSimple";
 import FormulaireEtudiant from "./components/FormulaireEtudiant";
 import LigneSession from "./components/LigneSession";
 import EtatVide from "@/app/components/EtatVide";
@@ -112,6 +113,8 @@ function AccueilInner() {
         </h1>
         <p className="accueil-date">{dateLongue(maintenant)}</p>
       </div>
+
+      {actifs?.includes("soutenance") && <ParcoursSimple />}
 
       <div className="accueil-duo">
         <section className="card accueil-echeance" aria-label="Prochaine échéance">
@@ -304,11 +307,11 @@ function AccueilInner() {
             </span>
           </button>
         ))}
-        <Feature icone="amis" titre="Répéter avec un ami" texte="Un lien : il joue le jury sans compte, et son retour revient dans ta préparation." href={resumes[0]?.hub ?? "/app/soutenance"} />
         <Feature icone="document" titre="Mon bilan" texte="Une photographie de ta préparation à imprimer, ou à partager avec ton encadrant." href="/app/bilan" />
         <Feature icone="guides" titre="Les guides" texte="Un guide par oral : dix minutes à lire, cinq à relire la veille." href="/app/guides" />
       </div>
 
+      {!actifs?.includes("soutenance") && (
       <section className="accueil-bandeau" aria-label="Appel avec le jury IA">
         <div>
           <span className="accueil-bandeau-titre">
@@ -325,6 +328,7 @@ function AccueilInner() {
           {dossierPret ? "Lancer l'appel →" : "Déposer mon dossier →"}
         </Link>
       </section>
+      )}
     </div>
   );
 }

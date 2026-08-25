@@ -118,7 +118,7 @@ export default function LandingPage() {
             Tu déposes tes diapositives et ton mémoire. Trois membres du jury les lisent en entier,
             ligne à ligne. Puis ils t&apos;appellent : ils parlent, tu réponds au micro, ils
             rebondissent sur ce que tu viens de dire. À la fin, le débrief — et une note calculée sur
-            douze critères, jamais improvisée.
+            treize critères pondérés, jamais improvisée.
           </p>
           <div className="lp-cta">
             <Link href="/app" className="btn primary big">
@@ -213,8 +213,8 @@ export default function LandingPage() {
               <span className="lp-step-num">4</span>
               <h3>Tu lis le débrief</h3>
               <p>
-                Ce qui a marché, les moments manqués, le plan d&apos;action. Et la grille : douze
-                critères notés, pondérés, avec la note qui en découle.
+                Ce qui a marché, les moments manqués, le plan d&apos;action. Et la grille : chaque
+                critère noté, pondéré, avec la note qui en découle.
               </p>
             </article>
           </div>
@@ -254,8 +254,8 @@ export default function LandingPage() {
             <span className="lp-eyebrow">Après l&apos;appel</span>
             <h2 className="lp-h2">Une note que personne n&apos;a improvisée</h2>
             <p className="lp-p">
-              Douze critères, chacun avec son poids : la problématique et la méthode comptent double,
-              la posture compte simple. <b>L&apos;IA juge chaque critère séparément</b> et dit
+              Treize critères, chacun avec son poids : la problématique, la méthode et ta part personnelle
+              comptent double, la conclusion compte simple. <b>L&apos;IA juge chaque critère séparément</b> et dit
               pourquoi, en citant ce que tu as répondu.
             </p>
             <p className="lp-p">
@@ -274,6 +274,11 @@ export default function LandingPage() {
               <span className="lp-grille-note lp-note-bien">8/10</span>
             </div>
             <div className="lp-grille-ligne">
+              <b>Réponses aux questions</b>
+              <span className="lp-grille-poids">×2</span>
+              <span className="lp-grille-note lp-note-moyen">7/10</span>
+            </div>
+            <div className="lp-grille-ligne">
               <b>Méthode justifiée</b>
               <span className="lp-grille-poids">×2</span>
               <span className="lp-grille-note lp-note-moyen">6/10</span>
@@ -284,14 +289,14 @@ export default function LandingPage() {
               <span className="lp-grille-note lp-note-moyen">6/10</span>
             </div>
             <div className="lp-grille-ligne">
+              <b>Part personnelle</b>
+              <span className="lp-grille-poids">×2</span>
+              <span className="lp-grille-note lp-note-faible">5/10</span>
+            </div>
+            <div className="lp-grille-ligne">
               <b>Maîtrise de ses chiffres</b>
               <span className="lp-grille-poids">×1,5</span>
               <span className="lp-grille-note lp-note-faible">4/10</span>
-            </div>
-            <div className="lp-grille-ligne">
-              <b>Posture et regard</b>
-              <span className="lp-grille-poids">×1</span>
-              <span className="lp-grille-note lp-note-vide">non évalué</span>
             </div>
             <div className="lp-grille-total">
               <b>Note calculée</b>

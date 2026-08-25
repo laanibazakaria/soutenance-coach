@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifierQuota } from "@/lib/quota-serveur";
 
 /**
  * La voix naturelle du jury : Gemini TTS en STREAMING — le premier morceau
@@ -15,6 +16,11 @@ const cache = new Map<string, { pcm: Buffer; rate: number }>();
 export async function POST(request: Request) {
   const cle = process.env.GEMINI_API_KEY;
   if (!cle) return NextResponse.json({ erreur: "Voix indisponible." }, { status: 503 });
+  // Vérifié mais jamais confirmé : la voix n'est pas décomptée — sinon dix
+  // répliques videraient la moitié d'un mois — mais elle reste fermée à qui a
+  // épuisé son quota, ce qui borne la route au lieu de la laisser ouverte.
+  const quota = await verifierQuota(request);
+  if (!quota.ok) return quota.reponse;
   let corps: { texte?: unknown; langue?: unknown; voix?: unknown };
   try {
     corps = (await request.json()) as typeof corps;

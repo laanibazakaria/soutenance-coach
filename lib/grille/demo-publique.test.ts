@@ -11,24 +11,28 @@ import { normaliser, GRILLES } from "./index";
  * page à jour — ce qui est exactement le moment où il faut s'en apercevoir.
  */
 describe("la grille d'exemple de la page publique", () => {
+  // Le débrief d'un appel ne juge que le volet « questions » : l'exposé n'a pas
+  // eu lieu. L'exemple de la page publique doit montrer cela, pas une grille
+  // complète qu'aucun appel ne produit.
   const EXEMPLE = [
     { id: 2, titre: "Problématique explicite", poids: 2, note: 8 },
     { id: 4, titre: "Méthode justifiée", poids: 2, note: 6 },
     { id: 5, titre: "Résultats chiffrés", poids: 2, note: 6 },
+    { id: 7, titre: "Réponses aux questions", poids: 2, note: 7 },
     { id: 8, titre: "Maîtrise de ses chiffres", poids: 1.5, note: 4 },
-    { id: 11, titre: "Posture et regard", poids: 1, note: null },
+    { id: 13, titre: "Part personnelle", poids: 2, note: 5 },
   ] as const;
 
   const brut = { criteres: EXEMPLE.map((c) => ({ id: c.id, note: c.note, pourquoi: "" })) };
 
   it("affiche 6,1 — la note que le code calcule vraiment", () => {
-    expect(normaliser(brut, GRILLES.soutenance).note).toBe(6.1);
+    expect(normaliser(brut, GRILLES.soutenance, ["questions"]).note).toBe(6.1);
   });
 
   it("retient assez de poids pour qu'une note existe", () => {
     // Sous le seuil, la grille s'abstient : l'exemple doit rester au-dessus,
     // sinon la page montrerait une note là où l'application n'en donnerait pas.
-    const r = normaliser(brut, GRILLES.soutenance);
+    const r = normaliser(brut, GRILLES.soutenance, ["questions"]);
     expect(r.note).not.toBeNull();
   });
 

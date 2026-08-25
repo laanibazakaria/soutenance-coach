@@ -11,7 +11,7 @@ import { Icone } from "@/app/components/Icone";
  */
 export default function GrilleVue({ evaluation, titre = "Ta grille d'évaluation" }: { evaluation: Evaluation; titre?: string }) {
   const [tout, setTout] = useState(false);
-  const { note, criteres, prioritaires, acquis, insuffisant } = evaluation;
+  const { note, criteres, prioritaires, acquis, insuffisant, volets } = evaluation;
   const pourcent = note === null ? 0 : Math.round((note / NOTE_MAX) * 100);
   const niveauNote = note === null ? "absent" : note >= 7 ? "bon" : note >= 5.5 ? "attention" : "alerte";
   const visibles = tout ? criteres : criteres.filter((c) => c.note !== null);
@@ -24,7 +24,7 @@ export default function GrilleVue({ evaluation, titre = "Ta grille d'évaluation
             {note === null ? "—" : note.toFixed(1)}
             <small>/ {NOTE_MAX}</small>
           </span>
-          <span className="grille-mention">{mention(note)}</span>
+          <span className="grille-mention">{mention(note, volets)}</span>
           <div className="grille-barre" role="img" aria-label={note === null ? "note non calculable" : `${note} sur ${NOTE_MAX}`}>
             <span className={`grille-barre-remplie grille-barre-${niveauNote}`} style={{ width: `${pourcent}%` }} />
           </div>

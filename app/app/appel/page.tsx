@@ -307,11 +307,14 @@ function AppelInner() {
     setErreur(null);
     try {
       const r = await fetch("/api/appel/lecture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, dossier: dossierCompletPourLecture(mode) || contexte }) });
-      const j = (await r.json()) as { fiche?: FicheLecture; erreur?: string };
+      const j = (await r.json()) as { fiche?: FicheLecture; passes?: number; surTotal?: number; caracteres?: number; erreur?: string };
       if (!r.ok || !j.fiche) throw new Error(j.erreur ?? "La lecture n'a rien donné.");
       ecrireCache(window.localStorage, cleFiche(mode, contexte), j.fiche);
       signalerAppelIa();
       setFiche(j.fiche);
+      if (typeof j.passes === "number" && typeof j.surTotal === "number") {
+        setLu({ passes: j.passes, total: j.surTotal, caracteres: j.caracteres ?? 0 });
+      }
       return j.fiche;
     } catch (e) {
       setErreur(e instanceof Error ? e.message : "La lecture du dossier a échoué.");
@@ -641,7 +644,7 @@ function AppelInner() {
           </Link>
         )}
         <p className="lanceur-note">
-          Il parle, tu réponds, il rebondit. Quand tu as fini de répondre, tais-toi deux secondes — ou appuie sur « J&apos;ai fini ». Un appel compte pour un seul appel IA sur ton quota, plus un pour le débrief.
+          Il parle, tu réponds, il rebondit. Quand tu as fini de répondre, tais-toi deux secondes — ou appuie sur « J&apos;ai fini ». Un appel consomme quatre unités de ton quota : la lecture de ton dossier — une seule fois, tant que tu n'en changes pas —, le lancement, le débrief et la grille. Les questions suivantes sont gratuites.
         </p>
         <p className="report-note">
           L&apos;appel ne travaille que les questions. Pour rejouer l&apos;oral entier, ton exposé

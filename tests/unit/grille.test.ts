@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GRILLES, normaliser, mention, niveauCritere, construirePrompt, parseReponse, POIDS_MIN, type IdOral } from "../../lib/grille";
+import { GRILLES, normaliser, mention, niveauCritere, construirePrompt, parseReponse, RATIO_MIN, type IdOral } from "../../lib/grille";
 
 const ORAUX: IdOral[] = ["soutenance", "entretien", "pitch", "concours"];
 
@@ -10,11 +10,13 @@ const reponse = (notes: Array<number | null>, extra: Record<string, unknown> = {
 });
 
 describe("grille — les quatre oraux", () => {
-  it("a douze critères pondérés par oral, aux identifiants continus", () => {
+  it("a des critères pondérés aux identifiants continus, par oral", () => {
     for (const id of ORAUX) {
       const g = GRILLES[id];
-      expect(g.criteres).toHaveLength(12);
-      expect(g.criteres.map((c) => c.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+      // La soutenance en a treize : « Part personnelle » a été ajoutée parce que
+      // le jury la demande et que la grille ne la notait nulle part.
+      expect(g.criteres.length).toBe(id === "soutenance" ? 13 : 12);
+      expect(g.criteres.map((c) => c.id)).toEqual(g.criteres.map((_, i) => i + 1));
       expect(g.criteres.every((c) => c.poids >= 1 && c.poids <= 2)).toBe(true);
       expect(g.criteres.every((c) => c.titre.length > 3 && c.regarde.length > 20)).toBe(true);
     }
@@ -45,16 +47,22 @@ describe("grille — la note est calculée par le code", () => {
   });
 
   it("pondère vraiment : un critère lourd pèse plus qu'un léger", () => {
-    // Deux critères lourds (poids 2) à 10, deux légers (poids 1) à 0.
-    const notes: Array<number | null> = Array(12).fill(null);
+    // Sur le seul volet « questions », deux lourds à 10 et deux légers à 0.
+    const notes: Array<number | null> = Array(13).fill(null);
     notes[1] = 10; // Problématique, poids 2
+    notes[3] = 10; // Méthode justifiée, poids 2
     notes[4] = 10; // Résultats chiffrés, poids 2
-    notes[8] = 0; // Gestion du temps, poids 1
-    notes[10] = 0; // Posture, poids 1
-    const e = normaliser(reponse(notes), GRILLES.soutenance);
-    expect(e.poidsRetenu).toBe(6);
-    expect(e.note).toBeCloseTo(6.7, 1);
+    notes[5] = 0; // Limites assumées, poids 1.5
+    notes[6] = 0; // Réponses aux questions, poids 2
+    notes[7] = 10; // Maîtrise des chiffres, poids 1.5
+    notes[9] = 0; // Clarté, poids 1.5
+    notes[12] = 10; // Part personnelle, poids 2
+    const e = normaliser(reponse(notes), GRILLES.soutenance, ["questions"]);
     expect(e.insuffisant).toBe(false);
+    // (2+2+2+1.5+2)×10 … recalculé à la main : 95 / 14.5
+    expect(e.note).toBeCloseTo(6.6, 1);
+    // Les critères d'exposé ne sont même pas dans la liste : ils n'ont pas eu lieu.
+    expect(e.criteres.map((c) => c.id)).not.toContain(1);
   });
 
   it("borne les notes aberrantes du modèle au lieu de les propager", () => {
@@ -72,7 +80,8 @@ describe("grille — la note est calculée par le code", () => {
     const e = normaliser(reponse(notes), GRILLES.soutenance);
     expect(e.insuffisant).toBe(true);
     expect(e.note).toBeNull();
-    expect(e.poidsRetenu).toBeLessThan(POIDS_MIN);
+    const possible = GRILLES.soutenance.criteres.reduce((t, c) => t + c.poids, 0);
+    expect(e.poidsRetenu).toBeLessThan(RATIO_MIN * possible);
   });
 
   it("ne renvoie jamais 0 par défaut quand rien n'est évaluable", () => {
@@ -101,7 +110,7 @@ describe("grille — robustesse face au modèle", () => {
   it("survit à n'importe quelle bouillie", () => {
     for (const brut of [null, undefined, "texte", 42, {}, { criteres: "non" }, { criteres: [null] }]) {
       const e = normaliser(brut, GRILLES.soutenance);
-      expect(e.criteres).toHaveLength(12);
+      expect(e.criteres).toHaveLength(13);
       expect(e.note).toBeNull();
     }
   });

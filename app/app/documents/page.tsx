@@ -16,6 +16,7 @@ import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import { indexerMemoire, memoireIndexe } from "@/lib/memoire/client";
 import { CLE_RAPPORT } from "../components/RapportView";
 import ZoneDepot, { type EtatDepot } from "../components/ZoneDepot";
+import RelectureDossier from "../components/RelectureDossier";
 import type { Deck } from "@/lib/slides/types";
 
 export const dynamic = "force-static";
@@ -147,6 +148,8 @@ export default function DocumentsPage() {
       <p className="report-note a-gauche">
         Tout est lu dans ton navigateur : seul le texte est conservé, jamais le fichier. Tu peux remplacer un document à tout moment — le jury relira.
       </p>
+
+      {deck && rapport && <RelectureDossier deck={deck} rapport={rapport} />}
 
       {actifs.filter((m) => m !== "soutenance").length > 0 && (
         <>

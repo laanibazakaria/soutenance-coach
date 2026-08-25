@@ -1156,6 +1156,40 @@ p, .session-meta, .kpi-detail, .grille-constat { text-wrap: pretty; }
 
 
 /* ═══════════════ Mes documents : le lieu unique du dépôt ═══════════════ */
+/* La relecture du dossier : la confrontation présentation / rapport. Deux
+   colonnes côte à côte pour chaque écart — c'est la mise en regard qui fait
+   l'argument, pas le texte. */
+.relecture-invite { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 20px 24px; margin: 20px 0 24px; }
+.relecture-invite .session-meta { margin-top: 4px; max-width: 62ch; }
+.relecture { padding: 22px 24px; margin: 20px 0 24px; }
+.relecture-tete { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; margin-bottom: 20px; }
+.relecture h3 { font-size: 0.95rem; font-weight: 700; margin: 0 0 8px; }
+.relecture-compris { padding-top: 16px; border-top: 1px solid var(--line); }
+.relecture-compris dl { margin: 10px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.relecture-compris dl > div { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 12px; align-items: baseline; }
+.relecture-compris dt { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; color: var(--dim); }
+.relecture-compris dd { margin: 0; font-size: 0.95rem; line-height: 1.55; }
+.relecture-ecarts, .relecture-manques, .relecture-pitch { padding-top: 20px; margin-top: 20px; border-top: 1px solid var(--line); }
+.ecart { border-radius: 12px; border: 1px solid var(--line); padding: 14px 16px; margin-bottom: 10px; background: var(--bg2); }
+.ecart > b { display: block; font-size: 0.95rem; margin-bottom: 10px; }
+.ecart-haute { border-left: 3px solid var(--danger); }
+.ecart-moyenne { border-left: 3px solid var(--gold); }
+.ecart-cotes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ecart-cotes span { display: flex; flex-direction: column; gap: 4px; font-size: 0.86rem; line-height: 1.5; background: var(--card); border-radius: 10px; padding: 10px 12px; }
+.ecart-cotes em { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; font-style: normal; color: var(--dim); }
+.relecture-manques ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.relecture-manques li { display: flex; flex-direction: column; gap: 3px; border-left: 3px solid var(--violet-border); padding-left: 14px; }
+.relecture-manques li b { font-size: 0.95rem; line-height: 1.5; }
+.relecture-manques li small { font-size: 0.86rem; color: var(--muted); line-height: 1.5; }
+.pitch-accroche { font-size: 0.95rem; line-height: 1.7; font-style: italic; border-left: 3px solid var(--gold); padding: 6px 0 6px 16px; margin: 12px 0; }
+
+@media (max-width: 640px) {
+  .relecture-invite, .relecture-tete { grid-template-columns: auto minmax(0, 1fr); }
+  .relecture-invite > .btn, .relecture-tete > .btn { grid-column: 1 / -1; justify-content: center; margin-top: 4px; }
+  .relecture-compris dl > div { grid-template-columns: 1fr; gap: 2px; }
+  .ecart-cotes { grid-template-columns: 1fr; }
+}
+
 .documents-etat { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 20px 24px; margin-bottom: 24px; }
 .documents-etat .session-meta { margin-top: 4px; max-width: 60ch; line-height: 1.55; }
 

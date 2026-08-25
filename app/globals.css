@@ -945,6 +945,19 @@ body.appel-en-cours .module-tabs { display: none; }
 .kpi-direction-attention { color: var(--gold); }
 .kpi-direction-alerte { color: var(--danger); }
 .kpi .metric-details { margin: 8px 0 0 16px; font-size: 0.78rem; color: var(--muted); }
+/* Les pages hors-piste : 404 et erreur. Elles se rendent hors de la coquille de
+   l'application (pas de barre latérale), donc elles portent leur propre mise
+   en page — centrée, sobre, avec une sortie claire. */
+.page-hors-piste {
+  min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; padding: 40px 24px; text-align: center; background: var(--bg);
+}
+.page-hors-piste-code { font-size: 3.1rem; font-weight: 800; color: var(--violet); letter-spacing: -0.02em; margin: 0; }
+.page-hors-piste h1 { font-size: 1.5rem; margin: 0; }
+.page-hors-piste p { max-width: 52ch; color: var(--muted); line-height: 1.55; margin: 0; }
+.page-hors-piste-ref { font-size: 0.78rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+.page-hors-piste-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+
 .etat-vide { text-align: center; padding: 44px 28px 38px; display: flex; flex-direction: column; align-items: center; gap: 8px; border-style: dashed; box-shadow: none; }
 .etat-vide h2, .etat-vide h3 { font-size: 1.08rem; font-weight: 800; letter-spacing: -0.2px; margin-top: 6px; }
 .etat-vide p { color: var(--muted); font-size: 0.95rem; line-height: 1.55; max-width: 460px; }
@@ -1415,6 +1428,18 @@ input[type="checkbox"]:focus { box-shadow: none; outline: 2px solid var(--violet
 .bilan-liste { margin-left: 20px; line-height: 1.7; }
 .bilan-pied { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
 .notice-lien { border-left: 3px solid var(--violet); word-break: break-all; }
+/* L'antisèche du jour J, dans le bilan imprimable. */
+.antiseche { margin-top: 32px; padding-top: 24px; border-top: 2px solid var(--line); }
+.antiseche-bloc { margin-top: 16px; }
+.antiseche-bloc h3 { font-size: 0.86rem; font-weight: 700; margin: 0 0 6px; }
+.antiseche-bloc ol, .antiseche-bloc ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.antiseche-bloc li { font-size: 0.95rem; line-height: 1.45; }
+.antiseche-accroche { font-style: italic; border-left: 3px solid var(--gold); padding: 4px 0 4px 14px; margin: 0; line-height: 1.6; }
+@media print {
+  /* Elle commence sur sa propre page : on la détache du bilan et on la garde entière. */
+  .antiseche { break-inside: avoid; page-break-before: always; border-top: none; }
+}
+
 @media print {
   .sidebar, .topbar, .hero, .module-tabs, .mobile-tabs, .bilan-actions, .notice-lien, .toasts, .legal-head { display: none !important; }
   .shell, .main, .content, .legal-corps { display: block; margin: 0; padding: 0; max-width: none; animation: none; }

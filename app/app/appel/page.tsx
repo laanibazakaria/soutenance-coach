@@ -265,7 +265,7 @@ function AppelInner() {
       const grillePromise = fetch("/api/grille", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ oral: mode, echange, contexte: contexte.slice(0, 4000), dureeMin }),
+        body: JSON.stringify({ oral: mode, echange, contexte: contexte.slice(0, 4000), dureeMin, langue }),
       })
         .then((r) => (r.ok ? (r.json() as Promise<{ evaluation?: Evaluation }>) : null))
         .then((j) => {

@@ -11,7 +11,7 @@ const ORAUX: IdOral[] = ["soutenance", "entretien", "pitch", "concours"];
 const LIMITES = { echange: 14_000, contexte: 6_000, mesures: 1_200 } as const;
 
 export async function POST(request: Request) {
-  let corps: { oral?: unknown; echange?: unknown; contexte?: unknown; mesures?: unknown; dureeMin?: unknown; volets?: unknown };
+  let corps: { oral?: unknown; echange?: unknown; contexte?: unknown; mesures?: unknown; dureeMin?: unknown; volets?: unknown; langue?: unknown };
   try {
     corps = (await request.json()) as typeof corps;
   } catch {
@@ -36,6 +36,7 @@ export async function POST(request: Request) {
     mesures: typeof corps.mesures === "string" ? corps.mesures.slice(0, LIMITES.mesures) : undefined,
     dureeMin: typeof corps.dureeMin === "number" ? corps.dureeMin : undefined,
     volets,
+    langue: corps.langue === "en" ? "en" : "fr",
   });
 
   const resultat = await appelerIA(prompt, { priorite: "qualite", maxOutputTokens: 4500, temperature: 0.3 });

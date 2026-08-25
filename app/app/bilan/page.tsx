@@ -5,6 +5,8 @@ import { useSession } from "next-auth/react";
 import { listSessions } from "@/lib/storage";
 import { construireBilan, type Bilan } from "@/lib/bilan";
 import BilanVue from "@/app/components/BilanVue";
+import AntisecheVue from "@/app/components/AntisecheVue";
+import { construireAntiseche, type Antiseche } from "@/lib/antiseche";
 import { useToast } from "@/app/components/Toast";
 import { Icone } from "@/app/components/Icone";
 
@@ -12,6 +14,7 @@ import { Icone } from "@/app/components/Icone";
 export default function BilanPage() {
   const { data } = useSession();
   const [bilan, setBilan] = useState<Bilan | null>(null);
+  const [antiseche, setAntiseche] = useState<Antiseche | null>(null);
   const [lien, setLien] = useState<string | null>(null);
   const [creation, setCreation] = useState(false);
   const toast = useToast();
@@ -19,6 +22,7 @@ export default function BilanPage() {
   useEffect(() => {
     const prenom = data?.user?.name?.split(" ")[0];
     setBilan(construireBilan(window.localStorage, listSessions(window.localStorage), prenom));
+    setAntiseche(construireAntiseche(window.localStorage));
   }, [data]);
 
   async function partager() {
@@ -67,6 +71,7 @@ export default function BilanPage() {
       )}
       <div className="card bilan-carte-papier">
         <BilanVue bilan={bilan} />
+        {antiseche && <AntisecheVue antiseche={antiseche} />}
       </div>
     </>
   );

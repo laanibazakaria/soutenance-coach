@@ -253,6 +253,8 @@ export interface DemandeGrille {
   dureeMin?: number;
   /** Ce que l'oral a réellement couvert. Un appel ne contient pas d'exposé. */
   volets?: readonly Volet[];
+  /** La langue de l'oral : les constats et conseils suivent celle de l'appel. */
+  langue?: "fr" | "en";
 }
 
 export function construirePrompt(d: DemandeGrille): string {
@@ -267,7 +269,7 @@ RÈGLES ABSOLUES
 - Chaque note doit pouvoir être défendue devant le candidat : cite ses mots.
 - Ne calcule AUCUNE moyenne, AUCUN total. On s'en occupe.
 - Reste factuel et utile. Pas de compliment creux, pas de sévérité gratuite.
-- Écris en français, à la deuxième personne du singulier dans les conseils ("commence par…").
+${d.langue === "en" ? '- Write in English, addressing the candidate directly in the advice ("start with…"). The criteria titles stay in French — quote them as they are.' : '- Écris en français, à la deuxième personne du singulier dans les conseils (« commence par… »).'}
 
 LA GRILLE (${retenus.length} critères)${volets.includes("expose") ? "" : " — cet oral n'a comporté que des questions, les critères qui portent sur l'exposé ne te sont pas soumis ; ne les invente pas."}
 ${criteres}

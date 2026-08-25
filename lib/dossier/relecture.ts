@@ -11,6 +11,7 @@
  * Fonctions pures, testables sans navigateur ni réseau.
  */
 
+import { memesNombres } from "./nombres";
 import type { Deck } from "../slides/types";
 
 /** Ce que le modèle a compris du travail — pour que le candidat vérifie. */
@@ -84,7 +85,7 @@ export function construirePromptRelecture(d: DemandeRelecture): string {
       : `LE RAPPORT :\n${rapport}`,
     "TON TRAVAIL, en trois parties.",
     "1) CE QUE TU AS COMPRIS : le sujet, la problématique, la méthode, les résultats. Reformule-les avec tes mots, sans jargon recopié. Le candidat doit pouvoir vérifier d'un coup d'œil que tu n'as pas compris de travers.",
-    `2) LES INCOHÉRENCES entre les deux documents (au plus ${LIMITES_RELECTURE.incoherencesMax}) : un chiffre qui diffère, une affirmation de la présentation absente du rapport, un plan annoncé puis pas suivi, une définition qui change. Pour chacune, cite le passage de la présentation ET celui du rapport, mot pour mot. "gravite" vaut "haute" pour une contradiction de fait ou de chiffre, "moyenne" pour un écart de formulation ou de niveau de détail.`,
+    `2) LES INCOHÉRENCES entre les deux documents (au plus ${LIMITES_RELECTURE.incoherencesMax}) : deux affirmations qui ne peuvent pas être vraies en même temps. Un chiffre qui diffère, une affirmation de la présentation que le rapport contredit, un plan annoncé puis pas suivi, une définition qui change de sens.\nN'EST PAS UNE INCOHÉRENCE — et ne doit jamais être signalé : la même valeur écrite autrement (« 45 » et « quarante-cinq », « 6 semaines » et « du 1er juillet au 7 août ») ; une date au même jour dans un autre format ; une numérotation de section qui diffère entre les deux documents, c'est normal et attendu ; un titre de diapositive plus court ou plus long que le titre de section correspondant ; une idée exprimée avec d'autres mots ; un détail présent d'un côté et simplement absent de l'autre, sans que rien ne le contredise. Avant de signaler un écart, demande-toi si les deux phrases peuvent être vraies ensemble : si oui, ce n'est pas un écart. Pour chacune, cite le passage de la présentation ET celui du rapport, mot pour mot. "gravite" vaut "haute" quand les deux affirmations se contredisent franchement — deux chiffres différents pour la même chose, deux faits incompatibles. "moyenne" quand la contradiction est réelle mais mineure. Dans le doute, ne signale rien : un écart inventé coûte plus cher au candidat que dix écarts manqués, parce qu'il le fera douter d'un document qui allait bien.`,
     `3) CE QUI MANQUE POUR LE JURY (au plus ${LIMITES_RELECTURE.manquesMax}) : les questions qu'un jury posera et auxquelles aucun des deux documents ne répond — un résultat sans protocole de mesure, un choix technique sans justification, une limite jamais nommée.`,
     "RÈGLES. Ne cite que ce qui figure ci-dessus, mot pour mot. N'invente jamais un numéro de page, de ligne ou de figure. Si tu ne trouves aucune incohérence, rends une liste vide — c'est un résultat, pas un échec, et mieux vaut cela qu'une contradiction fabriquée." +
       (d.rapportTronque
@@ -128,6 +129,11 @@ export function parseRelecture(brut: string): Relecture | null {
       })
       // Sans les deux côtés, il n'y a pas de confrontation : on jette.
       .filter((i) => i.quoi && i.presentation && i.rapport)
+      // Et si les deux citations portent exactement les mêmes nombres, la
+      // « contradiction chiffrée » n'en est pas une : « quarante-cinq » et
+      // « 45 » disent la même chose. Vérifié par du code plutôt que confié à
+      // la bonne volonté du modèle.
+      .filter((i) => !memesNombres(i.presentation, i.rapport))
       .slice(0, LIMITES_RELECTURE.incoherencesMax);
 
     const brutManques = Array.isArray(j.manques) ? j.manques : [];

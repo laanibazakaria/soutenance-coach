@@ -176,3 +176,51 @@ describe("ce qu'on annonce avoir relu", () => {
     );
   });
 });
+
+/**
+ * Test réel sur un PFE : sur sept écarts trouvés, un seul était vrai. Le motif
+ * dominant des six faux était la même valeur écrite autrement. Le prompt le
+ * dit désormais, mais on ne s'en remet pas à son obéissance.
+ */
+describe("les faux écarts chiffrés", () => {
+  const avec = (presentation: string, rapport: string) =>
+    parseRelecture(
+      JSON.stringify({
+        compris: { sujet: "S", problematique: "P", methode: "M", resultats: "R" },
+        incoherences: [{ quoi: "Nombre de pull requests", presentation, rapport, gravite: "haute" }],
+        manques: [],
+      }),
+    )!;
+
+  it("écarte une contradiction chiffrée qui n'en est pas une", () => {
+    const r = avec(
+      "45 pull requests produites — 38 intégrées",
+      "quarante-cinq pull requests dont trente-huit intégrées",
+    );
+    expect(r.incoherences).toHaveLength(0);
+  });
+
+  it("garde une vraie contradiction chiffrée", () => {
+    const r = avec("Sept missions en six semaines", "six missions successives");
+    expect(r.incoherences).toHaveLength(1);
+  });
+
+  it("ne touche pas aux écarts sans chiffres", () => {
+    const r = avec("Le plan annonce cinq parties", "Le rapport suit un autre découpage");
+    expect(r.incoherences).toHaveLength(1);
+  });
+});
+
+describe("ce que le prompt interdit de signaler", () => {
+  it("nomme les faux écarts observés en vrai", () => {
+    const p = construirePromptRelecture({ deck: deck(3), rapport: "x".repeat(600) });
+    expect(p).toContain("N'EST PAS UNE INCOHÉRENCE");
+    expect(p).toContain("une numérotation de section qui diffère");
+    expect(p).toContain("si les deux phrases peuvent être vraies ensemble");
+  });
+
+  it("préfère le silence au doute", () => {
+    const p = construirePromptRelecture({ deck: deck(3), rapport: "x".repeat(600) });
+    expect(p).toContain("un écart inventé coûte plus cher au candidat que dix écarts manqués");
+  });
+});

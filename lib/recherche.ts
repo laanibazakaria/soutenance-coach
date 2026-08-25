@@ -33,7 +33,6 @@ export const PAGES: ReadonlyArray<Page> = [
   { titre: "Oral de concours", detail: "Admission, master, bourse", lien: "/app/m/concours", mots: "admission école projet professionnel" },
   { titre: "Le guide de l'oral de concours", detail: "Se présenter, « pourquoi nous », l'actualité", lien: "/app/guide-concours" },
   { titre: "Les guides", detail: "Un guide par oral", lien: "/app/guides" },
-  { titre: "Les vraies questions des jurys", detail: "Par école et filière, racontées par les étudiants", lien: "/app/questions-reelles", mots: "témoignages" },
   { titre: "Mon compte", detail: "Synchroniser sur tous tes appareils", lien: "/app/connexion", mots: "google connexion déconnexion supprimer" },
   { titre: "Forfaits", detail: "Ce qui est gratuit, ce que Pro apportera", lien: "/app/forfaits", mots: "quota ia prix pro" },
 ];

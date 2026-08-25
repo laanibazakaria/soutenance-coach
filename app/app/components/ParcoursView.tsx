@@ -14,7 +14,6 @@ import {
 import { lireParcours, sauverParcours, marquerEtape, detecterContexte } from "@/lib/parcours/persistance";
 import { surSynchronisation } from "@/lib/sync/client";
 import { telechargerIcs } from "@/lib/ics";
-import RetourOralForm from "./RetourOralForm";
 import type { SessionRecord } from "@/lib/types";
 import { Icone } from "@/app/components/Icone";
 
@@ -93,7 +92,6 @@ export default function ParcoursView({ sessions, onChange }: Props) {
           <Icone nom="soutenance" /> Ta soutenance {libelle} était le {dateLongue(parcours.dateSoutenance)}.
         </h2>
         <p>Bravo d&apos;être allé au bout. Tes sessions restent ici pour la prochaine.</p>
-        <RetourOralForm type="soutenance" niveauInitial={libelle} />
         <button className="btn small" onClick={() => setEdition(true)} style={{ marginTop: 12 }}>
           Préparer une nouvelle soutenance
         </button>

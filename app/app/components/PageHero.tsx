@@ -28,7 +28,6 @@ const ENTETES: ReadonlyArray<{ prefixe: string; exact?: boolean; centre?: boolea
   { prefixe: "/app/connexion", entete: { section: "Compte", titre: "Ton compte", sousTitre: "Retrouve tes sessions, ton support et tes fiches sur tous tes appareils." } },
   { prefixe: "/app/question-du-jour", centre: true, entete: { section: "Chaque jour", titre: "La question du jour", sousTitre: "Une question de ton jury, une minute au micro, un retour. Cinq minutes bien placées." } },
   { prefixe: "/app/sessions", entete: { section: "Ton historique", titre: "Mes sessions", sousTitre: "Toutes tes répétitions, tous tes oraux — avec l'avis du coach sur chacune." } },
-  { prefixe: "/app/questions-reelles", entete: { section: "Ressources", titre: "Les vraies questions des jurys", sousTitre: "Ce qu'on a réellement demandé aux étudiants passés avant toi — par école et filière." } },
   { prefixe: "/app/guides", entete: { section: "À lire avant", titre: "Les guides", sousTitre: "Un guide par oral. Tout ce qu'on découvre d'habitude trop tard." } },
   { prefixe: "/app/soutenance-blanche", centre: true, entete: { section: "Soutenance", titre: "Soutenance blanche", sousTitre: "L'exposé avec tes slides, le jury qui enchaîne et relance, le débrief. La répétition générale." } },
   { prefixe: "/app/soutenance", entete: { section: "Soutenance", titre: "Ton parcours", sousTitre: "Chaque jour, ce qu'il faut faire — et ce que ton activité a déjà prouvé." } },

@@ -305,7 +305,6 @@ function AccueilInner() {
           </button>
         ))}
         <Feature icone="amis" titre="Répéter avec un ami" texte="Un lien : il joue le jury sans compte, et son retour revient dans ta préparation." href={resumes[0]?.hub ?? "/app/soutenance"} />
-        <Feature icone="parole" titre="Les vraies questions des jurys" texte="Racontées par les étudiants passés avant toi, par école et filière." href="/app/questions-reelles" nouveau />
         <Feature icone="document" titre="Mon bilan" texte="Une photographie de ta préparation à imprimer, ou à partager avec ton encadrant." href="/app/bilan" />
         <Feature icone="guides" titre="Les guides" texte="Un guide par oral : dix minutes à lire, cinq à relire la veille." href="/app/guides" />
       </div>

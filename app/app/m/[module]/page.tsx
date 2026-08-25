@@ -13,8 +13,6 @@ import { extraireDeck, ExtractionError } from "@/lib/slides/extract";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import { useToast } from "@/app/components/Toast";
 import { telechargerIcs } from "@/lib/ics";
-import RepeterAvecAmi from "../../components/RepeterAvecAmi";
-import RetourOralForm from "../../components/RetourOralForm";
 import { Icone } from "@/app/components/Icone";
 import ListeQuestions from "../../components/ListeQuestions";
 
@@ -172,17 +170,9 @@ function Hub({ m }: { m: ModuleOral }) {
       {jours !== null && jours < 0 && (
         <section className="card">
           <h2 className="list-title" style={{ marginTop: 0 }}>C&apos;est passé</h2>
-          <RetourOralForm type={m.id} ecoleInitiale={titreProfil} />
         </section>
       )}
 
-      <RepeterAvecAmi
-        titre={`${m.nom} — ${titreProfil || m.nom}`}
-        persona={m.persona}
-        dureeS={60}
-        cle={`sc.amis.${m.id}`}
-        questions={[...(questions ?? []), ...questionsClassiquesModule(m)].slice(0, 8).map((q) => ({ question: q.question, pourquoi: q.pourquoi, attendu: q.attendu }))}
-      />
 
       <section id="questions">
         <div className="list-head">

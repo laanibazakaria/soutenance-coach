@@ -39,15 +39,6 @@ export default function GuidesPage() {
   return (
     <div className="guides">
       <p className="subtitle">Quatre guides, un par oral. Dix minutes à lire maintenant, cinq à relire la veille — tout ce qu&apos;on découvre d&apos;habitude trop tard.</p>
-      <Link href="/app/questions-reelles" className="card accueil-carte card-hover reelles-carte">
-        <div className="accueil-carte-tete">
-          <IconeBadge nom="parole" teinte="or" />
-          <div>
-            <h3>Les vraies questions des vrais jurys</h3>
-            <p className="session-meta">Racontées par les étudiants passés avant toi, par école et filière. Anonymes, relues.</p>
-          </div>
-        </div>
-      </Link>
       <div className="accueil-grille">
         {GUIDES.map((g) => (
           <article key={g.href} className="card accueil-carte card-hover">

@@ -187,30 +187,5 @@ model Partage {
 }
 
 /// Un abonnement aux notifications push — lié au compte s'il y en a un.
-model PushAbonnement {
-  endpoint String   @id
-  p256dh   String
-  auth     String
-  userId   String?
-  fuseau   String?
-  creeLe   DateTime @default(now())
-
-  @@index([userId])
-}
 
 /// Un oral raconté après coup : les vraies questions, anonymes, modérées.
-model RetourOral {
-  id        String   @id @default(cuid())
-  type      String
-  ecole     String
-  filiere   String
-  niveau    String
-  annee     Int
-  questions Json
-  ressenti  String?
-  conseil   String?
-  approuve  Boolean  @default(false)
-  creeLe    DateTime @default(now())
-
-  @@index([approuve, type])
-}

@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Icone, IconeBadge } from "@/app/components/Icone";
 import { membreParId, type Debrief, type Message, type Persona } from "@/lib/appel";
-import type { BilanCamera } from "@/lib/camera";
-import ConstatsCamera from "@/app/components/ConstatsCamera";
 import GrilleVue from "@/app/components/GrilleVue";
 import ProgressionGrille from "@/app/components/ProgressionGrille";
 import { suivre, historiqueDepuisStockage } from "@/lib/grille/progression";
@@ -23,7 +21,6 @@ export default function DebriefAppel({
   persona,
   dureeS,
   sessionId,
-  camera = null,
   grille = null,
   onRecommencer,
 }: {
@@ -34,7 +31,6 @@ export default function DebriefAppel({
   persona: Persona;
   dureeS: number;
   sessionId: string | null;
-  camera?: BilanCamera | null;
   grille?: Evaluation | null;
   onRecommencer: () => void;
 }) {
@@ -140,7 +136,6 @@ export default function DebriefAppel({
         </>
       )}
 
-      {camera && <ConstatsCamera bilan={camera} />}
 
       <details className="classiques">
         <summary>L&apos;échange complet ({historique.length} répliques)</summary>

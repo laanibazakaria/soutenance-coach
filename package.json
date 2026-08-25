@@ -11,14 +11,10 @@
     "test": "vitest run",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate deploy",
-    "db:studio": "prisma studio",
-    "mediapipe": "node scripts/mediapipe.mjs",
-    "prebuild": "node scripts/mediapipe.mjs",
-    "predev": "node scripts/mediapipe.mjs"
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
-    "@mediapipe/tasks-vision": "^1.0.1",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "bcryptjs": "^3.0.3",

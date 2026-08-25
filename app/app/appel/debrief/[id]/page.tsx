@@ -4,7 +4,6 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { lireCache } from "@/lib/ia-cache";
 import { PERSONAS, type Debrief, type Message, type ModeAppel } from "@/lib/appel";
-import type { BilanCamera } from "@/lib/camera";
 import type { Evaluation } from "@/lib/grille";
 import DebriefAppel from "../../DebriefAppel";
 
@@ -13,7 +12,6 @@ interface AppelSauve {
   dureeMin: number;
   dialogue: Message[];
   debrief: Debrief | null;
-  camera?: BilanCamera | null;
   grille?: Evaluation | null;
   date: string;
 }
@@ -33,5 +31,5 @@ export default function DebriefPage({ params }: { params: Promise<{ id: string }
       </div>
     );
   }
-  return <DebriefAppel phase="fini" debrief={appel.debrief} erreur={appel.debrief ? null : "Le débrief n'avait pas pu être produit."} historique={appel.dialogue} persona={PERSONAS[appel.mode]} dureeS={appel.dureeMin * 60} sessionId={id} camera={appel.camera ?? null} grille={appel.grille ?? null} onRecommencer={() => window.location.assign(`/app/appel?mode=${appel.mode}`)} />;
+  return <DebriefAppel phase="fini" debrief={appel.debrief} erreur={appel.debrief ? null : "Le débrief n'avait pas pu être produit."} historique={appel.dialogue} persona={PERSONAS[appel.mode]} dureeS={appel.dureeMin * 60} sessionId={id} grille={appel.grille ?? null} onRecommencer={() => window.location.assign(`/app/appel?mode=${appel.mode}`)} />;
 }

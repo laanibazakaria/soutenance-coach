@@ -12,5 +12,3 @@ out/
 .env*
 lib/generated/
 
-# Fichiers MediaPipe copiés depuis node_modules au build (voir scripts/mediapipe.mjs)
-public/mediapipe/

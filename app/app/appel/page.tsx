@@ -21,9 +21,6 @@ import { signalerAppelIa } from "@/lib/usage-client";
 import { voixDisponible, meilleureVoix, voixParTimbre, parler, taire, voixNavigateurExcellente, parlerNaturel, taireNaturel, type VoixMembre } from "@/lib/voix";
 import { CLE_RAPPORT } from "../components/RapportView";
 import { useEcouteSegments } from "../hooks/useEcouteSegments";
-import { useCamera } from "../hooks/useCamera";
-import ConstatsCamera from "@/app/components/ConstatsCamera";
-import { ligneContexteCamera, type BilanCamera } from "@/lib/camera";
 import { passagesPour } from "@/lib/memoire/client";
 import { contexteFiche, dossierSuffisant, DOSSIER_MAX, type FicheLecture } from "@/lib/appel/lecture";
 import type { Evaluation } from "@/lib/grille";
@@ -165,8 +162,6 @@ function AppelInner() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   /** Voix naturelle de l'API quand le navigateur n'a rien de bon (décidé au lancement). */
   const [voixNaturelle, setVoixNaturelle] = useState(false);
-  const [cameraVoulue, setCameraVoulue] = useState(true);
-  const [bilanCamera, setBilanCamera] = useState<BilanCamera | null>(null);
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   /** Ce que le jury a compris du dossier : lu une fois, gardé tant que le dossier ne change pas. */
   const [fiche, setFiche] = useState<FicheLecture | null>(null);
@@ -189,8 +184,6 @@ function AppelInner() {
   const historiqueRef = useRef<Message[]>([]);
   const finirReponseRef = useRef<() => void>(() => {});
   const segments = useEcouteSegments();
-  const camera = useCamera();
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   /** Questions posées lors des appels précédents : le jury ne se répète pas d un appel à l autre. */
   const dejaPoseesRef = useRef<string[]>([]);
   const ficheRef = useRef<FicheLecture | null>(null);
@@ -212,21 +205,6 @@ function AppelInner() {
     setContexte(c);
     setFiche(c ? lireCache<FicheLecture>(window.localStorage, cleFiche(mode, c)) : null);
   }, [mode]);
-
-  // L'aperçu démarre avant l'appel : on se cadre pendant qu'on choisit sa durée,
-  // pas une fois que le jury a commencé à parler.
-  useEffect(() => {
-    if (phase !== "idle") return;
-    if (!cameraVoulue) {
-      camera.eteindre();
-      return;
-    }
-    const t = setTimeout(() => {
-      if (videoRef.current) void camera.allumer(videoRef.current);
-    }, 150);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cameraVoulue, phase]);
 
   useEffect(() => {
     ficheRef.current = fiche;
@@ -276,9 +254,6 @@ function AppelInner() {
       const posees = hist.filter((m) => m.role === "assistant").map((m) => m.content);
       dejaPoseesRef.current = [...posees, ...dejaPoseesRef.current].slice(0, 40);
       ecrireCache(window.localStorage, "appel:questions-posees", dejaPoseesRef.current);
-      const vuCamera = camera.recolter();
-      camera.eteindre();
-      setBilanCamera(vuCamera);
       setPhase("debrief");
       const dureeMs = Date.now() - debutRef.current;
       const id = crypto.randomUUID();
@@ -290,7 +265,7 @@ function AppelInner() {
       const grillePromise = fetch("/api/grille", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ oral: mode, echange, contexte: contexte.slice(0, 4000), mesures: ligneContexteCamera(vuCamera) ?? undefined, dureeMin }),
+        body: JSON.stringify({ oral: mode, echange, contexte: contexte.slice(0, 4000), dureeMin }),
       })
         .then((r) => (r.ok ? (r.json() as Promise<{ evaluation?: Evaluation }>) : null))
         .then((j) => {
@@ -302,23 +277,23 @@ function AppelInner() {
           setEvaluation(null);
         });
       try {
-        const r = await fetch("/api/appel/debrief", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, contexte: [contexte, ligneContexteCamera(vuCamera)].filter(Boolean).join("\n\n"), langue, dureeMin, historique: hist }) });
+        const r = await fetch("/api/appel/debrief", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, contexte, langue, dureeMin, historique: hist }) });
         const j = (await r.json()) as { debrief?: Debrief; erreur?: string };
         if (!r.ok || !j.debrief) throw new Error(j.erreur ?? "Débrief indisponible.");
         signalerAppelIa();
         await grillePromise;
-        ecrireCache(window.localStorage, `appel:${id}`, { mode, dureeMin, dialogue: hist, debrief: j.debrief, camera: vuCamera, grille: evaluationRef.current, date: new Date().toISOString() });
+        ecrireCache(window.localStorage, `appel:${id}`, { mode, dureeMin, dialogue: hist, debrief: j.debrief, grille: evaluationRef.current, date: new Date().toISOString() });
         setDebrief(j.debrief);
       } catch (e) {
         await grillePromise;
-        ecrireCache(window.localStorage, `appel:${id}`, { mode, dureeMin, dialogue: hist, debrief: null, camera: vuCamera, grille: evaluationRef.current, date: new Date().toISOString() });
+        ecrireCache(window.localStorage, `appel:${id}`, { mode, dureeMin, dialogue: hist, debrief: null, grille: evaluationRef.current, date: new Date().toISOString() });
         setErreur(e instanceof Error ? e.message : "Débrief indisponible.");
       }
       signalerSynchronisation();
       void pousserTout();
       setPhase("fini");
     },
-    [camera, contexte, dureeMin, langue, mode, nettoyerEcoute, toast],
+    [contexte, dureeMin, langue, mode, nettoyerEcoute, toast],
   );
 
   /** Le jury lit le dossier — une fois par dossier, mis en cache. */
@@ -520,9 +495,6 @@ function AppelInner() {
     arreteRef.current = false;
     debutRef.current = Date.now();
     setEcouleS(0);
-    // Déjà allumée depuis l'écran de lancement : on ne rattrape que le cas où
-    // la personne vient de cocher la case.
-    if (cameraVoulue && videoRef.current && camera.etat !== "active") void camera.allumer(videoRef.current);
     if (supporte.voix) {
       voixRef.current = await meilleureVoix(langue);
       voixMembresRef.current = await voixParTimbre(langue);
@@ -541,23 +513,6 @@ function AppelInner() {
   }, [nettoyerEcoute]);
 
   const p = PERSONAS[mode];
-  // Un seul élément vidéo pour toute la page : deux <video> partageant une même
-  // référence détachaient le flux au changement d'écran.
-  const enAppelApercu = phase === "jury-reflechit" || phase === "jury-parle" || phase === "ecoute";
-  const apercu = (
-    <div className={`appel-video${camera.etat === "active" ? " visible" : ""}${enAppelApercu ? "" : " appel-video-lanceur"}`}>
-      <video
-        ref={(el) => {
-          videoRef.current = el;
-          camera.attacher(el);
-        }}
-        muted
-        playsInline
-        aria-label="Aperçu de ta caméra"
-      />
-      <span className="appel-video-etat">{camera.etat === "chargement" ? "Caméra…" : "Sur ton appareil"}</span>
-    </div>
-  );
   const mm = Math.floor(ecouleS / 60);
   const ss = String(ecouleS % 60).padStart(2, "0");
   const enAppel = phase === "jury-reflechit" || phase === "jury-parle" || phase === "ecoute";
@@ -566,13 +521,12 @@ function AppelInner() {
   const lienDossier = mode === "soutenance" ? "/app/soutenance" : mode === "entretien" ? "/app/entretien" : `/app/m/${mode}`;
 
   if (phase === "fini" || phase === "debrief") {
-    return <DebriefAppel phase={phase} debrief={debrief} erreur={erreur} historique={historique} persona={p} dureeS={ecouleS} sessionId={sessionId} camera={bilanCamera} grille={evaluation} onRecommencer={() => setPhase("idle")} />;
+    return <DebriefAppel phase={phase} debrief={debrief} erreur={erreur} historique={historique} persona={p} dureeS={ecouleS} sessionId={sessionId} grille={evaluation} onRecommencer={() => setPhase("idle")} />;
   }
 
   if (!enAppel) {
     return (
       <div className="card lanceur appel-lanceur">
-        {apercu}
         {!supporte.micro && (
           <div className="warn" role="alert">
             La reconnaissance vocale n&apos;est pas disponible dans ce navigateur. Utilise Chrome ou Edge pour parler au jury.
@@ -615,13 +569,6 @@ function AppelInner() {
             </button>
           ))}
         </fieldset>
-        <label className="appel-camera-choix">
-          <input type="checkbox" checked={cameraVoulue} onChange={(e) => setCameraVoulue(e.target.checked)} />
-          <span>
-            <b>Allumer la caméra</b>
-            <small>Regard, tenue de tête, visage ouvert — analysés sur ton appareil. L&apos;image n&apos;est ni envoyée, ni enregistrée.</small>
-          </span>
-        </label>
         <div className="appel-contexte">
           <IconeBadge nom={pret ? "valide" : "alerte"} teinte={pret ? "vert" : "or"} taille={32} />
           <span>
@@ -713,7 +660,6 @@ function AppelInner() {
           </span>
           <span className="session-meta">{p.nom} · en direct</span>
         </div>
-        {apercu}
         <div className="appel-avatar-zone">
           <div className={`appel-avatar${phase === "jury-parle" ? " parle" : phase === "jury-reflechit" ? " reflechit" : ""}`}>
             <Icone nom={mode} taille={40} />

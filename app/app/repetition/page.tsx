@@ -53,6 +53,9 @@ interface DocumentPDF {
  * diapositive. Le PDF, s'il est rechargé pour l'affichage, ne quitte pas
  * le navigateur.
  */
+/** Le temps qu'un jury laisse pour conclure après avoir annoncé la fin. */
+const GRACE_CONCLUSION_MS = 30_000;
+
 export default function RepetitionPage() {
   const router = useRouter();
   const [langue, setLangue] = useState<Langue>("fr-FR");
@@ -95,6 +98,8 @@ export default function RepetitionPage() {
       : null;
   const plan = deck ? planPrevu(deck, pitch, dureeMs) : null;
   const { phase, elapsedMs } = rec;
+  /** Le jury a annoncé la fin : trente secondes pour conclure, puis on coupe. */
+  const [coupeA, setCoupeA] = useState<number | null>(null);
   const slide = deck?.slides[index];
   const prevuCourant = plan?.prevu[index]?.dureeMs ?? 0;
   const surSlideMs = phase === "recording" ? elapsedMs - debutSegmentRef.current : 0;
@@ -138,6 +143,26 @@ export default function RepetitionPage() {
     await rec.start();
   }
 
+  // Au dépassement, le jury interrompt — puis coupe pour de bon. On ne prévient
+  // qu'une fois : rallonger indéfiniment reviendrait à ne pas couper.
+  useEffect(() => {
+    if (phase !== "recording" || coupeA !== null) return;
+    if (elapsedMs <= dureeMs) return;
+    setCoupeA(Date.now() + GRACE_CONCLUSION_MS);
+  }, [phase, elapsedMs, dureeMs, coupeA]);
+
+  useEffect(() => {
+    if (coupeA === null || phase !== "recording") return;
+    const restant = coupeA - Date.now();
+    if (restant <= 0) {
+      terminerRef.current();
+      return;
+    }
+    const t = setTimeout(() => terminerRef.current(), restant);
+    return () => clearTimeout(t);
+  }, [coupeA, phase]);
+
+  const terminerRef = useRef<() => void>(() => {});
   function terminer() {
     if (!deck || !plan) return;
     const fin = Date.now() - rec.startedAt();
@@ -148,6 +173,7 @@ export default function RepetitionPage() {
     setReel(cumul);
     setComparaison(comparer(deck, plan.prevu, cumul));
   }
+  terminerRef.current = terminer;
 
   function sauvegarder(destination?: string) {
     const transcript = rec.transcript();
@@ -322,6 +348,13 @@ export default function RepetitionPage() {
 
       {phase === "recording" && slide && (
         <>
+          {coupeA !== null && (
+            <p className="rep-interruption" role="alert">
+              <Icone nom="chrono" /> <b>« On va s’arrêter là. Concluez en trente secondes. »</b>{" "}
+              Le jury a repris la parole — comme il le fera le jour J. Termine ta phrase, annonce ton
+              résultat principal, et arrête-toi.
+            </p>
+          )}
           <div className="rep-barre">
             <div className={`rep-chrono timer-${etatGlobal}`}>
               <span className="rec-dot" aria-hidden="true" />

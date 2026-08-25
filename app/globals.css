@@ -483,6 +483,16 @@ p a, .etat-vide-secondaire a, .onboarding-alt a, .teaser a, .report-note a { tex
 .pdf-option b { color: var(--txt); }
 .pdf-option input { font-size: 0.86rem; color: var(--muted); }
 .pdf-ok { color: var(--ok); font-weight: 600; }
+/* L'interruption du jury : elle doit se voir sans qu'on la cherche — c'est le
+   moment où l'oral bascule, et on n'a que trente secondes pour réagir. */
+.rep-interruption {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.35);
+  border-radius: 12px; padding: 12px 16px; margin-bottom: 12px;
+  font-size: 0.95rem; line-height: 1.55; color: var(--txt);
+}
+.rep-interruption b { color: #b91c1c; }
+
 .rep-barre { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin: 6px 0 14px; }
 .rep-chrono { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; text-align: left; }
 .rep-chrono-slide { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }

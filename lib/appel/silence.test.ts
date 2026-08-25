@@ -31,7 +31,7 @@ describe("le jury devant un silence", () => {
     // La règle de rotation interdit deux tours d'affilée : sans exception
     // nommée, les deux consignes se contrediraient.
     const p = construirePromptTour(base([]), 60);
-    expect(p).toContain("ou si le candidat n'a rien répondu");
+    expect(p).toContain("si le candidat n'a rien répondu");
   });
 });
 
@@ -70,5 +70,31 @@ describe("le dossier tel qu'il est présenté au jury", () => {
   it("demande la cohérence d'un tour à l'autre", () => {
     const p = construirePromptTour(base([]), 60);
     expect(p).toContain("ne te contredis pas");
+  });
+});
+
+/**
+ * Un jury qui change de sujet à chaque réponse laisse passer tous les flous, et
+ * ne crée jamais l'occasion de se contredire — alors que le critère 8 de la
+ * grille note précisément « ne se contredit pas d'une réponse à l'autre ».
+ */
+describe("la façon dont le jury creuse", () => {
+  it("autorise à insister jusqu'à trois fois sur un point resté vague", () => {
+    const p = construirePromptTour(base([]), 60);
+    expect(p).toContain("jusqu'à trois fois sur le même point");
+    expect(p).toContain("On ne change de sujet que lorsque la réponse est nette");
+  });
+
+  it("fait revenir un autre membre sur un chiffre déjà donné", () => {
+    const p = construirePromptTour(base([]), 60);
+    expect(p).toContain("REVENIR SUR UN CHIFFRE");
+    expect(p).toContain("un AUTRE membre y revient");
+  });
+
+  it("interdit d'annoncer que c'est une vérification", () => {
+    // Prévenir le candidat annulerait l'exercice : un jury ne dit pas qu'il
+    // recoupe, il recoupe.
+    const p = construirePromptTour(base([]), 60);
+    expect(p).toContain("sans dire que c'est une vérification");
   });
 });

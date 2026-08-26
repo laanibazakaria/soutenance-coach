@@ -40,8 +40,6 @@ export const DOSSIER_MAX = LIMITES_LECTURE.passeChars * LIMITES_LECTURE.passesMa
 const PERSONNAGES: Record<ModeAppel, string> = {
   soutenance: "le rapporteur d'un jury de soutenance d'école d'ingénieurs",
   entretien: "un recruteur qui a lu le CV et l'offre",
-  pitch: "un jury de concours d'innovation qui a lu le dossier",
-  concours: "un jury d'admission qui a lu le dossier de candidature",
 };
 
 /**

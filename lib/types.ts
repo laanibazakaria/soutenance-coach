@@ -27,7 +27,7 @@ export interface SessionRecord {
    */
   slides?: SlideTiming[];
   /** Module d'origine : soutenance par défaut ; "entretien" pour un pitch « présentez-vous ». */
-  mode?: "soutenance" | "entretien" | "pitch" | "concours";
+  mode?: "soutenance" | "entretien";
   /**
    * Mesures sur le son (silences, dynamique), calculées à l'enregistrement.
    * Restent sur l'appareil avec l'audio : jamais synchronisées.

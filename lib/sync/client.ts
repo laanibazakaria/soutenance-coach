@@ -14,8 +14,6 @@ import { fusionnerParcours, type Parcours } from "../parcours";
 import { lireParcours, sauverParcours } from "../parcours/persistance";
 import { fusionnerCandidature, type Candidature } from "../entretien";
 import { lireCandidature, sauverCandidature } from "../entretien/persistance";
-import { fusionnerProfil, IDS_MODULES, type ProfilModule } from "../modules";
-import { lireProfil, sauverProfil } from "../modules/persistance";
 import { toutEffacerAudio } from "../audio/stockage";
 import { oublierMemoire } from "../memoire/client";
 
@@ -79,13 +77,8 @@ interface Distant {
   ia: Record<string, unknown>;
   parcours?: Parcours | null;
   candidature?: Candidature | null;
-  profils?: ProfilModule[];
 }
 
-/** Tous les profils de modules présents localement. */
-function profilsLocaux(ls: Storage): ProfilModule[] {
-  return IDS_MODULES.map((id) => lireProfil(ls, id)).filter((p): p is ProfilModule => p !== null);
-}
 
 async function envoyer(corps: {
   sessions?: SessionRecord[];
@@ -93,7 +86,6 @@ async function envoyer(corps: {
   ia?: Record<string, unknown>;
   parcours?: Parcours | null;
   candidature?: Candidature | null;
-  profils?: ProfilModule[];
 }) {
   const res = await fetch("/api/sync", {
     method: "PUT",
@@ -133,14 +125,6 @@ export async function synchroniser(): Promise<{ ok: boolean; sessions: number }>
     if (parcours) sauverParcours(ls, parcours);
     const candidature = fusionnerCandidature(lireCandidature(ls), distant.candidature ?? null);
     if (candidature) sauverCandidature(ls, candidature);
-    const profils: ProfilModule[] = [];
-    for (const id of IDS_MODULES) {
-      const fusion = fusionnerProfil(lireProfil(ls, id), (distant.profils ?? []).find((p) => p.module === id) ?? null);
-      if (fusion) {
-        sauverProfil(ls, fusion);
-        profils.push(fusion);
-      }
-    }
 
     await envoyer({
       sessions: sessionsAPousser(locales, distant.sessions ?? []),
@@ -148,7 +132,6 @@ export async function synchroniser(): Promise<{ ok: boolean; sessions: number }>
       ia: iaLocal,
       parcours,
       candidature,
-      profils,
     });
     ls.setItem(FLAG, "1");
     window.dispatchEvent(new Event(EVENEMENT));
@@ -163,7 +146,7 @@ export async function pousserTout(): Promise<void> {
   if (!estConnecte()) return;
   try {
     const ls = window.localStorage;
-    await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa(), parcours: lireParcours(ls), candidature: lireCandidature(ls), profils: profilsLocaux(ls) });
+    await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa(), parcours: lireParcours(ls), candidature: lireCandidature(ls) });
   } catch {
     /* réessayé à la prochaine synchronisation */
   }
@@ -177,7 +160,7 @@ export async function pousserTout(): Promise<void> {
 export async function deconnexionPropre(): Promise<"vide" | "conserve"> {
   const ls = window.localStorage;
   try {
-    const ok = await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa(), parcours: lireParcours(ls), candidature: lireCandidature(ls), profils: profilsLocaux(ls) });
+    const ok = await envoyer({ sessions: listSessions(ls), deck: listeDeckSauvegarde(ls), ia: lireToutIa(), parcours: lireParcours(ls), candidature: lireCandidature(ls) });
     if (!ok) return "conserve";
   } catch {
     return "conserve";

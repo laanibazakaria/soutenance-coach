@@ -13,8 +13,6 @@ import { analyserReponse, type AvisModele, type AnalyseReponse } from "@/lib/jur
 import type { JuryQuestion } from "@/lib/slides/types";
 import { lireCandidature, cleQuestionsEntretien } from "@/lib/entretien/persistance";
 import { questionsClassiques, type QuestionEntretien } from "@/lib/entretien";
-import { MODULES, IDS_MODULES, questionsClassiquesModule, contexteProfil } from "@/lib/modules";
-import { lireProfil, cleQuestionsModule } from "@/lib/modules/persistance";
 import { lireModulesActifs } from "@/lib/preferences";
 import { pousserTout, signalerSynchronisation } from "@/lib/sync/client";
 import ExempleReponse from "@/app/components/ExempleReponse";
@@ -46,13 +44,6 @@ export function candidatesDuJour(storage: Storage): CandidateQuestion[] {
     const ia = c ? lireCache<QuestionEntretien[]>(storage, cleQuestionsEntretien(c)) : null;
     const base = ia && ia.length >= 3 ? ia : questionsClassiques(c && c.typeEntretien !== "mixte" ? c.typeEntretien : "les-deux");
     out.push(...base.map((q) => ({ id: `e:${q.id}`, question: q.question, pourquoi: `${q.pourquoi} Une bonne réponse : ${q.attendu}`, source: "entretien" as const })));
-  }
-  for (const id of IDS_MODULES) {
-    if (!actifs.includes(id)) continue;
-    const p = lireProfil(storage, id);
-    const ia = p ? lireCache<QuestionEntretien[]>(storage, cleQuestionsModule(p)) : null;
-    const base = ia && ia.length >= 3 ? ia : questionsClassiquesModule(MODULES[id]);
-    out.push(...base.map((q) => ({ id: `${id}:${q.id}`, question: q.question, pourquoi: `${q.pourquoi} Une bonne réponse : ${q.attendu}`, source: id })));
   }
   return out;
 }
@@ -88,10 +79,6 @@ export default function QuestionDuJourPage() {
       const c = lireCandidature(ls);
       if (c) setContexte(`POSTE : ${c.poste} — ${c.entreprise}\nOFFRE : ${c.offre.slice(0, 2500)}\nCV : ${c.cvTexte.slice(0, 3000)}`);
     }
-    if (q && (q.source === "pitch" || q.source === "concours")) {
-      const p = lireProfil(ls, q.source);
-      if (p) setContexte(contexteProfil(MODULES[q.source], p));
-    }
   }, [aujourdhui]);
 
   useEffect(() => {
@@ -125,11 +112,7 @@ export default function QuestionDuJourPage() {
         else if (question.source === "entretien") {
           const c = lireCandidature(window.localStorage);
           Object.assign(corps, { question: { id: question.id, question: question.question, pourquoi: question.pourquoi, attendu: "", categorie: "experience", cible: "les-deux", source: "ia" }, role: c && c.typeEntretien === "technique" ? "technique" : "rh", candidature: c ? { poste: c.poste, entreprise: c.entreprise, offre: c.offre, cvTexte: c.cvTexte } : undefined });
-        } else {
-          const p = lireProfil(window.localStorage, question.source);
-          Object.assign(corps, { module: question.source, question: { id: question.id, question: question.question, pourquoi: question.pourquoi, attendu: "", categorie: "experience", cible: "les-deux", source: "ia" }, profil: p ? { champs: p.champs, documentTexte: p.documentTexte } : undefined });
-        }
-        const res = await fetch(route, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(corps) });
+        }        const res = await fetch(route, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(corps) });
         const data = (await res.json()) as { avis?: AvisModele; erreur?: string };
         if (res.ok && data.avis) avis = data.avis;
         else toast.info(data.erreur ?? "Avis indisponible — les mesures restent.");
@@ -173,7 +156,7 @@ export default function QuestionDuJourPage() {
       </div>
 
       <article className="card question-posee">
-        <span className="question-cat">{new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })} · {question.source === "soutenance" ? "ton jury" : question.source === "entretien" ? "ton recruteur" : MODULES[question.source].persona}</span>
+        <span className="question-cat">{new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })} · {question.source === "soutenance" ? "ton jury" : question.source === "entretien" ? "ton recruteur" : "ton jury"}</span>
         <p className="question-grande">{question.question}</p>
         {(resultat || rec.phase !== "idle") && <p className="question-pourquoi"><Icone nom="idee" /> {question.pourquoi}</p>}
       </article>
@@ -220,7 +203,7 @@ export default function QuestionDuJourPage() {
               <article className="card avis-bloc avis-relance"><b>Sa relance</b><p>« {resultat.avis.relance} »</p></article>
             </div>
           )}
-          <ExempleReponse question={question.question} pourquoi={question.pourquoi} contexte={contexte} persona={question.source === "soutenance" ? "Jury de soutenance" : question.source === "entretien" ? "Recruteur" : MODULES[question.source].persona} reponseEtudiant={resultat.transcript} />
+          <ExempleReponse question={question.question} pourquoi={question.pourquoi} contexte={contexte} persona={question.source === "soutenance" ? "Jury de soutenance" : question.source === "entretien" ? "Recruteur" : "ton jury"} reponseEtudiant={resultat.transcript} />
           <div className="actions">
             <Link href="/app" className="btn primary">
               Retour à l&apos;accueil

@@ -7,7 +7,6 @@ import type { Deck } from "@/lib/slides/types";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { estParcours, type Parcours } from "@/lib/parcours";
 import { estCandidature, type Candidature } from "@/lib/entretien";
-import { estProfilModule, type ProfilModule } from "@/lib/modules";
 
 /**
  * Synchronisation des données d'un compte.
@@ -37,6 +36,7 @@ function versRecord(s: {
   slides?: unknown;
   mode?: string | null;
 }): SessionRecord {
+  const mode = s.mode === "soutenance" || s.mode === "entretien" ? s.mode : undefined;
   return {
     id: s.id,
     startedAt: s.startedAt.toISOString(),
@@ -46,7 +46,7 @@ function versRecord(s: {
     ...(s.confidence !== null ? { confidence: s.confidence } : {}),
     ...(s.targetDurationMs !== null ? { targetDurationMs: s.targetDurationMs } : {}),
     ...(Array.isArray(s.slides) ? { slides: s.slides as SlideTiming[] } : {}),
-    ...(s.mode === "entretien" || s.mode === "soutenance" || s.mode === "pitch" || s.mode === "concours" ? { mode: s.mode } : {}),
+    ...(mode ? { mode } : {}),
   };
 }
 
@@ -54,13 +54,12 @@ export async function GET() {
   const userId = await utilisateurCourant();
   if (!userId) return NextResponse.json({ erreur: "Non connecté." }, { status: 401 });
 
-  const [sessions, deck, ia, parcours, candidature, profils] = await Promise.all([
+  const [sessions, deck, ia, parcours, candidature] = await Promise.all([
     prisma.trainingSession.findMany({ where: { userId }, orderBy: { startedAt: "desc" } }),
     prisma.deck.findUnique({ where: { userId } }),
     prisma.iaResult.findMany({ where: { userId } }),
     prisma.parcours.findUnique({ where: { userId } }),
     prisma.candidature.findUnique({ where: { userId } }),
-    prisma.profilModule.findMany({ where: { userId } }),
   ]);
 
   return NextResponse.json({
@@ -91,18 +90,6 @@ export async function GET() {
           misAJourLe: candidature.misAJourLe.toISOString(),
         } satisfies Candidature)
       : null,
-    profils: profils.map(
-      (p) =>
-        ({
-          module: p.module as ProfilModule["module"],
-          champs: p.champs as Record<string, string>,
-          documentTexte: p.documentTexte,
-          ...(p.documentNom ? { documentNom: p.documentNom } : {}),
-          ...(p.date ? { date: p.date } : {}),
-          etapesFaites: p.etapesFaites as Record<string, string>,
-          misAJourLe: p.misAJourLe.toISOString(),
-        }) satisfies ProfilModule,
-    ),
   });
 }
 
@@ -112,7 +99,6 @@ interface CorpsPut {
   ia?: Record<string, unknown>;
   parcours?: unknown;
   candidature?: unknown;
-  profils?: unknown[];
 }
 
 export async function PUT(request: Request) {
@@ -197,23 +183,7 @@ export async function PUT(request: Request) {
     await prisma.candidature.upsert({ where: { userId }, create: { userId, ...donnees }, update: donnees });
   }
 
-  if (Array.isArray(corps.profils)) {
-    for (const p of corps.profils.filter(estProfilModule)) {
-      const donnees = {
-        champs: p.champs as Prisma.InputJsonValue,
-        documentTexte: p.documentTexte,
-        documentNom: p.documentNom ?? null,
-        date: p.date ?? null,
-        etapesFaites: p.etapesFaites as Prisma.InputJsonValue,
-        misAJourLe: new Date(p.misAJourLe),
-      };
-      await prisma.profilModule.upsert({
-        where: { userId_module: { userId, module: p.module } },
-        create: { userId, module: p.module, ...donnees },
-        update: donnees,
-      });
-    }
-  }
+
 
   return NextResponse.json({ ok: true, sessionsAjoutees: ajoutees });
 }

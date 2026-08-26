@@ -34,24 +34,6 @@ export const ONGLETS_MODULES: ReadonlyArray<{ id: string; racines: readonly stri
       { href: "/app/guide-entretien", label: "Guide" },
     ],
   },
-  {
-    id: "pitch",
-    racines: ["/app/m/pitch", "/app/guide-pitch"],
-    onglets: [
-      { href: "/app/m/pitch", label: "Préparer", exact: true },
-      { href: "/app/appel?mode=pitch", label: "Appel avec le jury" },
-      { href: "/app/guide-pitch", label: "Guide" },
-    ],
-  },
-  {
-    id: "concours",
-    racines: ["/app/m/concours", "/app/guide-concours"],
-    onglets: [
-      { href: "/app/m/concours", label: "Préparer", exact: true },
-      { href: "/app/appel?mode=concours", label: "Appel avec le jury" },
-      { href: "/app/guide-concours", label: "Guide" },
-    ],
-  },
 ];
 
 export function moduleDuChemin(chemin: string): (typeof ONGLETS_MODULES)[number] | null {

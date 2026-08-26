@@ -155,7 +155,7 @@ export function estSessionRecord(value: unknown): value is SessionRecord {
     typeof v.wordCount === "number" &&
     (v.confidence === undefined || typeof v.confidence === "number") &&
     (v.targetDurationMs === undefined || typeof v.targetDurationMs === "number") &&
-    (v.mode === undefined || v.mode === "soutenance" || v.mode === "entretien" || v.mode === "pitch" || v.mode === "concours") &&
+    (v.mode === undefined || v.mode === "soutenance" || v.mode === "entretien") &&
     (v.audio === undefined || (typeof v.audio === "object" && v.audio !== null && typeof (v.audio as { pausesLongues?: unknown }).pausesLongues === "number")) &&
     (v.slides === undefined ||
       (Array.isArray(v.slides) &&

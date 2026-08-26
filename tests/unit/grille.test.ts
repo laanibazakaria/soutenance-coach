@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { GRILLES, normaliser, mention, niveauCritere, construirePrompt, parseReponse, RATIO_MIN, type IdOral } from "../../lib/grille";
 
-const ORAUX: IdOral[] = ["soutenance", "entretien", "pitch", "concours"];
+const ORAUX: IdOral[] = ["soutenance", "entretien"];
 
 /** Réponse plausible du modèle : une note par critère. */
 const reponse = (notes: Array<number | null>, extra: Record<string, unknown> = {}) => ({
@@ -85,7 +85,7 @@ describe("grille — la note est calculée par le code", () => {
   });
 
   it("ne renvoie jamais 0 par défaut quand rien n'est évaluable", () => {
-    const e = normaliser(reponse(Array(12).fill(null)), GRILLES.pitch);
+    const e = normaliser(reponse(Array(12).fill(null)), GRILLES.entretien);
     expect(e.note).toBeNull();
     expect(e.poidsRetenu).toBe(0);
     expect(e.criteres).toHaveLength(12);
@@ -94,7 +94,7 @@ describe("grille — la note est calculée par le code", () => {
 
 describe("grille — robustesse face au modèle", () => {
   it("garde les douze critères même si le modèle en oublie", () => {
-    const e = normaliser({ criteres: [{ id: 3, note: 7, constat: "ok", citation: "", conseil: "c" }] }, GRILLES.concours);
+    const e = normaliser({ criteres: [{ id: 3, note: 7, constat: "ok", citation: "", conseil: "c" }] }, GRILLES.entretien);
     expect(e.criteres).toHaveLength(12);
     expect(e.criteres[2]!.note).toBe(7);
     expect(e.criteres[0]!.note).toBeNull();

@@ -237,7 +237,7 @@ function AccueilInner() {
         {resumes.map((r) => (
           <article key={r.id} className="card accueil-carte card-hover">
             <div className="accueil-carte-tete">
-              <IconeBadge nom={r.id} teinte={r.id === "soutenance" ? "violet" : r.id === "entretien" ? "bleu" : r.id === "pitch" ? "or" : "rose"} />
+              <IconeBadge nom={r.id} teinte={r.id === "soutenance" ? "violet" : "bleu"} />
               <div>
                 <h3>{r.nom}</h3>
                 <p className="session-meta">{r.sousTitre}</p>

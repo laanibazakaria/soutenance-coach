@@ -20,8 +20,6 @@ describe("lecture du dossier — la consigne", () => {
 
   it("change de personnage selon l'oral", () => {
     expect(construirePromptLecture("entretien", "x".repeat(500))).toContain("recruteur");
-    expect(construirePromptLecture("pitch", "x".repeat(500))).toContain("concours d'innovation");
-    expect(construirePromptLecture("concours", "x".repeat(500))).toContain("jury d'admission");
   });
 
   it("borne le dossier envoyé", () => {

@@ -6,7 +6,7 @@
  * le micro vivent côté navigateur, l'appel au modèle côté serveur.
  */
 
-export type ModeAppel = "soutenance" | "entretien" | "pitch" | "concours";
+export type ModeAppel = "soutenance" | "entretien";
 
 export interface Persona {
   mode: ModeAppel;
@@ -32,20 +32,6 @@ export const PERSONAS: Record<ModeAppel, Persona> = {
     role: "un recruteur (RH puis technique) pour un stage, une alternance ou un premier emploi : direct, curieux, attentif aux preuves concrètes",
     axes: ["le parcours et la motivation pour ce poste", "une expérience détaillée (situation, actions, résultat)", "les compétences clés de l'offre, avec des preuves", "la façon de travailler en équipe et de gérer un blocage", "les questions du candidat et la disponibilité"],
     ouverture: "Bonjour, merci d'être là. On va discuter une quinzaine de minutes de votre parcours et du poste.",
-  },
-  pitch: {
-    mode: "pitch",
-    nom: "Jury d'innovation",
-    role: "un membre de jury de concours d'innovation ou de startup : pragmatique, sceptique sur les promesses, intéressé par les preuves et le marché",
-    axes: ["le problème et pour qui", "la solution et ce qui existe déjà", "la preuve : utilisateurs, chiffres, tests", "le modèle économique et les prochaines étapes", "l'équipe et les risques"],
-    ouverture: "Merci pour ce pitch. J'ai quelques questions.",
-  },
-  concours: {
-    mode: "concours",
-    nom: "Jury d'admission",
-    role: "un membre de jury d'admission (école, master, bourse) : il évalue la personne, la cohérence du projet et la connaissance du programme",
-    axes: ["la présentation et le parcours", "le projet professionnel et sa cohérence", "pourquoi ce programme précisément", "la culture du domaine et l'actualité", "les qualités, les faiblesses, la capacité à réagir"],
-    ouverture: "Bonjour, installez-vous. Présentez-vous en quelques phrases, puis nous échangerons.",
   },
 };
 
@@ -79,16 +65,6 @@ export const MEMBRES: Record<ModeAppel, MembreJury[]> = {
   entretien: [
     { id: "rh", nom: "La chargée de recrutement", role: "la chargée de recrutement", obsession: "le parcours, la motivation pour CE poste, la disponibilité, le comportement en équipe", voix: "claire" },
     { id: "technique", nom: "Le manager technique", role: "le manager technique, futur responsable direct", obsession: "les compétences réelles : il demande des cas concrets, des choix techniques, ce qui a raté", voix: "grave" },
-  ],
-  pitch: [
-    { id: "investisseur", nom: "L'investisseur", role: "un investisseur du jury", obsession: "le marché, le modèle économique, la traction — il est sceptique sur les promesses sans preuve", voix: "grave" },
-    { id: "technique", nom: "L'experte technique", role: "une experte technique du jury", obsession: "la faisabilité, ce qui existe déjà, la vraie difficulté du produit", voix: "claire" },
-    { id: "terrain", nom: "Le professionnel du secteur", role: "un professionnel du secteur visé", obsession: "l'usage réel : qui s'en sert, dans quel contexte, et pourquoi il paierait", voix: "vive" },
-  ],
-  concours: [
-    { id: "president", nom: "Le président du jury", role: "le président du jury d'admission", obsession: "le projet professionnel, la cohérence du parcours, le « pourquoi nous »", voix: "grave" },
-    { id: "specialiste", nom: "La spécialiste de la discipline", role: "une enseignante-chercheuse de la discipline", obsession: "les connaissances du domaine et le recul : elle demande d'argumenter, de nuancer", voix: "claire" },
-    { id: "professionnel", nom: "Le professionnel", role: "un professionnel invité au jury", obsession: "le réalisme du projet et la connaissance du métier visé", voix: "posee" },
   ],
 };
 

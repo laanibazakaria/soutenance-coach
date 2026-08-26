@@ -36,8 +36,6 @@ const OUTILS: ReadonlyArray<{ icone: NomIcone; titre: string; texte: string }> =
   { icone: "fiches", titre: "Les fiches à mémoriser", texte: "Chiffres, définitions, choix à justifier, questions pièges — tirés de tes slides, révisés avec rappel espacé." },
   { icone: "parole", titre: "Répéter avec un ami", texte: "Un lien : il joue le jury sans avoir à créer de compte, avec les bonnes questions sous les yeux. Son retour revient dans ta préparation." },
   { icone: "entretien", titre: "L'entretien d'embauche", texte: "Ton CV et l'offre : le même appel, mais avec une chargée de recrutement et ton futur responsable technique." },
-  { icone: "pitch", titre: "Le pitch de projet", texte: "Concours d'innovation, startup, hackathon : un investisseur sceptique, une experte technique, un professionnel du secteur." },
-  { icone: "concours", titre: "L'oral de concours", texte: "Admission en école ou en master, bourse : un jury d'admission, le « pourquoi nous », le projet professionnel." },
   { icone: "livre", titre: "Les guides", texte: "Un guide par oral : comment ça se passe, ce que le jury note vraiment, et comment répondre à une question dont tu n'as pas la réponse." },
 ];
 
@@ -241,8 +239,9 @@ export default function LandingPage() {
             ))}
           </div>
           <p className="lp-sub lp-center">
-            Pour l&apos;entretien d&apos;embauche, le pitch et l&apos;oral de concours, le jury change
-            de composition — mais le principe reste le même.
+            Pour l&apos;entretien d&apos;embauche — stage, alternance, premier poste — le jury devient
+            ta chargée de recrutement et ton futur responsable technique. Même principe : ils ont lu
+            ton CV et l&apos;offre.
           </p>
         </div>
       </section>

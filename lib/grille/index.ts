@@ -12,7 +12,7 @@
  * Ce fichier est pur et testé : il ne connaît ni le réseau, ni le stockage.
  */
 
-export type IdOral = "soutenance" | "entretien" | "pitch" | "concours";
+export type IdOral = "soutenance" | "entretien";
 
 /**
  * À quel moment de l'oral un critère peut être observé.
@@ -74,41 +74,11 @@ const ENTRETIEN: Critere[] = [
   { id: 12, titre: "Clarté de l'expression", poids: 1, regarde: "Phrases courtes, vocabulaire précis, peu de mots béquilles." },
 ];
 
-const PITCH: Critere[] = [
-  { id: 1, titre: "Problème clair", poids: 2, regarde: "Le problème est nommé, incarné par quelqu'un de précis, et sa gravité est établie." },
-  { id: 2, titre: "Solution compréhensible", poids: 2, regarde: "On comprend ce que fait le produit en trente secondes, sans jargon." },
-  { id: 3, titre: "Preuve et traction", poids: 2, regarde: "Des preuves : utilisateurs, tests, mesures — pas seulement des intentions." },
-  { id: 4, titre: "Marché et cible", poids: 1.5, regarde: "Il sait qui paie, combien ils sont, et comment il l'a estimé." },
-  { id: 5, titre: "Différenciation", poids: 1.5, regarde: "Ce qui le distingue de l'existant est explicite et défendable." },
-  { id: 6, titre: "Modèle économique", poids: 1.5, regarde: "Comment le projet gagne de l'argent, avec des ordres de grandeur." },
-  { id: 7, titre: "Équipe", poids: 1, regarde: "Pourquoi cette équipe est la bonne pour ce problème." },
-  { id: 8, titre: "Demande explicite", poids: 1.5, regarde: "Il dit clairement ce qu'il demande au jury : financement, accompagnement, partenariat." },
-  { id: 9, titre: "Maîtrise des chiffres", poids: 1.5, regarde: "Ses chiffres tiennent debout et il sait d'où ils viennent." },
-  { id: 10, titre: "Tenue du format", poids: 1, regarde: "Le pitch tient dans le temps annoncé, avec une fin nette." },
-  { id: 11, titre: "Réponses aux questions", poids: 1.5, regarde: "Il encaisse les objections sans se braquer et répond précisément." },
-  { id: 12, titre: "Conviction", poids: 1, regarde: "L'énergie donne envie d'y croire, sans exagération." },
-];
 
-const CONCOURS: Critere[] = [
-  { id: 1, titre: "Présentation de soi", poids: 2, regarde: "Trois minutes claires, un fil conducteur, pas une liste de diplômes." },
-  { id: 2, titre: "Cohérence du parcours", poids: 1.5, regarde: "Les choix passés sont expliqués et mènent quelque part." },
-  { id: 3, titre: "Projet professionnel", poids: 2, regarde: "Un projet précis, réaliste, et relié à la formation visée." },
-  { id: 4, titre: "« Pourquoi nous ? »", poids: 2, regarde: "Sa raison est propre à cette école ou ce master, pas générique." },
-  { id: 5, titre: "Connaissance du programme", poids: 1.5, regarde: "Il cite des éléments concrets du cursus, des enseignants, des options." },
-  { id: 6, titre: "Culture et actualité", poids: 1.5, regarde: "Il peut relier son domaine à une actualité récente, avec un avis argumenté." },
-  { id: 7, titre: "Réponses aux questions", poids: 2, regarde: "Il répond à la question, structure sa réponse, et assume ce qu'il ignore." },
-  { id: 8, titre: "Recul et honnêteté", poids: 1.5, regarde: "Il nuance, reconnaît les limites de son propos, ne récite pas." },
-  { id: 9, titre: "Motivation", poids: 1.5, regarde: "L'envie est incarnée par des actes, pas seulement affirmée." },
-  { id: 10, titre: "Expression et registre", poids: 1, regarde: "Registre soutenu tenu, phrases construites, peu de mots béquilles." },
-  { id: 11, titre: "Posture", poids: 1, regarde: "Il s'adresse au jury, calmement, sans agitation ni raideur." },
-  { id: 12, titre: "Conclusion", poids: 1, regarde: "Il conclut par une phrase qui laisse une image nette." },
-];
 
 export const GRILLES: Record<IdOral, Grille> = {
   soutenance: { id: "soutenance", nom: "Soutenance", evaluateur: "un jury de soutenance d'école d'ingénieurs", criteres: SOUTENANCE },
   entretien: { id: "entretien", nom: "Entretien d'embauche", evaluateur: "un recruteur expérimenté", criteres: ENTRETIEN },
-  pitch: { id: "pitch", nom: "Pitch de projet", evaluateur: "un jury de concours d'innovation", criteres: PITCH },
-  concours: { id: "concours", nom: "Oral de concours", evaluateur: "un jury d'admission", criteres: CONCOURS },
 };
 
 export const NOTE_MAX = 10;

@@ -9,8 +9,6 @@ import { PERSONAS, DUREES_APPEL, MEMBRES, membreParId, assemblerContexte, parole
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCache, ecrireCache, empreinte } from "@/lib/ia-cache";
 import { lireCandidature } from "@/lib/entretien/persistance";
-import { lireProfil } from "@/lib/modules/persistance";
-import { MODULES, estModuleId } from "@/lib/modules";
 import { estRapport } from "@/lib/rapport";
 import { lireLangue, courte, type LangueCourte } from "@/lib/langue";
 import { lireProfilEtudiant, ligneContexteEtudiant } from "@/lib/etudiant";
@@ -35,7 +33,7 @@ function cleFiche(mode: ModeAppel, dossier: string): string {
 
 type Phase = "idle" | "jury-reflechit" | "jury-parle" | "ecoute" | "debrief" | "fini";
 
-const MODES: ModeAppel[] = ["soutenance", "entretien", "pitch", "concours"];
+const MODES: ModeAppel[] = ["soutenance", "entretien"];
 const SILENCE_MS = 2600;
 /** Deux réponses vides d'affilée : on propose une sortie, sans présumer pourquoi. */
 const SILENCES_AVANT_ALERTE = 2;
@@ -65,15 +63,6 @@ function contexteDepuisAppareil(mode: ModeAppel): string {
   if (mode === "entretien") {
     const c = lireCandidature(st);
     return avec(c ? assemblerContexte([{ titre: `Poste visé : ${c.poste}${c.entreprise ? ` chez ${c.entreprise}` : ""}`, texte: c.offre }, { titre: "CV du candidat", texte: c.cvTexte }]) : "");
-  }
-  if (estModuleId(mode)) {
-    const p = lireProfil(st, mode);
-    if (!p) return avec("");
-    const m = MODULES[mode];
-    return avec(assemblerContexte([
-      ...m.champs.map((ch) => ({ titre: ch.titreContexte, texte: p.champs[ch.id] })),
-      { titre: "Dossier", texte: p.documentTexte },
-    ]));
   }
   return "";
 }
@@ -118,15 +107,6 @@ function dossierCompletPourLecture(mode: ModeAppel): string {
           DOSSIER_MAX,
         )
       : "";
-  }
-  if (estModuleId(mode)) {
-    const pr = lireProfil(st, mode);
-    if (!pr) return "";
-    const m = MODULES[mode];
-    return assemblerContexte(
-      [...m.champs.map((ch) => ({ titre: ch.titreContexte, texte: pr.champs[ch.id] })), { titre: "Dossier", texte: pr.documentTexte }],
-      DOSSIER_MAX,
-    );
   }
   return "";
 }

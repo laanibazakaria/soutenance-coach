@@ -9,8 +9,6 @@ import { sauverDeck, listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCache, ecrireCache } from "@/lib/ia-cache";
 import { estRapport, LIMITES_RAPPORT, type Rapport } from "@/lib/rapport";
 import { lireCandidature } from "@/lib/entretien/persistance";
-import { lireProfil } from "@/lib/modules/persistance";
-import { MODULES, estModuleId, type ModuleId } from "@/lib/modules";
 import { lireModulesActifs, TOUS_LES_MODULES, type ModuleActif } from "@/lib/preferences";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import { indexerMemoire, memoireIndexe } from "@/lib/memoire/client";
@@ -40,7 +38,7 @@ export default function DocumentsPage() {
   const [actifs, setActifs] = useState<ModuleActif[]>([]);
   const [occupe, setOccupe] = useState<"deck" | "rapport" | null>(null);
   const [passages, setPassages] = useState<number | null>(null);
-  const [autres, setAutres] = useState<{ entretien: boolean; modules: Record<string, boolean> }>({ entretien: false, modules: {} });
+  const [autres, setAutres] = useState<{ entretien: boolean }>({ entretien: false });
   const monte = useRef(true);
 
   useEffect(() => {
@@ -50,12 +48,7 @@ export default function DocumentsPage() {
       const r = lireCache<unknown>(st, CLE_RAPPORT);
       setRapport(estRapport(r) ? r : null);
       setActifs(lireModulesActifs(st) ?? ["soutenance"]);
-      const mods: Record<string, boolean> = {};
-      for (const m of ["pitch", "concours"] as ModuleId[]) {
-        const p = estModuleId(m) ? lireProfil(st, m) : null;
-        mods[m] = Boolean(p && (p.documentTexte.trim() || Object.values(p.champs).some((v) => v.trim())));
-      }
-      setAutres({ entretien: Boolean(lireCandidature(st)), modules: mods });
+      setAutres({ entretien: Boolean(lireCandidature(st)) });
     };
     lire();
     void memoireIndexe().then((i) => monte.current && setPassages(i?.passages.length ?? null));
@@ -161,14 +154,14 @@ export default function DocumentsPage() {
               .filter((m) => m !== "soutenance")
               .map((m) => {
                 const info = TOUS_LES_MODULES.find((x) => x.id === m);
-                const rempli = m === "entretien" ? autres.entretien : Boolean(autres.modules[m]);
-                const lien = m === "entretien" ? "/app/entretien" : `/app/m/${m}`;
+                const rempli = autres.entretien;
+                const lien = "/app/entretien";
                 return (
                   <Link key={m} href={lien} className="card documents-lien card-hover">
                     <IconeBadge nom={rempli ? "valide" : "alerte"} teinte={rempli ? "vert" : "or"} taille={32} />
                     <span>
                       <b>{info?.nom ?? m}</b>
-                      <small>{rempli ? "Dossier renseigné" : m === "entretien" ? "CV et offre à renseigner" : `${MODULES[m as ModuleId]?.nom ?? m} : dossier à renseigner`}</small>
+                      <small>{rempli ? "Dossier renseigné" : "CV et offre à renseigner"}</small>
                     </span>
                     <Icone nom="chevronDroite" taille={16} />
                   </Link>

@@ -13,7 +13,6 @@ import { sauverAudio } from "@/lib/audio/stockage";
 import { pousserTout } from "@/lib/sync/client";
 import { useEnregistrement } from "../hooks/useEnregistrement";
 import { lireLangue, sauverLangue, LANGUES, type Langue } from "@/lib/langue";
-import { MODULES, estModuleId } from "@/lib/modules";
 import { Icone } from "@/app/components/Icone";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
 
@@ -38,7 +37,7 @@ export default function SessionPage() {
   useEffect(() => setLangue(lireLangue(window.localStorage)), []);
   const rec = useEnregistrement(langue);
   const [targetMinutes, setTargetMinutes] = useState<number | null>(null);
-  const [mode, setMode] = useState<"soutenance" | "entretien" | "pitch" | "concours">("soutenance");
+  const [mode, setMode] = useState<"soutenance" | "entretien">("soutenance");
 
   // Préréglage par l'URL (module Entretien : « présentez-vous » en 2 minutes).
   // Lu dans un effet plutôt qu'avec useSearchParams, qui imposerait une
@@ -46,7 +45,7 @@ export default function SessionPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const m = params.get("mode");
-    if (m === "entretien" || estModuleId(m)) setMode(m);
+    if (m === "entretien") setMode(m);
     const format = Number(params.get("format"));
     if (FORMATS.some((f) => f.minutes === format)) setTargetMinutes(format);
   }, []);
@@ -74,7 +73,7 @@ export default function SessionPage() {
       ...(rec.mesuresAudio() ? { audio: rec.mesuresAudio()! } : {}),
     });
     void pousserTout();
-    router.push(mode === "entretien" ? "/app/entretien" : estModuleId(mode) ? `/app/m/${mode}` : "/app");
+    router.push(mode === "entretien" ? "/app/entretien" : "/app");
   }
 
   const [confirmerAbandon, setConfirmerAbandon] = useState(false);
@@ -127,14 +126,6 @@ export default function SessionPage() {
         </div>
       )}
 
-      {estModuleId(mode) && phase === "idle" && (
-        <div className="card jury-intro" style={{ textAlign: "left" }}>
-          <b>
-            <Icone nom={mode} /> {MODULES[mode].formatTitre} — {MODULES[mode].formatMinutes} minutes
-          </b>
-          <p>{MODULES[mode].formatConsigne} Le coach comparera ensuite ta présentation à ton dossier.</p>
-        </div>
-      )}
 
       {phase === "idle" && (
         <div className="card lanceur">

@@ -6,8 +6,6 @@ import { debit } from "@/lib/accueil";
 export const MODES: Record<string, { nom: string; icone: NomIcone; teinte: Teinte }> = {
   soutenance: { nom: "Soutenance", icone: "soutenance", teinte: "violet" },
   entretien: { nom: "Entretien", icone: "entretien", teinte: "bleu" },
-  pitch: { nom: "Pitch", icone: "pitch", teinte: "or" },
-  concours: { nom: "Concours", icone: "concours", teinte: "rose" },
 };
 
 export function modeDe(s: SessionRecord) {

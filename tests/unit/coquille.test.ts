@@ -22,20 +22,20 @@ class Memoire {
 describe("notifications", () => {
   it("classe les échéances proches en attention, les lointaines en info, et ignore au-delà de 14 jours", () => {
     const liste = construireNotifications({
-      resumes: [resume({ id: "pitch", nom: "Pitch", jours: 10 }), resume({ jours: 2, pourcent: 40 }), resume({ id: "concours", nom: "Concours", jours: 30 }), resume({ id: "entretien", nom: "Entretien", jours: 6 })],
+      resumes: [resume({ id: "entretien", nom: "Entretien", jours: 10 }), resume({ jours: 2, pourcent: 40 }), resume({ id: "entretien", nom: "Autre entretien", jours: 30 }), resume({ id: "entretien", nom: "Entretien", jours: 6 })],
       quota: null,
       qdjFaite: true,
       aujourdhui: "2026-08-23",
     });
     expect(liste.map((n) => n.niveau)).toEqual(["attention", "info", "info"]);
-    expect(liste.map((n) => n.titre)).toEqual(["J-2 · Soutenance", "J-6 · Entretien", "J-10 · Pitch"]);
+    expect(liste.map((n) => n.titre)).toEqual(["J-2 · Soutenance", "J-6 · Entretien", "J-10 · Entretien"]);
     expect(liste[0]!.titre).toBe("J-2 · Soutenance");
     expect(liste[0]!.detail).toContain("Prêt à 40 %");
     expect(liste[0]!.id).toBe("echeance:soutenance:2026-08-23");
   });
 
   it("propose de raconter l'oral la semaine qui suit, et signale le jour J", () => {
-    const liste = construireNotifications({ resumes: [resume({ jours: -3 }), resume({ id: "pitch", nom: "Pitch", jours: 0 })], quota: null, qdjFaite: true, aujourdhui: "2026-08-23" });
+    const liste = construireNotifications({ resumes: [resume({ jours: -3 }), resume({ id: "entretien", nom: "Entretien", jours: 0 })], quota: null, qdjFaite: true, aujourdhui: "2026-08-23" });
     expect(liste[0]!.titre).toContain("aujourd'hui");
     expect(liste[1]!.titre).toBe("Comment s'est passé ton oral ?");
     expect(liste[1]!.niveau).toBe("succes");

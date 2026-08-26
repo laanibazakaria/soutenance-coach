@@ -1,6 +1,6 @@
 /**
  * Les préférences : quels oraux l'étudiant prépare. Elles décident de ce que
- * la navigation montre — un étudiant en PFA ne voit pas « Oral de concours ».
+ * la navigation montre — qui ne prépare que sa soutenance ne voit pas l'entretien.
  * Stockées dans le cache IA synchronisé (clé `preferences:modules`) : même
  * mécanique que les résultats IA, sans table supplémentaire.
  */
@@ -11,16 +11,12 @@ import { lireParcours, detecterContexte, type StorageEnumerable } from "./parcou
 import { construirePlan, dateDuJour, joursEntre, LIBELLES } from "./parcours";
 import { lireCandidature, cleQuestionsEntretien } from "./entretien/persistance";
 import { etapesEntretien } from "./entretien";
-import { lireProfil, cleQuestionsModule } from "./modules/persistance";
-import { MODULES, etapesModule, type ModuleId } from "./modules";
 
-export type ModuleActif = "soutenance" | "entretien" | ModuleId;
+export type ModuleActif = "soutenance" | "entretien";
 
 export const TOUS_LES_MODULES: ReadonlyArray<{ id: ModuleActif; nom: string; emoji: string; description: string; hub: string }> = [
   { id: "soutenance", nom: "Soutenance", emoji: "🎓", description: "PFA, PFE, mémoire, thèse — devant un jury académique.", hub: "/app/soutenance" },
   { id: "entretien", nom: "Entretien d'embauche", emoji: "💼", description: "Stage, alternance, premier emploi — RH et technique.", hub: "/app/entretien" },
-  { id: "pitch", nom: "Pitch de projet", emoji: "🚀", description: "Concours d'innovation, startup, hackathon — jury d'innovation.", hub: "/app/m/pitch" },
-  { id: "concours", nom: "Oral de concours", emoji: "🏛️", description: "Admission en école ou master, bourse — jury d'admission.", hub: "/app/m/concours" },
 ];
 
 const CLE = "preferences:modules";
@@ -82,18 +78,7 @@ export function resumerModules(storage: StorageEnumerable, sessions: SessionReco
         prochaineAction: suivante ? { titre: suivante.titre, lien: suivante.lien } : { titre: "Tout est fait — respire", lien: "/app/entretien" },
       };
     }
-    const m = MODULES[id];
-    const p = lireProfil(storage, id);
-    if (!p) return { ...base, jours: null, pourcent: null, sousTitre: "Pas encore de profil", prochaineAction: { titre: "Décris ton projet et dépose ton dossier", lien: `/app/m/${id}` } };
-    const etapes = etapesModule(m, { profil: p, sessions, questionsGenerees: lireCache(storage, cleQuestionsModule(p)) !== null });
-    const suivante = etapes.find((e) => !e.faite);
-    const titre = m.champs.filter((c) => c.type === "text").map((c) => p.champs[c.id]).filter(Boolean).join(" · ");
-    return {
-      ...base,
-      jours: p.date ? joursEntre(aujourdhui, p.date) : null,
-      pourcent: Math.round((etapes.filter((e) => e.faite).length / etapes.length) * 100),
-      sousTitre: titre || m.nom,
-      prochaineAction: suivante ? { titre: suivante.titre, lien: suivante.href } : { titre: "Tout est fait — respire", lien: `/app/m/${id}` },
-    };
+    // Plus que deux oraux : on ne devrait jamais arriver ici.
+    throw new Error(`Oral inconnu : ${id}`);
   });
 }

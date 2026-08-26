@@ -12,7 +12,7 @@ export interface CandidateQuestion {
   question: string;
   pourquoi: string;
   /** D'où elle vient : décide du jury qui évaluera. */
-  source: "soutenance" | "entretien" | "pitch" | "concours";
+  source: "soutenance" | "entretien";
 }
 
 function empreinte(s: string): number {

@@ -32,8 +32,6 @@ const FILTRES: ReadonlyArray<{ id: string; label: React.ReactNode }> = [
   { id: "tous", label: "Tous" },
   { id: "soutenance", label: <><Icone nom="soutenance" /> Soutenance</> },
   { id: "entretien", label: <><Icone nom="entretien" /> Entretien</> },
-  { id: "pitch", label: <><Icone nom="pitch" /> Pitch</> },
-  { id: "concours", label: <><Icone nom="concours" /> Concours</> },
 ];
 
 function SessionChips({ session }: { session: SessionRecord }) {

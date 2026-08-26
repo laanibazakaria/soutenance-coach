@@ -7,7 +7,7 @@ import { GRILLES, construirePrompt, normaliser, parseReponse, type IdOral, type 
  * Remplit la grille d'évaluation d'un oral. Le modèle juge critère par
  * critère ; la note pondérée est calculée ici, par du code — jamais par lui.
  */
-const ORAUX: IdOral[] = ["soutenance", "entretien", "pitch", "concours"];
+const ORAUX: IdOral[] = ["soutenance", "entretien"];
 const LIMITES = { echange: 14_000, contexte: 6_000, mesures: 1_200 } as const;
 
 export async function POST(request: Request) {

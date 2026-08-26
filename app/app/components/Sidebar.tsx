@@ -66,7 +66,7 @@ const I = {
   ),
 };
 
-const ICONES_MODULES: Record<ModuleActif, React.ReactNode> = { soutenance: I.soutenance, entretien: I.entretien, pitch: I.pitch, concours: I.concours };
+const ICONES_MODULES: Record<ModuleActif, React.ReactNode> = { soutenance: I.soutenance, entretien: I.entretien };
 
 export function Marque({ taille = 24 }: { taille?: number }) {
   return (

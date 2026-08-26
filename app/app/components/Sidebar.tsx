@@ -100,10 +100,10 @@ function useModulesActifs(): ModuleActif[] {
   return actifs;
 }
 
-function LienNav({ href, label, icone, actif }: { href: string; label: string; icone: React.ReactNode; actif: boolean }) {
+function LienNav({ href, label, icone, actif, etape }: { href: string; label: string; icone: React.ReactNode; actif: boolean; etape?: number }) {
   return (
     <Link href={href} className={`sidebar-link${actif ? " active" : ""}`} aria-current={actif ? "page" : undefined}>
-      <span className="sidebar-icone">{icone}</span>
+      {etape ? <span className="sidebar-etape" aria-hidden="true">{etape}</span> : <span className="sidebar-icone">{icone}</span>}
       {label}
     </Link>
   );
@@ -117,6 +117,7 @@ export default function Sidebar() {
   const admin = usage?.admin ?? false;
   const moduleCourant = moduleDuChemin(chemin)?.id;
   const modules = TOUS_LES_MODULES.filter((m) => actifs.includes(m.id));
+  const soutenanceActive = actifs.includes("soutenance") || actifs.length === 0;
 
   return (
     <nav className="sidebar" aria-label="Navigation principale">
@@ -124,13 +125,21 @@ export default function Sidebar() {
         <Marque taille={26} />
       </div>
 
-      <div className="sidebar-section">Navigation</div>
       <LienNav href="/app" label="Accueil" icone={I.accueil} actif={chemin === "/app"} />
-      <LienNav href="/app/documents" label="Mes documents" icone={I.documents} actif={chemin.startsWith("/app/documents")} />
-      <LienNav href="/app/appel" label="Appel avec le jury" icone={I.appel} actif={chemin.startsWith("/app/appel")} />
-      <LienNav href="/app/question-du-jour" label="Question du jour" icone={I.jour} actif={chemin.startsWith("/app/question-du-jour")} />
-      <LienNav href="/app/sessions" label="Mes sessions" icone={I.sessions} actif={chemin.startsWith("/app/sessions")} />
-      <LienNav href="/app/guides" label="Guides" icone={I.guides} actif={chemin === "/app/guides"} />
+
+      <div className="sidebar-section">Le chemin</div>
+      {soutenanceActive ? (
+        <LienNav href="/app/documents" etape={1} label="Dépose tes documents" icone={I.documents} actif={chemin.startsWith("/app/documents")} />
+      ) : (
+        <LienNav href="/app/entretien" etape={1} label="Renseigne CV et offre" icone={I.documents} actif={false} />
+      )}
+      <LienNav href="/app/appel" etape={2} label={soutenanceActive ? "Passe un appel au jury" : "Passe un appel au recruteur"} icone={I.appel} actif={chemin.startsWith("/app/appel")} />
+      <LienNav href="/app/bilan" etape={3} label="Suis ta progression" icone={I.sessions} actif={chemin.startsWith("/app/bilan")} />
+
+      <div className="sidebar-section">Chaque jour</div>
+      <LienNav href="/app/question-du-jour" label="La question du jour" icone={I.jour} actif={chemin.startsWith("/app/question-du-jour")} />
+      <LienNav href="/app/sessions" label="Mes sessions passées" icone={I.sessions} actif={chemin.startsWith("/app/sessions")} />
+      <LienNav href="/app/guides" label="Les guides" icone={I.guides} actif={chemin === "/app/guides"} />
 
       <div className="sidebar-section">Mes oraux</div>
       {modules.map((m) => (
@@ -150,7 +159,7 @@ export default function Sidebar() {
         <CartePreparation />
         <Link href="/app/session" className="btn primary sidebar-cta">
           <span className="sidebar-icone">{I.micro}</span>
-          Nouvelle session
+          S'entraîner au micro
         </Link>
       </div>
       <PiedUtilisateur />
@@ -256,7 +265,7 @@ export function OngletsMobiles() {
     <nav className="mobile-tabs" aria-label="Sections">
       {onglet("/app", "Accueil", I.accueil, chemin === "/app")}
       {onglet("/app/documents", "Documents", I.documents, chemin.startsWith("/app/documents"))}
-      <Link href="/app/session" className="mobile-tab mobile-tab-record" aria-label="Nouvelle session">
+      <Link href="/app/session" className="mobile-tab mobile-tab-record" aria-label="S'entraîner au micro">
         <span className="mobile-record">{I.micro}</span>
       </Link>
       {onglet("/app/sessions", "Sessions", I.sessions, chemin.startsWith("/app/sessions"))}

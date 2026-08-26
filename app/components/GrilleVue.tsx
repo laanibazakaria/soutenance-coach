@@ -1,5 +1,6 @@
 "use client";
 
+import { pronostiquer } from "@/lib/grille/pronostic";
 import { useState } from "react";
 import { mention, niveauCritere, NOTE_MAX, type Evaluation } from "@/lib/grille";
 import { Icone } from "@/app/components/Icone";
@@ -13,11 +14,24 @@ export default function GrilleVue({ evaluation, titre = "Ta grille d'évaluation
   const [tout, setTout] = useState(false);
   const { note, criteres, prioritaires, acquis, insuffisant, volets } = evaluation;
   const pourcent = note === null ? 0 : Math.round((note / NOTE_MAX) * 100);
+  const pronostic = pronostiquer(evaluation);
   const niveauNote = note === null ? "absent" : note >= 7 ? "bon" : note >= 5.5 ? "attention" : "alerte";
   const visibles = tout ? criteres : criteres.filter((c) => c.note !== null);
 
   return (
     <section className="grille" aria-label={titre}>
+      {pronostic && (
+        <div className="card pronostic">
+          <span className="pronostic-libelle">Si ton oral était demain</span>
+          <b className="pronostic-fourchette">
+            entre {pronostic.basse.toLocaleString("fr-FR")} et {pronostic.haute.toLocaleString("fr-FR")} / 20
+          </b>
+          <small>
+            Fourchette calculée depuis la grille ci-dessous — une estimation honnête, pas une promesse.
+            {pronostic.reserve ? ` ${pronostic.reserve}` : ""}
+          </small>
+        </div>
+      )}
       <div className="card grille-tete">
         <div className="grille-jauge">
           <span className={`grille-note grille-note-${niveauNote}`}>

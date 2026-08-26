@@ -1030,6 +1030,21 @@ body.appel-en-cours .module-tabs { display: none; }
 @keyframes respire { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 .appel-etat { font-weight: 600; color: var(--muted); font-size: 0.95rem; }
 .appel-membre { font-weight: 700; font-size: 0.86rem; color: var(--violet); letter-spacing: 0.01em; }
+/* La mémoire du jury, annoncée avant l'appel : une promesse de match retour,
+   elle doit se voir sans crier. */
+.appel-memoire {
+  display: block; background: var(--bg2); border: 1px solid var(--violet-border); border-left: 3px solid var(--violet);
+  border-radius: 12px; padding: 12px 16px; margin-bottom: 14px; font-size: 0.95rem; line-height: 1.55;
+}
+.appel-memoire em { font-style: italic; color: var(--violet2); }
+
+/* Le pronostic : la réponse à « j'aurais combien demain ? ». La fourchette est
+   la vedette ; la réserve, en petit, dit ce qu'elle n'a pas vu. */
+.pronostic { display: flex; flex-direction: column; gap: 4px; padding: 18px 22px; margin-bottom: 12px; border-left: 3px solid var(--gold); }
+.pronostic-libelle { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--dim); }
+.pronostic-fourchette { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pronostic small { font-size: 0.78rem; color: var(--muted); line-height: 1.5; max-width: 62ch; }
+
 .appel-muet { width: 100%; text-align: center; font-size: 0.86rem; color: #92400e; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 12px; padding: 10px 14px; margin-bottom: 4px; }
 .appel-ecoute .appel-etat { color: var(--violet); }
 .appel-dialogue { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; padding: 4px 2px; margin-bottom: 16px; }

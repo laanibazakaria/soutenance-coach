@@ -22,6 +22,7 @@ import { useEcouteSegments } from "../hooks/useEcouteSegments";
 import { passagesPour } from "@/lib/memoire/client";
 import { contexteFiche, dossierSuffisant, DOSSIER_MAX, type FicheLecture } from "@/lib/appel/lecture";
 import { derniereRelecture, formaterPourJury } from "@/lib/dossier/pour-jury";
+import { lireSouvenirs, formaterSouvenirs, type Souvenirs } from "@/lib/appel/souvenirs";
 import type { Evaluation } from "@/lib/grille";
 import { mesuresPourGrille } from "@/lib/grille/mesures";
 import DebriefAppel from "./DebriefAppel";
@@ -143,6 +144,8 @@ function AppelInner() {
   const [supporte, setSupporte] = useState({ micro: true, voix: true });
   const [contexte, setContexte] = useState("");
   const [tailleDossier, setTailleDossier] = useState("");
+  /** La mémoire du jury : ce qu'il retient des appels précédents de ce candidat. */
+  const [souvenirs, setSouvenirs] = useState<Souvenirs | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [debrief, setDebrief] = useState<Debrief | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -190,6 +193,7 @@ function AppelInner() {
     setTailleDossier(mesurerDossier(dossierCompletPourLecture(mode)));
     setContexte(c);
     setFiche(c ? lireCache<FicheLecture>(window.localStorage, cleFiche(mode, c)) : null);
+    setSouvenirs(lireSouvenirs(window.localStorage, mode));
   }, [mode]);
 
   useEffect(() => {
@@ -250,7 +254,7 @@ function AppelInner() {
         const r = await fetch("/api/appel/debrief", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ mode, contexte, langue, dureeMin, historique: hist, mesures: mesuresPourGrille(parole, dureeMs) }),
+          body: JSON.stringify({ mode, contexte, langue, dureeMin, historique: hist, mesures: mesuresPourGrille(parole, dureeMs), souvenirs: formaterSouvenirs(souvenirs) || undefined }),
         });
         const j = (await r.json()) as { debrief?: Debrief; evaluation?: Evaluation | null; erreur?: string };
         if (!r.ok || !j.debrief) throw new Error(j.erreur ?? "Débrief indisponible.");
@@ -312,7 +316,7 @@ function AppelInner() {
       const notes = contexteFiche(ficheRef.current);
       const contexteComplet = [contexte, notes, extraits].filter(Boolean).join("\n\n");
       try {
-        const r = await fetch("/api/appel/tour", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, contexte: contexteComplet, langue, dureeMin, ecouleS: Math.round((Date.now() - debutRef.current) / 1000), historique: hist, dejaPosees: dejaPoseesRef.current }) });
+        const r = await fetch("/api/appel/tour", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, contexte: contexteComplet, langue, dureeMin, ecouleS: Math.round((Date.now() - debutRef.current) / 1000), historique: hist, dejaPosees: dejaPoseesRef.current, souvenirs: formaterSouvenirs(souvenirs) || undefined }) });
         const j = (await r.json()) as { replique?: string; fin?: boolean; membre?: string; erreur?: string };
         if (!r.ok || !j.replique) throw new Error(j.erreur ?? "Le jury ne répond pas.");
         replique = j.replique;
@@ -546,6 +550,12 @@ function AppelInner() {
             </button>
           ))}
         </fieldset>
+        {souvenirs && souvenirs.questionsRatees.length > 0 && (
+          <p className="appel-memoire">
+            <Icone nom="jour" /> <b>Le jury se souvient de ton dernier appel.</b> Il t&apos;attend
+            sur : <em>« {souvenirs.questionsRatees[0]!.question} »</em>
+          </p>
+        )}
         <div className="appel-contexte">
           <IconeBadge nom={pret ? "valide" : "alerte"} teinte={pret ? "vert" : "or"} taille={32} />
           <span>

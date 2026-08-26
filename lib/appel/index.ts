@@ -98,6 +98,8 @@ export interface ContexteAppel {
   dejaPosees?: string[];
   /** Tirée au sort par la route : fait varier qui ouvre et par quel angle. */
   graine?: number;
+  /** La mémoire du jury : faiblesses, questions ratées et progrès des appels précédents. */
+  souvenirs?: string;
 }
 
 /**
@@ -160,6 +162,11 @@ export function construirePromptTour(c: ContexteAppel, ecouleS: number): string 
     "CE QUE TU CITES : ne cite une page, une ligne ou un chiffre que s'il figure vraiment dans le dossier ci-dessous. Si tu n'es pas sûr, dis « il me semble que » ou demande au candidat de te le confirmer. Quand tu tires une conclusion de ce que tu as lu, pose-la comme une question (« dois-je comprendre que… ? ») et non comme un fait établi.",
     // Le critère 8 de la grille exige « ne se contredit pas d'une réponse à
     // l'autre » — encore faut-il que l'oral crée l'occasion de se contredire.
+    // La mémoire du jury : c'est elle qui transforme des appels isolés en une
+    // relation. On rouvre sur ce qui a été raté, on reconnaît ce qui a monté.
+    c.souvenirs
+      ? `TA MÉMOIRE DE CE CANDIDAT (appels précédents) :\n${c.souvenirs}\nCOMMENT T'EN SERVIR : à l'ouverture, le membre concerné REPREND la première question restée sans bonne réponse, en le disant simplement (« La dernière fois, vous n'aviez pas su me dire… je vous repose la question »). Au fil de l'appel, reviens sur les points encore faibles plutôt que d'explorer du neuf. Quand le candidat répond bien là où il avait échoué, dis-le en une phrase sobre (« Bien. Cette fois vous l'avez. ») avant d'enchaîner — jamais de compliment appuyé. Un progrès listé ci-dessus se confirme à l'oral avant d'être reconnu. Ne mentionne jamais de note ni de chiffre de la grille.`
+      : "",
     "REVENIR SUR UN CHIFFRE : quand le candidat a donné un nombre, une date ou un pourcentage plus tôt dans l'échange, un AUTRE membre y revient quelques tours après, sous une autre forme — sans rappeler la valeur annoncée, et sans dire que c'est une vérification. S'il se contredit, relève l'écart calmement en citant ses deux réponses. S'il confirme, dis-le en trois mots et passe.",
     "INTERDIT : les formules de jury de théâtre. Ne dis jamais « Merci pour cette présentation », « Nous allons passer aux questions », « Pouvez-vous résumer en une phrase », ni aucune formule d'accueil passe-partout. Entre dans le vif du sujet comme quelqu'un qui a lu le dossier et qui a déjà une question en tête.",
     c.contexte
@@ -171,7 +178,7 @@ ${c.contexte}`
     phase === "conclusion"
       ? 'C\'est la fin : la personne qui préside remercie, conclut en une phrase, et tu mets "fin" à true.'
       : phase === "ouverture"
-        ? `C'est le tout début. C'est « ${ouvreur.id} » (${ouvreur.nom}) qui ouvre, avec SA première question, formulée à sa manière. Angle imposé pour cette fois : ${angle}. Pas de préambule, pas de politesses : la question, directement.`
+        ? `C'est le tout début. C'est « ${ouvreur.id} » (${ouvreur.nom}) qui ouvre, avec SA première question, formulée à sa manière. ${c.souvenirs ? "Il ouvre sur la mémoire du candidat : la première question restée sans bonne réponse, ou le point le plus faible." : `Angle imposé pour cette fois : ${angle}.`} Pas de préambule, pas de politesses : la question, directement.`
         : "Continue l'oral.",
     `Réponds en JSON strict : {"membre": "${membres[0]!.id}", "replique": "ce que cette personne dit, tel quel", "fin": false}`,
   ]
@@ -236,6 +243,7 @@ export function construirePromptDebrief(c: ContexteAppel, historique: Message[])
   const langue = c.langue === "en" ? "Write in English." : "Écris en français, tutoie le candidat, phrases courtes et concrètes.";
   return [
     `Tu es un coach d'oral. Tu viens d'assister à un ${p.nom.toLowerCase()} simulé de ${c.dureeMin} minutes. ${langue}`,
+    c.souvenirs ? `LES APPELS PRÉCÉDENTS DE CE CANDIDAT :\n${c.souvenirs}\nSi l'échange d'aujourd'hui montre un progrès réel sur un point listé, dis-le dans le diagnostic — une phrase, factuelle. S'il a encore échoué au même endroit, dis-le aussi : c'est l'information la plus utile du débrief.` : "",
     "Ton débrief ne note pas et ne classe pas : il dit ce qui a marché (en citant les mots exacts du candidat), les moments manqués (la question, ce qu'il a dit, ce qu'une meilleure réponse aurait contenu), et un plan d'action en trois points pour la prochaine fois. Sois précis, jamais flatteur. Ne commente pas la forme orale (débit, hésitations) : elle est mesurée ailleurs. Les « citation » sont uniquement des mots prononcés par le CANDIDAT dans le dialogue — jamais une phrase du dossier. S'il n'a rien dit de bien, « bienFait » reste vide.",
     c.contexte ? `Dossier du candidat :\n${c.contexte.slice(0, 3000)}` : "",
     `Dialogue :\n${dialogue}`,

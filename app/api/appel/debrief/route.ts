@@ -17,7 +17,7 @@ export const maxDuration = 120;
  * la plateforme.
  */
 export async function POST(request: Request) {
-  let corps: { mode?: unknown; contexte?: unknown; langue?: unknown; dureeMin?: unknown; historique?: unknown; mesures?: unknown };
+  let corps: { mode?: unknown; contexte?: unknown; langue?: unknown; dureeMin?: unknown; historique?: unknown; mesures?: unknown; souvenirs?: unknown };
   try {
     corps = (await request.json()) as typeof corps;
   } catch {
@@ -35,6 +35,7 @@ export async function POST(request: Request) {
     langue,
     dureeMin,
     historique,
+    souvenirs: typeof corps.souvenirs === "string" ? corps.souvenirs.slice(0, 2000) : undefined,
   };
 
   const quota = await verifierQuota(request);

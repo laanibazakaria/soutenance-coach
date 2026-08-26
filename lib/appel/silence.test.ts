@@ -98,3 +98,40 @@ describe("la façon dont le jury creuse", () => {
     expect(p).toContain("sans dire que c'est une vérification");
   });
 });
+
+/**
+ * La mémoire du jury : elle transforme des appels isolés en une relation.
+ * Ces tests figent la conduite — rouvrir sur la question ratée, reconnaître
+ * sobrement le progrès — pour qu'un remaniement de prompt ne l'efface pas.
+ */
+describe("le jury qui se souvient", () => {
+  const souvenirs = [
+    "Questions restées sans bonne réponse au dernier appel :",
+    "- « Sur quel jeu de test ? » — une bonne réponse contenait : 12 000 sessions tenues à l'écart",
+  ].join("\n");
+
+  it("reçoit sa mémoire et la conduite qui va avec", () => {
+    const p = construirePromptTour({ ...base([]), souvenirs }, 60);
+    expect(p).toContain("TA MÉMOIRE DE CE CANDIDAT");
+    expect(p).toContain("Sur quel jeu de test ?");
+    expect(p).toContain("je vous repose la question");
+  });
+
+  it("ouvre sur la mémoire plutôt que sur l'angle tiré au sort", () => {
+    const p = construirePromptTour({ ...base([]), souvenirs, graine: 3 }, 10);
+    expect(p).toContain("Il ouvre sur la mémoire du candidat");
+    expect(p).not.toContain("Angle imposé pour cette fois");
+  });
+
+  it("reconnaît le progrès sobrement, sans note ni compliment", () => {
+    const p = construirePromptTour({ ...base([]), souvenirs }, 60);
+    expect(p).toContain("Bien. Cette fois vous l'avez.");
+    expect(p).toContain("Ne mentionne jamais de note");
+  });
+
+  it("garde l'angle tiré au sort pour un candidat jamais entendu", () => {
+    const p = construirePromptTour(base([]), 10);
+    expect(p).toContain("Angle imposé pour cette fois");
+    expect(p).not.toContain("TA MÉMOIRE DE CE CANDIDAT");
+  });
+});

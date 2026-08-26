@@ -9,7 +9,7 @@ import { construirePromptTour, parseTour, validerHistorique, PERSONAS, LIMITES_A
  * premier tour : un appel entier compte pour un.
  */
 export async function POST(request: Request) {
-  let corps: { mode?: unknown; contexte?: unknown; langue?: unknown; dureeMin?: unknown; ecouleS?: unknown; historique?: unknown; dejaPosees?: unknown };
+  let corps: { mode?: unknown; contexte?: unknown; langue?: unknown; dureeMin?: unknown; ecouleS?: unknown; historique?: unknown; dejaPosees?: unknown; souvenirs?: unknown };
   try {
     corps = (await request.json()) as typeof corps;
   } catch {
@@ -25,6 +25,7 @@ export async function POST(request: Request) {
     dureeMin: typeof corps.dureeMin === "number" && corps.dureeMin >= 3 && corps.dureeMin <= 30 ? Math.round(corps.dureeMin) : 10,
     historique,
     graine: Math.floor(Math.random() * 10_000),
+    souvenirs: typeof corps.souvenirs === "string" ? corps.souvenirs.slice(0, 2000) : undefined,
     dejaPosees: Array.isArray(corps.dejaPosees) ? (corps.dejaPosees as unknown[]).filter((q): q is string => typeof q === "string").map((q) => q.slice(0, 200)).slice(0, 25) : undefined,
   };
   const ecouleS = typeof corps.ecouleS === "number" && corps.ecouleS >= 0 ? Math.round(corps.ecouleS) : 0;

@@ -42,6 +42,8 @@ export interface Manque {
 
 export interface Relecture {
   compris: Compris;
+  /** Ce qui est solide — à mettre en avant, et à ne plus toucher. */
+  atouts: string[];
   incoherences: Incoherence[];
   manques: Manque[];
 }
@@ -51,6 +53,7 @@ export const LIMITES_RELECTURE = {
   rapportChars: 40_000,
   /** Les diapositives tiennent presque toujours ; on borne quand même. */
   slidesChars: 20_000,
+  atoutsMax: 4,
   incoherencesMax: 8,
   manquesMax: 6,
   champChars: 400,
@@ -83,17 +86,26 @@ export function construirePromptRelecture(d: DemandeRelecture): string {
     d.rapportTronque
       ? `LE RAPPORT (début seulement — la suite ne t'a pas été donnée) :\n${rapport}`
       : `LE RAPPORT :\n${rapport}`,
-    "TON TRAVAIL, en trois parties.",
+    "TON TRAVAIL, en quatre parties.",
     "1) CE QUE TU AS COMPRIS : le sujet, la problématique, la méthode, les résultats. Reformule-les avec tes mots, sans jargon recopié. Le candidat doit pouvoir vérifier d'un coup d'œil que tu n'as pas compris de travers.",
+    `1bis) LES POINTS FORTS (au plus ${LIMITES_RELECTURE.atoutsMax}) : ce qui est solide dans ce dossier et que le candidat doit mettre en avant — un résultat bien prouvé, un choix bien justifié, une structure claire. Une phrase chacun, concrète, en citant de quoi il s'agit. Pas de flatterie : seulement ce qui tiendrait devant un jury exigeant.`,
     `2) LES INCOHÉRENCES entre les deux documents (au plus ${LIMITES_RELECTURE.incoherencesMax}) : deux affirmations qui ne peuvent pas être vraies en même temps. Un chiffre qui diffère, une affirmation de la présentation que le rapport contredit, un plan annoncé puis pas suivi, une définition qui change de sens.\nN'EST PAS UNE INCOHÉRENCE — et ne doit jamais être signalé : la même valeur écrite autrement (« 45 » et « quarante-cinq », « 6 semaines » et « du 1er juillet au 7 août ») ; une date au même jour dans un autre format ; une numérotation de section qui diffère entre les deux documents, c'est normal et attendu ; un titre de diapositive plus court ou plus long que le titre de section correspondant ; une idée exprimée avec d'autres mots ; un détail présent d'un côté et simplement absent de l'autre, sans que rien ne le contredise. Avant de signaler un écart, demande-toi si les deux phrases peuvent être vraies ensemble : si oui, ce n'est pas un écart. Pour chacune, cite le passage de la présentation ET celui du rapport, mot pour mot. "gravite" vaut "haute" quand les deux affirmations se contredisent franchement — deux chiffres différents pour la même chose, deux faits incompatibles. "moyenne" quand la contradiction est réelle mais mineure. Dans le doute, ne signale rien : un écart inventé coûte plus cher au candidat que dix écarts manqués, parce qu'il le fera douter d'un document qui allait bien.`,
     `3) CE QUI MANQUE POUR LE JURY (au plus ${LIMITES_RELECTURE.manquesMax}) : les questions qu'un jury posera et auxquelles aucun des deux documents ne répond — un résultat sans protocole de mesure, un choix technique sans justification, une limite jamais nommée.`,
     "RÈGLES. Ne cite que ce qui figure ci-dessus, mot pour mot. N'invente jamais un numéro de page, de ligne ou de figure. Si tu ne trouves aucune incohérence, rends une liste vide — c'est un résultat, pas un échec, et mieux vaut cela qu'une contradiction fabriquée." +
       (d.rapportTronque
         ? " Le rapport t'a été donné tronqué : ne conclus jamais qu'une chose est « absente du rapport », dis au mieux qu'elle ne figure pas dans ce que tu as lu."
         : ""),
-    'Réponds en JSON strict, sans texte autour : {"compris":{"sujet":"","problematique":"","methode":"","resultats":""},"incoherences":[{"quoi":"","presentation":"","rapport":"","gravite":"haute"}],"manques":[{"question":"","pourquoi":""}]}',
+    'Réponds en JSON strict, sans texte autour : {"compris":{"sujet":"","problematique":"","methode":"","resultats":""},"atouts":[""],"incoherences":[{"quoi":"","presentation":"","rapport":"","gravite":"haute"}],"manques":[{"question":"","pourquoi":""}]}',
   ].join("\n\n");
 }
+
+const chainesSimples = (v: unknown, max: number): string[] =>
+  Array.isArray(v)
+    ? v
+        .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+        .map((x) => x.trim().slice(0, LIMITES_RELECTURE.champChars))
+        .slice(0, max)
+    : [];
 
 const texte = (v: unknown): string =>
   typeof v === "string" ? v.trim().slice(0, LIMITES_RELECTURE.champChars) : "";
@@ -115,6 +127,8 @@ export function parseRelecture(brut: string): Relecture | null {
       resultats: texte(c.resultats),
     };
     if (!compris.sujet && !compris.problematique) return null;
+
+    const atouts = chainesSimples(j.atouts, LIMITES_RELECTURE.atoutsMax);
 
     const brutInc = Array.isArray(j.incoherences) ? j.incoherences : [];
     const incoherences: Incoherence[] = brutInc
@@ -145,7 +159,7 @@ export function parseRelecture(brut: string): Relecture | null {
       .filter((m) => m.question)
       .slice(0, LIMITES_RELECTURE.manquesMax);
 
-    return { compris, incoherences, manques };
+    return { compris, atouts, incoherences, manques };
   } catch {
     return null;
   }

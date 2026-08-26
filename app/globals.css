@@ -1209,7 +1209,9 @@ p, .session-meta, .kpi-detail, .grille-constat { text-wrap: pretty; }
 .relecture-compris dl > div { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 12px; align-items: baseline; }
 .relecture-compris dt { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; color: var(--dim); }
 .relecture-compris dd { margin: 0; font-size: 0.95rem; line-height: 1.55; }
-.relecture-ecarts, .relecture-manques, .relecture-pitch { padding-top: 20px; margin-top: 20px; border-top: 1px solid var(--line); }
+.relecture-atouts, .relecture-ecarts, .relecture-manques, .relecture-pitch { padding-top: 20px; margin-top: 20px; border-top: 1px solid var(--line); }
+.relecture-atouts ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.relecture-atouts li { border-left: 3px solid var(--ok); padding-left: 14px; font-size: 0.95rem; line-height: 1.5; }
 .ecart { border-radius: 12px; border: 1px solid var(--line); padding: 14px 16px; margin-bottom: 10px; background: var(--bg2); }
 .ecart > b { display: block; font-size: 0.95rem; margin-bottom: 10px; }
 .ecart-haute { border-left: 3px solid var(--danger); }

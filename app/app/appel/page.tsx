@@ -23,7 +23,9 @@ import { CLE_RAPPORT } from "../components/RapportView";
 import { useEcouteSegments } from "../hooks/useEcouteSegments";
 import { passagesPour } from "@/lib/memoire/client";
 import { contexteFiche, dossierSuffisant, DOSSIER_MAX, type FicheLecture } from "@/lib/appel/lecture";
+import { derniereRelecture, formaterPourJury } from "@/lib/dossier/pour-jury";
 import type { Evaluation } from "@/lib/grille";
+import { mesuresPourGrille } from "@/lib/grille/mesures";
 import DebriefAppel from "./DebriefAppel";
 
 /** Une fiche de lecture par dossier : si le dossier change, le jury relit. */
@@ -55,6 +57,9 @@ function contexteDepuisAppareil(mode: ModeAppel): string {
     return avec(assemblerContexte([
       { titre: "Slides de la soutenance", texte: deck ? deck.slides.map((s, i) => `[${i + 1}] ${s.texte}`).join("\n") : null },
       { titre: "Extrait du mémoire", texte: estRapport(rapport) ? rapport.texte : null },
+      // Les notes du rapporteur : la relecture croisée entre dans ce que le jury
+      // sait. Il attaque là où le dossier est faible, au lieu de le redécouvrir.
+      { titre: "Notes du rapporteur", texte: formaterPourJury(derniereRelecture(st)) || null },
     ]));
   }
   if (mode === "entretien") {
@@ -97,6 +102,7 @@ function dossierCompletPourLecture(mode: ModeAppel): string {
       [
         { titre: "Diapositives de la soutenance", texte: deck ? deck.slides.map((x, i) => `[${i + 1}] ${x.texte}`).join("\n") : null },
         { titre: "Mémoire déposé", texte: estRapport(rapport) ? rapport.texte : null },
+        { titre: "Notes du rapporteur (relecture croisée)", texte: formaterPourJury(derniereRelecture(st)) || null },
       ],
       DOSSIER_MAX,
     );
@@ -260,33 +266,21 @@ function AppelInner() {
       const parole = paroleCandidat(hist);
       saveSession(window.localStorage, { id, startedAt: new Date(debutRef.current).toISOString(), durationMs: dureeMs, transcript: parole, wordCount: countWords(parole), mode });
       setSessionId(id);
-      // La grille part en parallèle du débrief : deux regards, une seule attente.
-      const echange = hist.map((m) => `${m.role === "assistant" ? "JURY" : "CANDIDAT"} : ${m.content}`).join("\n\n");
-      const grillePromise = fetch("/api/grille", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ oral: mode, echange, contexte: contexte.slice(0, 4000), dureeMin, langue }),
-      })
-        .then((r) => (r.ok ? (r.json() as Promise<{ evaluation?: Evaluation }>) : null))
-        .then((j) => {
-          evaluationRef.current = j?.evaluation ?? null;
-          setEvaluation(evaluationRef.current);
-        })
-        .catch(() => {
-          evaluationRef.current = null;
-          setEvaluation(null);
-        });
       try {
-        const r = await fetch("/api/appel/debrief", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, contexte, langue, dureeMin, historique: hist }) });
-        const j = (await r.json()) as { debrief?: Debrief; erreur?: string };
+        const r = await fetch("/api/appel/debrief", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ mode, contexte, langue, dureeMin, historique: hist, mesures: mesuresPourGrille(parole, dureeMs) }),
+        });
+        const j = (await r.json()) as { debrief?: Debrief; evaluation?: Evaluation | null; erreur?: string };
         if (!r.ok || !j.debrief) throw new Error(j.erreur ?? "Débrief indisponible.");
         signalerAppelIa();
-        await grillePromise;
+        evaluationRef.current = j.evaluation ?? null;
+        setEvaluation(evaluationRef.current);
         ecrireCache(window.localStorage, `appel:${id}`, { mode, dureeMin, dialogue: hist, debrief: j.debrief, grille: evaluationRef.current, date: new Date().toISOString() });
         setDebrief(j.debrief);
       } catch (e) {
-        await grillePromise;
-        ecrireCache(window.localStorage, `appel:${id}`, { mode, dureeMin, dialogue: hist, debrief: null, grille: evaluationRef.current, date: new Date().toISOString() });
+        ecrireCache(window.localStorage, `appel:${id}`, { mode, dureeMin, dialogue: hist, debrief: null, grille: null, date: new Date().toISOString() });
         setErreur(e instanceof Error ? e.message : "Débrief indisponible.");
       }
       signalerSynchronisation();
@@ -644,7 +638,7 @@ function AppelInner() {
           </Link>
         )}
         <p className="lanceur-note">
-          Il parle, tu réponds, il rebondit. Quand tu as fini de répondre, tais-toi deux secondes — ou appuie sur « J&apos;ai fini ». Un appel consomme quatre unités de ton quota : la lecture de ton dossier — une seule fois, tant que tu n'en changes pas —, le lancement, le débrief et la grille. Les questions suivantes sont gratuites.
+          Il parle, tu réponds, il rebondit. Quand tu as fini de répondre, tais-toi deux secondes — ou appuie sur « J&apos;ai fini ». Un appel consomme trois unités de ton quota : la lecture de ton dossier — une seule fois, tant que tu n'en changes pas —, le lancement, puis le débrief et la grille ensemble. Les questions suivantes sont gratuites.
         </p>
         <p className="report-note">
           L&apos;appel ne travaille que les questions. Pour rejouer l&apos;oral entier, ton exposé

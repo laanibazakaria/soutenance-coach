@@ -127,7 +127,8 @@ export function resumer(p: Progression): string {
 }
 
 /** Le préfixe des appels dans le cache IA — les grilles y sont rangées. */
-const PREFIXE_CACHE = "sc.ia.v1:appel:";
+/** Les deux sources de grilles : l'appel (questions) et la blanche (oral entier). */
+const PREFIXES_CACHE = ["sc.ia.v1:appel:", "sc.ia.v1:blanche:"] as const;
 
 interface AppelStocke {
   grille?: Evaluation | null;
@@ -143,11 +144,12 @@ export function historiqueDepuisStockage(storage: Storage): EvaluationDatee[] {
   const sorties: EvaluationDatee[] = [];
   for (let i = 0; i < storage.length; i++) {
     const cle = storage.key(i);
-    if (!cle?.startsWith(PREFIXE_CACHE)) continue;
+    if (!cle || !PREFIXES_CACHE.some((p) => cle.startsWith(p))) continue;
     try {
       const brut = JSON.parse(storage.getItem(cle) ?? "null") as { valeur?: AppelStocke } | AppelStocke | null;
       const appel = (brut && typeof brut === "object" && "valeur" in brut ? brut.valeur : brut) as AppelStocke | null;
-      if (appel?.grille && appel.date) sorties.push({ date: appel.date, evaluation: appel.grille });
+      const date = appel?.date ?? (appel as { faitLe?: string } | null)?.faitLe;
+      if (appel?.grille && date) sorties.push({ date, evaluation: appel.grille });
     } catch {
       /* entrée illisible : on l'ignore */
     }

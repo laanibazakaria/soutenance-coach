@@ -224,3 +224,29 @@ describe("ce que le prompt interdit de signaler", () => {
     expect(p).toContain("un écart inventé coûte plus cher au candidat que dix écarts manqués");
   });
 });
+
+describe("les points forts", () => {
+  it("sont demandés sans flatterie et bornés", () => {
+    const p = construirePromptRelecture({ deck: deck(2), rapport: "x".repeat(600) });
+    expect(p).toContain("LES POINTS FORTS");
+    expect(p).toContain("Pas de flatterie");
+  });
+
+  it("sont lus et bornés à l'analyse", () => {
+    const r = parseRelecture(
+      JSON.stringify({
+        compris: { sujet: "S", problematique: "P", methode: "", resultats: "" },
+        atouts: Array.from({ length: 12 }, (_, i) => `atout ${i}`),
+        incoherences: [],
+        manques: [],
+      }),
+    )!;
+    expect(r.atouts).toHaveLength(LIMITES_RELECTURE.atoutsMax);
+  });
+
+  it("valent liste vide quand le modèle n'en rend pas", () => {
+    // Les anciennes réponses en cache n'ont pas le champ : on ne casse rien.
+    const r = parseRelecture(JSON.stringify({ compris: { sujet: "S", problematique: "P" }, incoherences: [], manques: [] }))!;
+    expect(r.atouts).toEqual([]);
+  });
+});

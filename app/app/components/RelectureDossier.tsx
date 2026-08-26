@@ -107,7 +107,7 @@ export default function RelectureDossier({ deck, rapport, dureeMin = 15 }: { dec
     );
   }
 
-  const { compris, manques } = res.relecture;
+  const { compris, atouts, manques } = res.relecture;
   const incoherences = trierIncoherences(res.relecture.incoherences);
   const graves = incoherences.filter((i) => i.gravite === "haute").length;
 
@@ -140,6 +140,17 @@ export default function RelectureDossier({ deck, rapport, dureeMin = 15 }: { dec
           <div><dt>Résultats</dt><dd>{compris.resultats || "—"}</dd></div>
         </dl>
       </div>
+
+      {atouts && atouts.length > 0 && (
+        <div className="relecture-atouts">
+          <h3>Ce qui est solide — appuie-toi dessus</h3>
+          <ul>
+            {atouts.map((a, n) => (
+              <li key={n}>{a}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {incoherences.length > 0 && (
         <div className="relecture-ecarts">

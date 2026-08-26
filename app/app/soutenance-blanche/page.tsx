@@ -18,6 +18,10 @@ import ScoreReportView from "@/app/components/ScoreReportView";
 import AvisCoach from "@/app/components/AvisCoach";
 import ExempleReponse from "@/app/components/ExempleReponse";
 import { pousserTout } from "@/lib/sync/client";
+import { signalerAppelIa } from "@/lib/usage-client";
+import GrilleVue from "@/app/components/GrilleVue";
+import { mesuresPourGrille } from "@/lib/grille/mesures";
+import type { Evaluation } from "@/lib/grille";
 import { useToast } from "@/app/components/Toast";
 import { Icone } from "@/app/components/Icone";
 
@@ -35,6 +39,8 @@ interface Blanche {
   sessionId: string;
   faitLe: string;
   reponses: Reponse[];
+  /** La grille sur l'oral ENTIER — exposé compris. C'est le seul chemin qui la produit. */
+  grille?: Evaluation | null;
 }
 
 function mmss(ms: number): string {
@@ -58,6 +64,7 @@ export default function SoutenanceBlanchePage() {
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<"questions" | "reponse" | "evaluation" | "debrief">("questions");
   const [reponses, setReponses] = useState<Reponse[]>([]);
+  const [grille, setGrille] = useState<Evaluation | null>(null);
   const [evaluation, setEvaluation] = useState(false);
   const [contexte, setContexte] = useState<string | undefined>();
   const affichageRef = useRef(0);
@@ -71,6 +78,7 @@ export default function SoutenanceBlanchePage() {
     const existante = lireCache<Blanche>(window.localStorage, `blanche:${s.id}`);
     if (existante) {
       setReponses(existante.reponses);
+      setGrille(existante.grille ?? null);
       setPhase("debrief");
       return;
     }
@@ -120,8 +128,46 @@ export default function SoutenanceBlanchePage() {
       if (session) {
         ecrireCache(window.localStorage, `blanche:${session.id}`, { sessionId: session.id, faitLe: new Date().toISOString(), reponses: suivantes } satisfies Blanche);
         void pousserTout();
+        void noterOralEntier(session, suivantes);
       }
       setPhase("debrief");
+    }
+  }
+
+  /**
+   * La grille sur l'oral ENTIER — exposé et questions. C'est le seul exercice
+   * où l'exposé a réellement eu lieu : le seul chemin vers « Prêt ». Une unité
+   * de quota ; si elle échoue, le débrief reste complet sans elle.
+   */
+  async function noterOralEntier(seance: SessionRecord, faites: Reponse[]) {
+    const morceaux = [
+      "EXPOSÉ DU CANDIDAT (avec ses diapositives, " + mmss(seance.durationMs) + (seance.targetDurationMs ? " pour " + mmss(seance.targetDurationMs) + " prévues" : "") + ") :",
+      seance.transcript || "(transcription vide)",
+      ...faites.flatMap((f) => ["JURY : " + f.question.question, "CANDIDAT : " + (f.transcript || "(silence)")]),
+    ];
+    try {
+      const r = await fetch("/api/grille", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          oral: "soutenance",
+          echange: morceaux.join("\n\n").slice(0, 14_000),
+          contexte,
+          mesures: mesuresPourGrille(seance.transcript ?? "", seance.durationMs),
+          dureeMin: seance.targetDurationMs ? Math.round(seance.targetDurationMs / 60_000) : undefined,
+          volets: ["expose", "questions"],
+          langue: courte(langue),
+        }),
+      });
+      const j = (await r.json()) as { evaluation?: Evaluation; erreur?: string };
+      if (!r.ok || !j.evaluation) throw new Error(j.erreur ?? "Grille indisponible.");
+      signalerAppelIa();
+      setGrille(j.evaluation);
+      const existante = lireCache<Blanche>(window.localStorage, "blanche:" + seance.id);
+      if (existante) ecrireCache(window.localStorage, "blanche:" + seance.id, { ...existante, grille: j.evaluation });
+      void pousserTout();
+    } catch {
+      toast.info("La grille n'a pas pu être remplie — le débrief reste complet sans elle.");
     }
   }
 
@@ -176,7 +222,7 @@ export default function SoutenanceBlanchePage() {
     );
   }
 
-  if (phase === "debrief") return <Debrief session={session} reponses={reponses} />;
+  if (phase === "debrief") return <Debrief session={session} reponses={reponses} grille={grille} />;
 
   if (!question) return <div className="card teaser">Chargement des questions…</div>;
   const derniere = reponses[reponses.length - 1];
@@ -242,7 +288,7 @@ export default function SoutenanceBlanchePage() {
   );
 }
 
-function Debrief({ session, reponses }: { session: SessionRecord; reponses: Reponse[] }) {
+function Debrief({ session, reponses, grille }: { session: SessionRecord; reponses: Reponse[]; grille: Evaluation | null }) {
   const deck = listeDeckSauvegarde(window.localStorage);
   const comparaison =
     deck && session.slides && session.targetDurationMs
@@ -268,6 +314,8 @@ function Debrief({ session, reponses }: { session: SessionRecord; reponses: Repo
         </div>
         {comparaison && <p className="rep-resume" style={{ marginTop: 12, textAlign: "left" }}>{comparaison.resume}</p>}
       </section>
+
+      {grille && <GrilleVue evaluation={grille} titre="Ta grille — sur l'oral entier, exposé compris" />}
 
       {comparaison && (
         <section>

@@ -620,10 +620,12 @@ function AppelInner() {
         <p className="lanceur-note">
           Il parle, tu réponds, il rebondit. Quand tu as fini de répondre, tais-toi deux secondes — ou appuie sur « J&apos;ai fini ». Un appel consomme trois unités de ton quota : la lecture de ton dossier — une seule fois, tant que tu n'en changes pas —, le lancement, puis le débrief et la grille ensemble. Les questions suivantes sont gratuites.
         </p>
+        {mode === "soutenance" && (
         <p className="report-note">
           L&apos;appel ne travaille que les questions. Pour rejouer l&apos;oral entier, ton exposé
           chronométré compris, passe par <Link href="/app/soutenance-blanche">la soutenance blanche</Link>.
         </p>
+        )}
       </div>
     );
   }

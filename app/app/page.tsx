@@ -10,6 +10,7 @@ import { TOUS_LES_MODULES, lireModulesActifs, sauverModulesActifs, resumerModule
 import { pousserTout, surSynchronisation, signalerSynchronisation } from "@/lib/sync/client";
 import { lireCache } from "@/lib/ia-cache";
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
+import { lireCandidature } from "@/lib/entretien/persistance";
 import { estRapport } from "@/lib/rapport";
 import { CLE_RAPPORT } from "./components/RapportView";
 import type { Serie } from "@/lib/quotidien";
@@ -43,6 +44,7 @@ function AccueilInner() {
   const [serie, setSerie] = useState<Serie | null>(null);
   const [maintenant, setMaintenant] = useState<Date | null>(null);
   const [dossierPret, setDossierPret] = useState(false);
+  const [entretienPret, setEntretienPret] = useState(false);
   const { data: session } = useSession();
   const usage = useUsage();
 
@@ -61,6 +63,7 @@ function AccueilInner() {
         listeDeckSauvegarde(window.localStorage) !== null ||
           estRapport(lireCache<unknown>(window.localStorage, CLE_RAPPORT)),
       );
+      setEntretienPret(lireCandidature(window.localStorage) !== null);
     };
     lire();
     return surSynchronisation(lire);
@@ -214,10 +217,10 @@ function AccueilInner() {
           <div className="accueil-usage-item">
             <span className="accueil-usage-ligne">
               <span>Oraux préparés</span>
-              <b className="vert">{resumes.length} / 4</b>
+              <b className="vert">{resumes.length} / {TOUS_LES_MODULES.length}</b>
             </span>
             <span className="accueil-usage-barre">
-              <span style={{ width: `${(resumes.length / 4) * 100}%` }} />
+              <span style={{ width: `${(resumes.length / TOUS_LES_MODULES.length) * 100}%` }} />
             </span>
           </div>
         </div>
@@ -312,20 +315,20 @@ function AccueilInner() {
       </div>
 
       {!actifs?.includes("soutenance") && (
-      <section className="accueil-bandeau" aria-label="Appel avec le jury IA">
+      <section className="accueil-bandeau" aria-label="Appel avec le recruteur IA">
         <div>
           <span className="accueil-bandeau-titre">
-            <Icone nom="appel" taille={18} /> L&apos;appel avec le jury IA
+            <Icone nom="appel" taille={18} /> L&apos;appel avec le recruteur IA
             <span className="accueil-nouveau">Nouveau</span>
           </span>
           <p>
-            {dossierPret
-              ? "Un vrai oral en direct : le jury parle, tu réponds au micro, il rebondit sur ce que tu viens de dire. Puis le débrief complet — ce qui a marché, les moments manqués, le plan d'action."
-              : "Un vrai oral en direct : le jury parle, tu réponds au micro, il rebondit. Mais il lit ton dossier avant de t'interroger — c'est par là qu'on commence."}
+            {entretienPret
+              ? "Un vrai entretien en direct : la recruteuse et le manager technique ont lu ton CV et l'offre. Ils parlent, tu réponds au micro, ils rebondissent."
+              : "Un vrai entretien en direct — mais le recruteur lit ton CV et l'offre avant de t'appeler. Commence par renseigner ton dossier."}
           </p>
         </div>
-        <Link href={dossierPret ? "/app/appel" : "/app/documents"} className="btn accueil-bandeau-btn">
-          {dossierPret ? "Lancer l'appel →" : "Déposer mon dossier →"}
+        <Link href={entretienPret ? "/app/appel?mode=entretien" : "/app/entretien"} className="btn accueil-bandeau-btn">
+          {entretienPret ? "Lancer l'appel →" : "Renseigner mon dossier →"}
         </Link>
       </section>
       )}

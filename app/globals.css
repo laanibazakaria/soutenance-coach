@@ -985,8 +985,8 @@ body.appel-en-cours .module-tabs { display: none; }
 .revision-ratee { border-left: 3px solid var(--gold); }
 .revision-solide { border-left: 3px solid var(--ok); }
 .revision-posee { border-left: 3px solid var(--line); }
-.revision-question { margin: 0; font-size: 0.95rem; font-weight: 600; line-height: 1.5; }
-.revision-detail { margin: 8px 0 0; font-size: 0.86rem; line-height: 1.55; color: var(--muted); }
+.revision-question { margin: 0; font-size: 0.95rem; font-weight: 600; line-height: 1.5; max-width: 70ch; }
+.revision-detail { margin: 8px 0 0; font-size: 0.86rem; line-height: 1.55; color: var(--muted); max-width: 68ch; }
 .revision-detail em { font-style: normal; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--dim); display: block; margin-bottom: 2px; }
 .revision-mieux { color: var(--txt); }
 .revision-mieux em { color: var(--violet); }

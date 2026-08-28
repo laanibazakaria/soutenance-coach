@@ -5,6 +5,9 @@ import { construirePromptPitch, parsePitch } from "@/lib/pitch";
 import { decouperSlide } from "@/lib/slides/analyse";
 import type { Deck } from "@/lib/slides/types";
 
+/** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
+export const maxDuration = 90;
+
 /** Script de présentation rédigé depuis les diapositives, calibré sur la durée. */
 
 interface Corps {

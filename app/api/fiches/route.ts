@@ -3,6 +3,9 @@ import { appelerIA } from "@/lib/llm";
 import { verifierQuota } from "@/lib/quota-serveur";
 import { construirePromptFiches, parseFiches } from "@/lib/fiches";
 
+/** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
+export const maxDuration = 90;
+
 /**
  * Génération des fiches à mémoriser depuis le texte des diapositives. Le
  * modèle a interdiction d'inventer un chiffre absent du support ; la

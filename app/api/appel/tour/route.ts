@@ -3,6 +3,9 @@ import { appelerIA } from "@/lib/llm";
 import { verifierQuota } from "@/lib/quota-serveur";
 import { construirePromptTour, parseTour, validerHistorique, PERSONAS, LIMITES_APPEL, type ModeAppel } from "@/lib/appel";
 
+/** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
+export const maxDuration = 60;
+
 /**
  * Un tour de l'appel avec le jury : l'historique complet arrive, le jury
  * répond (question, relance ou conclusion). Le quota n'est consommé qu'au

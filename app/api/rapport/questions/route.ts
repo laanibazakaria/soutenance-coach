@@ -3,6 +3,9 @@ import { appelerIA } from "@/lib/llm";
 import { verifierQuota } from "@/lib/quota-serveur";
 import { construirePromptRapporteur, parseQuestionsRapporteur, LIMITES_RAPPORT } from "@/lib/rapport";
 
+/** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
+export const maxDuration = 90;
+
 /** Les questions du rapporteur, depuis le texte du mémoire (jamais le fichier). */
 export async function POST(request: Request) {
   let corps: { nomFichier?: unknown; pages?: unknown; texte?: unknown };

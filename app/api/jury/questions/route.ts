@@ -5,6 +5,9 @@ import { construirePromptQuestions, parseQuestionsGenerees } from "@/lib/jury/ge
 import { decouperSlide } from "@/lib/slides/analyse";
 import type { Deck } from "@/lib/slides/types";
 
+/** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
+export const maxDuration = 90;
+
 /**
  * Questions de jury spécifiques au projet, générées depuis les diapositives.
  * Le navigateur envoie le texte extrait (jamais le PDF) ; la clé reste ici.

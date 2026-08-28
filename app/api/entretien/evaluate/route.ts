@@ -4,6 +4,9 @@ import { verifierQuota } from "@/lib/quota-serveur";
 import { analyserReponse, parseAvis } from "@/lib/jury/evaluation";
 import { construirePromptEvaluationEntretien, type QuestionEntretien, type RoleRecruteur } from "@/lib/entretien";
 
+/** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
+export const maxDuration = 60;
+
 /**
  * Avis du recruteur sur une réponse orale. Mesures déterministes d'abord
  * (partagées avec le jury), avis qualitatif ensuite — jamais de note.

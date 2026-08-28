@@ -3,6 +3,9 @@ import { appelerIA } from "@/lib/llm";
 import { verifierQuota } from "@/lib/quota-serveur";
 import { construirePromptExemple, parseExemple, type DemandeExemple } from "@/lib/jury/exemple";
 
+/** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
+export const maxDuration = 60;
+
 /** Un exemple de réponse excellente à une question, sur le dossier du candidat. */
 export async function POST(request: Request) {
   let corps: Partial<DemandeExemple>;

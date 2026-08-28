@@ -32,12 +32,24 @@ export async function lireQuota(request: Request): Promise<EtatQuota & { admin: 
  * À appeler après la validation de la requête — une requête invalide ne
  * coûte rien non plus.
  */
+let dejaAverti = false;
+/** Sans base, le quota n'existe pas. Voulu en local — mais jamais en silence :
+ *  une variable DATABASE_URL perdue en production ouvrirait tout, sans trace. */
+function avertirSansBase(): void {
+  if (dejaAverti) return;
+  dejaAverti = true;
+  console.warn("[quota] DATABASE_URL absente : les quotas IA sont DÉSACTIVÉS sur ce déploiement.");
+}
+
 export async function verifierQuota(
   request: Request,
 ): Promise<{ ok: true; etat: EtatQuota; confirmer: () => Promise<void> } | { ok: false; reponse: NextResponse }> {
   const { cle, type, admin } = await identite(request);
   const limite = limitePour(type, process.env);
-  if (!baseConfiguree()) return { ok: true, etat: etatQuota(type, 0, limite), confirmer: async () => {} };
+  if (!baseConfiguree()) {
+    avertirSansBase();
+    return { ok: true, etat: etatQuota(type, 0, limite), confirmer: async () => {} };
+  }
   const mois = moisCourant();
   const ligne = await prisma.usage.findUnique({ where: { cle_mois: { cle, mois } } });
   const appels = ligne?.appels ?? 0;

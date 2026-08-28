@@ -1,222 +1,64 @@
-# 🎤 SoutenanceCoach
+# 🎓 SoutenanceCoach
 
-**Le coach d'entraînement oral qui se souvient.** Enregistre-toi en train de présenter,
-obtiens une évaluation objective de ton élocution — et surtout, un suivi de ta progression
-d'une session à l'autre.
+**Un jury qui a lu ton mémoire, et qui t'appelle pour en parler.**
+
+Tu déposes ton rapport et ta présentation. Trois membres du jury les lisent **en entier, ligne à ligne**, puis t'appellent : ils parlent, tu réponds au micro, ils rebondissent — et ils **se souviennent de toi** d'un appel à l'autre. À la fin : une note calculée par du code sur treize critères pondérés, et un pronostic honnête pour le jour J.
 
 ### 👉 [Utiliser l'application](https://soutenance-coach.vercel.app)
 
-Aucune installation, compte facultatif. Ouvre le lien dans Chrome ou Edge, autorise le micro,
-et parle. *(Sans compte, tout reste sur ton appareil ; avec un compte Google, ton travail te suit
-sur tous tes appareils — jamais l'audio.)*
-
-> Hébergée sur Vercel. Chaque déploiement passe par la CI (types, 212 tests, build).
-> Structure de l'interface (coquille, barre latérale, tableau de bord) inspirée de [Propulsez Coach IA](https://coach.propulsez.fr), avec l'accord de Propulsez — palette, police et logo propres à SoutenanceCoach :
-> palette, typographie Geist, coquille à barre latérale, composants accessibles (modale, toasts, squelettes).
-
-> Construit en août 2026 par [Zakaria Laaniba](https://laanibazakaria.github.io), élève-ingénieur
-> en IA à l'ENSIAS, après un stage passé à fiabiliser une application d'IA en production.
-> J'ai préparé ma propre soutenance avec.
-
-![L'écran d'accueil de SoutenanceCoach](docs/accueil.png)
+Gratuit, open source, sans installation (Chrome ou Edge). L'audio et les fichiers ne quittent jamais l'appareil : seul le texte extrait est envoyé au modèle.
 
 ---
 
-## Le problème
+## Pour qui
 
-Un étudiant qui prépare une soutenance s'entraîne devant un miroir ou un ami. Il n'obtient
-aucune mesure objective — et surtout, **aucune mémoire** : personne ne peut lui dire
-« tu dis toujours *du coup* toutes les trois phrases, et ça ne s'améliore pas depuis quatre
-séances ». C'est pourtant exactement ce qu'un bon coach humain apporte.
+**L'élève-ingénieur, aux deux oraux qui décident de son année :**
 
-## La philosophie : pourquoi le modèle de langage ne note jamais
+- **La soutenance** (PFA, PFE, mémoire, thèse) — un jury académique de trois voix : le rapporteur qui a lu le document de près, la présidente qui cadre, l'encadrant qui tend des perches mais n'accepte pas le flou.
+- **L'entretien** (stage, alternance, premier poste) — une chargée de recrutement et un manager technique qui ont lu le CV **et** l'offre, et qui posent les questions de *ce* recruteur-là.
 
-Ce projet applique une règle apprise en production : **un score faux mais crédible est plus
-dangereux qu'un crash.** Un modèle de langage se trompe de manière *plausible* — une note
-fausse ressemble à une note juste, et rien ne la distingue.
+Le parcours tient en une phrase, et la navigation la répète : **① dépose tes documents → ② passe un appel → ③ suis ta progression.**
 
-Donc ici :
+## Ce qui le distingue
 
-- **Chaque chiffre est calculé par du code déterministe et testé** (`lib/scoring/`,
-  `lib/trends/`) : débit, densité de béquilles, longueur des phrases, structure, tenue du temps.
-- **Quand les données ne suffisent pas, la métrique s'abstient.** Elle affiche « non mesuré »
-  et explique pourquoi, plutôt que de produire un verdict sur du bruit. Trois exemples réels,
-  chacun découvert en utilisant l'outil et verrouillé par un test :
-  - une transcription hachée en fragments de 4 mots ne prouve pas des « phrases qui respirent » ;
-  - un débit calculé sur une transcription qui a perdu 35 % des mots dit « je t'ai mal entendu »,
-    pas « tu parles lentement » ;
-  - une tendance sur deux points, c'est du bruit — il en faut **trois minimum**, sans exception.
-- **Sans compte, aucune donnée ne quitte le navigateur** : tout vit dans le stockage local,
-  vérifiable dans l'onglet Réseau. Le compte est une copie facultative (voir *Comptes*), et les
-  fonctions IA n'envoient que le texte extrait des slides.
+### Le jury lit tout — et le prouve
 
-## En pratique
+Un mémoire de 60 pages est lu en passes successives (jusqu'à ~270 pages), et l'écran dit exactement ce qui a été couvert : *« Lu en entier : 42 pages, en 3 passes »* — ou l'avoue quand une passe a échoué. Une **relecture croisée** confronte ensuite la présentation au rapport, comme un vrai rapporteur : ce que le jury a compris, ce qui est solide, **ce qui ne concorde pas entre les deux documents** (chaque écart cité des deux côtés), et les questions auxquelles le dossier ne répond nulle part. Ces trouvailles deviennent les *notes du rapporteur* que le jury emporte dans l'appel.
 
-Tu choisis le format de ton exercice — les durées correspondent aux soutenances réelles
-(PFA 15 min, PFE 20 min) — puis tu parles. La transcription suit en direct, et le minuteur
-passe à l'orange dans les 10 % finaux, au rouge au dépassement.
+### Le jury se souvient
 
-![L'écran de session avec les formats PFA et PFE](docs/session.png)
+Chaque appel nourrit la mémoire du suivant. Le jury **rouvre sur la question restée sans bonne réponse** — *« La dernière fois, vous n'aviez pas su me dire… je vous repose la question »* — revient sur les critères faibles plutôt que d'explorer du neuf, et reconnaît sobrement le progrès : *« Bien. Cette fois vous l'avez. »* Battre le jury sur la question qui vous avait fait échouer : c'est la progression qu'on vit, pas celle qu'on lit sur une courbe.
 
-## Ce que ça mesure
+### La note, c'est le code qui la calcule
 
-| Métrique | Ce qu'elle regarde | Quand elle s'abstient |
+Un modèle de langage se trompe de manière *plausible* : une note fausse ressemble à une note juste. Ici, **l'IA juge chaque critère et cite ses raisons ; la moyenne pondérée est recalculée par du code** — et quand trop peu de critères ont pu être observés, il n'y a **pas de note du tout**, plutôt qu'un chiffre posé sur du vide. La grille distingue même ses deux volets : un appel ne juge que les *questions* ; seule la soutenance blanche, qui rejoue l'oral entier, peut mener à « Prêt ».
+
+### Le pronostic
+
+En tête de chaque grille, la réponse à la question qu'on se pose vraiment à 23h : **« Si ton oral était demain : entre 11,5 et 14,5 / 20. »** Fourchette calculée par du code, dont la largeur dit honnêtement ce qui n'a pas été observé.
+
+## Les principes d'ingénierie
+
+Ce projet applique la discipline apprise en stage chez [Propulsez](https://propulsez.fr) — fiabiliser une application d'IA en production — dont il transpose aussi le concept produit (appels simulés + grilles pondérées calculées) au monde étudiant.
+
+1. **Le code calcule, le modèle rédige.** Débit, mots béquilles, temps, notes : déterministes et testés. L'IA écrit les questions, les constats, les conseils — jamais un chiffre final.
+2. **S'abstenir plutôt qu'inventer.** Pas assez de données → « non mesuré », avec la raison. Grille trop peu couverte → pas de note. Rapport tronqué → la portée l'annonce (*« les 20 premières pages sur 37 »*).
+3. **Ne jamais croire le modèle sur parole.** Une « contradiction chiffrée » dont les deux citations portent les mêmes nombres (« 45 » / « quarante-cinq ») est **écartée par du code** — le prompt l'interdit, le parseur le vérifie. Une incohérence sans ses deux citations est jetée : une demi-accusation est pire que rien.
+4. **Le quota ne fuit pas.** Vérifié avant l'appel au modèle, consommé seulement après succès ; chaque route IA porte son `maxDuration` ; et un déploiement sans base **crie** dans les logs que les quotas sont désactivés au lieu de l'ouvrir en silence.
+5. **Tout est vérifié.** 452 tests unitaires, TypeScript strict, et des tests qui figent jusqu'aux consignes des prompts — pour qu'un remaniement n'efface pas une règle de conduite du jury.
+
+## Journal des incidents — trouvés, compris, corrigés
+
+Les leçons les plus utiles viennent d'appels réels :
+
+| Symptôme observé | Cause | Correctif |
 |---|---|---|
-| **Tenue du temps** | Écart à la durée visée (mode soutenance) | Entraînement libre |
-| **Débit de parole** | Mots/minute, zone de confort 110–160 | Session < 10 s, ou transcription peu fiable |
-| **Mots béquilles** | « euh », « du coup », « en fait »… pour 100 mots | Aucun mot analysable |
-| **Longueur des phrases** | Moyenne, et phrases de plus de 30 mots | Transcription hachée (< 7 mots/phrase) |
-| **Structure annoncée** | Annonce de plan en intro, marqueur de conclusion | Session < 60 mots |
-
-Et la mémoire : sur les **6 dernières sessions mesurables**, chaque métrique devient une
-tendance — *en progression*, *stable*, *en recul* — avec les valeurs brutes
-(« 12,5 → 0,8 béquilles pour 100 mots »). Stagner au bon niveau se dit « c'est acquis » ;
-stagner au mauvais, « c'est TON point de travail prioritaire ».
-
-## L'organisation : un accueil, des modules, des guides
-
-À la première visite : « Qu'est-ce que tu prépares ? » — l'étudiant choisit ses oraux et la
-navigation ne montre que ceux-là. **Accueil** (prochaine échéance, où on en est par oral, quoi
-faire maintenant), **Mes sessions** (historique unifié, recherche, filtre par oral), **Guides**
-(la bibliothèque). Chaque oral est un module : une entrée dans la barre latérale, des onglets
-à l'intérieur (Préparer · Slides · Répéter · Fiches · Jury · Guide pour la soutenance ;
-Préparer · Simulation · Guide pour les autres).
-
-## Le parcours : de « j'ai une date » à « je suis prêt »
-
-L'étudiant donne sa date de soutenance et son format (PFA 15 min, PFE 20 min). Un catalogue
-d'étapes — lire le guide, déposer ses slides, générer son pitch, première répétition, réviser
-ses fiches, répétition chronométrée, répéter avec ses slides, avis du coach, simulation
-d'entretien, trois sessions, une session dans les temps, la veille, le jour J — est réparti
-sur les jours restants. Une jauge « Prêt à X % », la liste « à faire maintenant » avec les
-retards, et une **détection automatique** : une étape prouvée par l'activité se coche seule.
-
-Autour : **répéter avec ses slides** (la diapositive à l'écran, un chrono par diapositive
-comparé au minutage du pitch, bilan prévu / réel / écart), et **le guide de la soutenance**
-(déroulé, ce que le jury note, erreurs classiques, répondre à une question qu'on ne sait pas,
-la veille, le jour J).
-
-## Le module Entretien d'embauche
-
-Pour les lauréats, les stages, l'alternance — même discipline, autre situation : un profil de
-candidature (poste, offre collée, CV lu dans le navigateur), **les questions que ce recruteur
-posera** (tirées du CV et de l'offre : écarts, affirmations à prouver), « présentez-vous » en
-2 minutes chronométré avec l'avis du coach comparé au CV, une **simulation RH ou technique**
-où le recruteur IA relance, la méthode STAR, un guide (déroulé, erreurs qui éliminent,
-questions à poser, salaire, l'après) et une checklist jusqu'à la date de l'entretien.
-
-## Les modules Pitch de projet et Oral de concours
-
-Un **moteur de modules** (`lib/modules`) décrit une situation d'oral — profil, banque classique,
-persona du jury, critères, checklist, guide — et produit les mêmes écrans : profil avec dossier
-PDF lu localement, questions spécifiques tirées du dossier, simulation avec un jury qui relance,
-présentation chronométrée avec coach, guide. Deux modules l'utilisent : **Pitch de projet**
-(concours d'innovation, startup, hackathon — jury d'innovation) et **Oral de concours**
-(admission, master, bourse — jury d'admission). Ajouter un module, c'est écrire une définition.
-
-## Et avec l'IA : pitch, questions de jury, coach, fiches, simulation d'entretien
-
-Dépose le PDF de tes slides. Seul le **texte extrait** est envoyé au modèle — jamais le fichier.
-
-| Fonction | Ce que fait le modèle | Ce que fait le code |
-|---|---|---|
-| **🎬 Mon pitch** | Rédige l'accroche, ce que dire sur chaque diapositive, les transitions, la conclusion, trois conseils de livraison propres au support | Renormalise le minutage vers la durée visée — un modèle ne décide pas d'un chiffre |
-| **🎓 Questions du jury** | Génère les questions *spécifiques* à ce projet : elles citent une technologie nommée, un chiffre avancé, un choix de conception, et pointent les faiblesses réelles | Interdit dans la consigne toute question posable à n'importe quel projet ; rattache chaque question à sa diapositive ; une banque de questions classiques reste disponible hors ligne |
-| **💬 Avis du coach** | Compare la transcription d'une répétition aux diapositives : oublis (avec le numéro de diapositive), passages confus cités, phrases à reformuler, points forts, une priorité | Lui fournit les mesures déjà calculées comme des faits à ne pas contredire ; refuse tout avis hors format ; un avis par session, mis en cache et synchronisé |
-| **🗂️ Fiches à mémoriser** | Tire des diapositives les chiffres clés, définitions, choix à justifier et questions pièges, sous forme de fiches recto/verso | Interdit d'inventer un chiffre absent du support ; la révision espacée (boîtes de Leitner : 1, 3, 7, 14 jours, une fiche ratée revient le jour même) est du code testé |
-| **🎤 Simulation d'entretien** | Donne son avis de jury sur ta réponse orale : ce qui fonctionne, ce qu'il relèverait, ce qu'il attendait, sa relance probable | Mesure longueur, hésitations, présence d'un exemple concret et temps de réaction — avant et indépendamment du modèle |
-
-**Le modèle n'attribue jamais de note.** Chaque consigne le lui interdit explicitement, et une réponse hors format est refusée plutôt que présentée comme fiable.
-
-Sans clé configurée, tout le reste fonctionne : l'analyse du support, les questions classiques, les mesures de réponse.
-
-### Configuration
-
-```
-GEMINI_API_KEY=...        # clé Google AI Studio (palier gratuit suffisant)
-GEMINI_MODEL=gemini-3.6-flash   # optionnel — Google retire régulièrement les anciens modèles
-```
-
-En local : dans `.env.local` (ignoré par git). Sur Vercel : *Settings → Environment Variables*.
-
-## Comptes (optionnels) : retrouver son travail sur tous ses appareils
-
-Sans compte, tout reste dans le navigateur. Avec un compte Google, les sessions, le support
-et les résultats IA sont copiés sur le serveur et fusionnés d'un appareil à l'autre — **jamais
-l'audio, jamais le PDF**, et chaque session reste supprimable. À la déconnexion, l'appareil est
-vidé après un dernier envoi (sur un ordinateur partagé, la personne suivante ne voit rien) ; si le
-serveur est injoignable, rien n'est effacé et l'utilisateur est prévenu.
-
-Pile : [Auth.js](https://authjs.dev) (v5) + [Prisma](https://www.prisma.io) 7 + PostgreSQL
-([Neon](https://neon.tech)). Ce que le navigateur stocke localement et ce que le serveur
-stocke ont exactement la même forme : la synchronisation est une copie, pas une traduction
-(`lib/sync/merge.ts`, testé).
-
-### Mise en place
-
-1. **Base de données** — sur Neon, créer un projet et copier la chaîne de connexion
-   (*pooled*) dans `DATABASE_URL`. Puis :
-   ```bash
-   npm run db:migrate      # crée les tables (prisma/migrations)
-   ```
-2. **Google** — sur [console.cloud.google.com](https://console.cloud.google.com) → *APIs &
-   Services → Credentials → Create OAuth client ID* (type *Web application*) :
-   - *Authorized JavaScript origins* : `http://localhost:3000` et `https://soutenance-coach.vercel.app`
-   - *Authorized redirect URIs* : `http://localhost:3000/api/auth/callback/google` et
-     `https://soutenance-coach.vercel.app/api/auth/callback/google`
-   - Copier l'identifiant et le secret dans `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`.
-3. **Secret de session** — `AUTH_SECRET` : une chaîne aléatoire (`openssl rand -base64 32`).
-
-Tant que ces variables manquent, le bouton « Se connecter » mène à une page qui l'explique,
-et l'application fonctionne en mode local.
-
-**L'app sociale** : **répéter avec un ami** — un lien lui ouvre « tu es le jury » (les questions
-à poser, un chrono, trois cases par réponse, une remarque) et son retour revient dans la
-préparation ; **les vraies questions des vrais jurys** — après l'oral, l'étudiant raconte
-anonymement les questions qu'on lui a réellement posées, relues avant publication, regroupées
-par école et filière.
-
-**Ce qui fait revenir** : la **question du jour** (une question de son jury, tirée de ses
-modules actifs, 60 secondes au micro, un retour, l'exemple d'une excellente réponse) et une
-**série** honnête ; des **rappels** par notification (web push, une tâche planifiée par jour :
-J-X, la veille, la question du jour — désactivables en un clic) ; les fiches à **swiper**.
-
-**Le retour visible, tout de suite** : la **transcription annotée** (chaque béquille surlignée
-là où elle a été dite — même détection que le comptage), la **jauge de débit en direct**
-pendant qu'on parle, et « **voici comment un excellent candidat répondrait** » après chaque
-réponse au jury, au recruteur ou au jury de module — un exemple sur *son* dossier, avec
-l'interdiction d'inventer un fait (les manques sont marqués « à compléter »).
-
-**En anglais aussi** : la langue de l'oral (français / anglais) règle la reconnaissance vocale,
-les béquilles comptées (« um », « like », « you know »…) et la langue des avis des jurys IA.
-
-**Réécoute-toi** : l'audio est enregistré sur l'appareil (IndexedDB — jamais envoyé, jamais
-synchronisé, effacé avec la session), réécoutable depuis l'historique ; le son est mesuré
-pendant l'enregistrement — blancs de plus de 1,5 s, part de silence, dynamique de la voix — par
-du code testé (`lib/audio/mesures.ts`), seuils exportés.
-
-**Le mémoire, le rapport, la thèse** : déposé en PDF (lu localement, texte seul conservé —
-jusqu'à 120 000 caractères, le début et la fin sont envoyés au modèle si le document dépasse
-la borne), il donne **les questions du rapporteur** — celles qui citent un passage, un chiffre,
-une absence — et elles rejoignent la simulation et la soutenance blanche.
-
-**La soutenance blanche** : l'exposé avec les slides chronométrées, puis le jury qui enchaîne
-quatre questions (d'abord celles tirées du support) et relance, puis le débrief — temps par
-diapositive, mesures, avis du coach, avis du jury sur chaque réponse. Étape du parcours.
-
-**Et autour** : ajout de la date au calendrier (.ics, rappel la veille), **bilan** propre à
-imprimer en PDF ou à partager par un lien en lecture seule valable 30 jours (sans aucune
-transcription), application **installable** sur le téléphone (manifeste PWA).
-
-**Quotas IA** : 20 appels par mois sans compte (par empreinte d'adresse — jamais l'adresse
-elle-même), 80 avec un compte, surchargeables par `QUOTA_ANONYME` / `QUOTA_COMPTE` ; compteur
-visible dans la barre latérale, page **Forfaits** (Gratuit / Pro bientôt, liste d'attente),
-tableau de bord **admin** (`ADMIN_EMAIL`) sans aucune transcription.
-
-Avec un compte : **suppression du compte** en un clic (tout est effacé, serveur et appareil),
-[politique de confidentialité](https://soutenance-coach.vercel.app/confidentialite) et
-[mentions légales](https://soutenance-coach.vercel.app/mentions-legales) écrites pour être lues,
-et `/api/health` pour savoir si la base, l'IA et les comptes répondent.
+| Le jury cite « la ligne 123 de l'annexe A » — trois versions contradictoires | Le prompt ordonnait « cite précisément » un extrait de 7 000 signes | Le prompt annonce un *extrait*, interdit tout numéro absent, exige la cohérence entre tours |
+| 6 « écarts » sur 7 étaient faux lors du premier test sur un vrai PFE | « 45 » vs « quarante-cinq », formats de dates, numérotations | Liste explicite des non-écarts + comparateur de nombres en toutes lettres (`lib/dossier/nombres.ts`) |
+| Onze questions de plus en plus dures posées à un candidat resté muet | Le « (silence) » était traité comme une réponse | Règle de relance : reformuler, jamais empiler ; « un silence n'est jamais un aveu » |
+| « Prêt » affiché sur 3 critères évalués sur 12 | Seuil d'abstention absolu (6) sur des poids sommés à 18,5 | Seuil en ratio (60 % du volet) + « Prêt » réservé à l'oral entier |
+| Lecture du dossier : écran figé, quota brûlé, rien rendu | Pas de `maxDuration`, boucle de passes non bornée dans le temps | Budget temps explicite, arrêt propre, voyant « X passes sur Y » enfin branché |
+| La page annonçait 2 unités de quota par appel — il en coûtait 4 | Coût jamais recompté après ajout de la lecture et de la grille | Débrief + grille fusionnés (4 → 3 unités), coût affiché exact |
 
 ## Démarrer
 
@@ -225,73 +67,35 @@ npm install
 npm run dev        # http://localhost:3000
 ```
 
-**Prérequis navigateur** : Chrome ou Edge — la transcription utilise la Web Speech API.
-L'application le dit explicitement si le navigateur ne la propose pas.
+Navigateur : **Chrome ou Edge** (Web Speech API pour la transcription — l'application le dit si le navigateur ne la propose pas).
 
 ```bash
-npm test           # 212 tests unitaires (Vitest)
+npm test           # 452 tests unitaires (Vitest)
 npm run typecheck  # TypeScript strict
 npm run build      # build de production
 ```
 
-## Architecture
+### Configuration
 
 ```
-app/
-├── page.tsx              Page d'accueil
-├── app/                  Tableau de bord, session, support (pitch + jury), simulation, connexion
-└── api/                  Routes serveur : IA (Gemini), comptes (Auth.js), synchronisation
-lib/
-├── scoring/              Les 5 métriques — fonctions pures, seuils exportés
-├── trends/               La mémoire — pénalités normalisées, seuil minSessions
-├── parcours/             Le parcours J-X — catalogue d'étapes, répartition, détection
-├── repetition/           Temps par diapositive : prévu, réel, écarts
-├── coach/ fiches/        Consignes IA + validation stricte ; révision espacée (Leitner)
-├── slides/ jury/ pitch/  Analyse du support, questions, pitch — consignes IA et garde-fous
-├── sync/                 Fusion local ↔ compte (pure, testée)
-├── storage.ts            Persistance locale, export/import JSON
-└── types.ts
-tests/unit/               212 tests, dont des fixtures de sessions réelles
+GEMINI_API_KEY=...   # clé Google AI Studio (palier gratuit suffisant) — voix + repli IA
 ```
 
-Le cœur (`lib/`) n'a **aucune dépendance au DOM** : il se teste sans navigateur, et les
-composants ne font que l'afficher. Les seuils sont exportés (`SEUILS`, `SEUILS_TENDANCES`)
-pour rester critiquables plutôt que cachés dans le code.
+En local : `.env.local` (ignoré par git). Sur Vercel : *Settings → Environment Variables*. Les appels IA passent par une cascade de fournisseurs gratuits (`lib/llm.ts`) avec repli automatique sur 429/5xx ; toute clé absente est simplement sautée. Les comptes (magic link, Google, mot de passe) et la synchronisation multi-appareils demandent une base PostgreSQL (`DATABASE_URL`, Neon) — **sans base, tout fonctionne en local sur l'appareil**, et les quotas sont désactivés (bruyamment).
 
-## Limites connues (v1)
+## Architecture en bref
 
-Elles sont écrites ici plutôt que découvertes à l'usage :
+- **Next.js 16** (App Router), React 19, TypeScript strict, Vercel.
+- **La logique vit dans `lib/`, pure et testée** : grilles et pronostic (`lib/grille/`), jury et mémoire (`lib/appel/`), relecture croisée (`lib/dossier/`), mesures d'élocution (`lib/scoring/`, `lib/audio/`). Les routes API sont minces ; les pages, des vues.
+- **Les données de l'étudiant vivent dans son navigateur** (localStorage + IndexedDB pour l'audio), synchronisées vers PostgreSQL quand un compte existe. Aucun fichier déposé n'est stocké côté serveur — seul le texte extrait transite.
+- **Voix** : Gemini TTS en streaming, un timbre par membre du jury ; repli sur les voix du navigateur. Transcription : Web Speech API.
 
-- **Chrome/Edge uniquement** — la Web Speech API n'est pas disponible partout.
-- **La transcription française est imparfaite.** Les métriques sont conçues pour y résister
-  (variantes de béquilles regroupées, marqueurs de conclusion tolérants, abstention si la
-  confiance est basse), mais un micro éloigné dégrade la mesure. L'app le signale.
-- **La tendance compare des moyennes de moitiés de fenêtre** : un pic isolé en bord de
-  fenêtre pèse sur sa moitié. Comportement documenté et testé ; passage à la médiane prévu
-  si l'usage le justifie.
-- **Pas de découpage par section** (intro/développement/conclusion chronométrés séparément) :
-  noté dans la fiche de mission comme évolution, pas construit en v1.
+## Limites connues
 
-## Journal de bord
-
-Ce projet a été construit par étapes, chacune vérifiée par l'usage réel — et plusieurs
-correctifs viennent directement de sessions d'entraînement enregistrées avec l'outil :
-
-| Étape | Contenu |
-|---|---|
-| A | Socle : enregistrement, transcription temps réel, sessions locales |
-| B | La grille : 5 métriques déterministes et leurs seuils |
-| C | La mémoire : tendances multi-sessions, seuil de 3 sessions non négociable |
-| D | Mode soutenance chronométré, export/import, accessibilité, publication |
-| E | Le parcours J-X : date, étapes réparties, détection automatique, jauge « Prêt à X % » |
-| F | Répéter avec ses slides : chrono par diapositive, bilan prévu / réel |
-| G | L'avis du coach : oublis, passages confus, reformulations — jamais de note |
-| H | Les fiches à mémoriser : chiffres, définitions, pièges, révision espacée |
-| I | Le guide de la soutenance, et une navigation commune |
-
-La fiche de mission complète — rédigée **avant la première ligne de code** — est dans
-[MISSION.md](MISSION.md), garde-fous compris.
+- La transcription dépend du navigateur : hors Chrome/Edge, l'appel vocal n'est pas disponible.
+- Le pronostic est une estimation calibrée sur la grille, pas une promesse — il le dit lui-même.
+- Un rapport au-delà de ~40 000 signes n'est confronté qu'en partie lors de la relecture croisée (la portée l'affiche).
 
 ## Licence
 
-MIT.
+MIT — © Zakaria Laaniba, élève-ingénieur en IA à l'ENSIAS. Le concept d'entraînement par appels simulés et grilles pondérées est inspiré de [Propulsez](https://propulsez.fr), où il a été appris en stage — qu'ils en soient remerciés.

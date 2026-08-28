@@ -4,6 +4,9 @@ import { verifierQuota } from "@/lib/quota-serveur";
 import { analyserReponse, construirePrompt, parseAvis } from "@/lib/jury/evaluation";
 import type { JuryQuestion } from "@/lib/slides/types";
 
+/** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
+export const maxDuration = 60;
+
 /**
  * Évaluation d'une réponse orale. Le modèle ne reçoit que la question, la
  * réponse transcrite et les mesures déjà calculées ; il ne produit que du

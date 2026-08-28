@@ -5,6 +5,9 @@ import { decouperSlide } from "@/lib/slides/analyse";
 import { construirePromptRelecture, parseRelecture, resumerPortee, LIMITES_RELECTURE } from "@/lib/dossier/relecture";
 import type { Deck } from "@/lib/slides/types";
 
+/** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
+export const maxDuration = 120;
+
 /**
  * La relecture du dossier : le seul appel de la plateforme qui voit la
  * présentation et le rapport dans le même contexte, et peut donc les

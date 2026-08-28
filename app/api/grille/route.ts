@@ -3,6 +3,9 @@ import { appelerIA } from "@/lib/llm";
 import { verifierQuota } from "@/lib/quota-serveur";
 import { GRILLES, construirePrompt, normaliser, parseReponse, type IdOral, type Volet } from "@/lib/grille";
 
+/** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
+export const maxDuration = 90;
+
 /**
  * Remplit la grille d'évaluation d'un oral. Le modèle juge critère par
  * critère ; la note pondérée est calculée ici, par du code — jamais par lui.

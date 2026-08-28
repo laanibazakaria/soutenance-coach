@@ -4,6 +4,9 @@ import { verifierQuota } from "@/lib/quota-serveur";
 import { computeReport } from "@/lib/scoring";
 import { construirePromptCoach, parseAvisCoach, type DemandeCoach } from "@/lib/coach";
 
+/** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
+export const maxDuration = 90;
+
 /**
  * L'avis du coach sur une session. Le modèle reçoit la transcription, le
  * texte des diapositives et les mesures déjà calculées ; il ne produit que

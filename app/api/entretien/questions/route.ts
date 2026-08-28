@@ -3,6 +3,9 @@ import { appelerIA } from "@/lib/llm";
 import { verifierQuota } from "@/lib/quota-serveur";
 import { construirePromptQuestionsEntretien, parseQuestionsEntretien, estCandidature } from "@/lib/entretien";
 
+/** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
+export const maxDuration = 90;
+
 /**
  * Questions d'entretien spécifiques au candidat : le navigateur envoie le
  * texte de l'offre et du CV (jamais le fichier). La clé reste ici.

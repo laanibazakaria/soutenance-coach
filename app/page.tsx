@@ -28,6 +28,12 @@ const JURY: ReadonlyArray<{ icone: NomIcone; titre: string; texte: string }> = [
     texte:
       "Plutôt bienveillant : il te tend des perches sur ce que tu as fait toi-même et sur tes difficultés. Mais il n'accepte pas le flou.",
   },
+  {
+    icone: "cible",
+    titre: "L'examinatrice externe",
+    texte:
+      "Spécialiste de ta filière : elle pousse sur les concepts précis de ton sujet, l'état de l'art, et ce que tu comprends vraiment de tes propres outils.",
+  },
 ];
 
 const OUTILS: ReadonlyArray<{ icone: NomIcone; titre: string; texte: string }> = [
@@ -113,7 +119,7 @@ export default function LandingPage() {
             <span className="lp-title-accent">et qui t&apos;appelle pour en parler.</span>
           </h1>
           <p className="lp-lead">
-            Tu déposes tes diapositives et ton mémoire. Trois membres du jury les lisent en entier,
+            Tu déposes tes diapositives et ton mémoire. Quatre membres du jury les lisent en entier,
             ligne à ligne. Puis ils t&apos;appellent : ils parlent, tu réponds au micro, ils
             rebondissent sur ce que tu viens de dire. À la fin, le débrief — et une note calculée sur
             treize critères pondérés, jamais improvisée.
@@ -203,7 +209,7 @@ export default function LandingPage() {
               <span className="lp-step-num">3</span>
               <h3>Il t&apos;appelle</h3>
               <p>
-                Trois membres, trois voix distinctes. Tu réponds au micro ; quand tu te tais deux
+                Quatre membres, quatre voix distinctes. Tu réponds au micro ; quand tu te tais deux
                 secondes, le suivant enchaîne — et rebondit sur ce que tu viens de dire.
               </p>
             </article>
@@ -222,7 +228,7 @@ export default function LandingPage() {
       {/* ── qui est en face ── */}
       <section className="lp-section lp-alt">
         <div className="lp-container">
-          <h2 className="lp-h2 lp-center">Trois personnes, trois obsessions</h2>
+          <h2 className="lp-h2 lp-center">Quatre personnes, quatre obsessions</h2>
           <p className="lp-sub lp-center">
             Un jury n&apos;est pas une voix unique. Chacun cherche autre chose — et c&apos;est
             précisément ce qui rend l&apos;exercice difficile.

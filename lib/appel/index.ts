@@ -61,6 +61,7 @@ export const MEMBRES: Record<ModeAppel, MembreJury[]> = {
     { id: "rapporteur", nom: "Le rapporteur", role: "le rapporteur, qui a lu le mémoire ligne à ligne", obsession: "la méthode, les chiffres, ce que le document dit vraiment — il cite des passages et relève les incohérences", voix: "grave" },
     { id: "presidente", nom: "La présidente du jury", role: "la présidente du jury, qui cadre la séance", obsession: "la contribution personnelle du candidat, la portée du travail, le respect du temps — elle pose les questions larges et recadre", voix: "claire" },
     { id: "encadrant", nom: "L'encadrant", role: "l'encadrant du stage, plutôt bienveillant", obsession: "ce que le candidat a fait lui-même, les difficultés rencontrées et comment il s'en est sorti — il tend des perches, mais n'accepte pas le flou", voix: "posee" },
+    { id: "examinatrice", nom: "L'examinatrice externe", role: "une examinatrice extérieure, spécialiste du domaine du candidat", obsession: "le fond disciplinaire : elle interroge en spécialiste de la filière du candidat (indiquée dans son profil), pousse sur les concepts précis du sujet, les alternatives de l'état de l'art, et ce que le candidat comprend vraiment de ses propres outils", voix: "vive" },
   ],
   entretien: [
     { id: "rh", nom: "La chargée de recrutement", role: "la chargée de recrutement", obsession: "le parcours, la motivation pour CE poste, la disponibilité, le comportement en équipe", voix: "claire" },
@@ -118,10 +119,31 @@ export const ANGLES_OUVERTURE = [
 
 /** Assemble le contexte à partir de ce qu'on a, sans dépasser la limite. */
 export function assemblerContexte(parties: Array<{ titre: string; texte?: string | null }>, max: number = LIMITES_APPEL.contexteChars): string {
-  const utiles = parties.filter((p) => p.texte && p.texte.trim().length > 20);
+  const utiles = parties.filter((p) => p.texte && p.texte.trim().length > 20).map((p) => ({ titre: p.titre, texte: p.texte!.trim() }));
   if (utiles.length === 0) return "";
-  const part = Math.floor(max / utiles.length);
-  return utiles.map((p) => `## ${p.titre}\n${p.texte!.trim().slice(0, part)}`).join("\n\n");
+  // Deux passes : chaque section reçoit d'abord une part égale, puis ce que
+  // les petites n'utilisent pas revient aux grandes. Un mémoire de cent pages
+  // ne doit pas être coupé pendant que dix diapositives gaspillent le budget.
+  const allocation = utiles.map(() => 0);
+  let reste = max;
+  let affames = utiles.map((_, i) => i);
+  while (reste > 0 && affames.length > 0) {
+    const part = Math.floor(reste / affames.length);
+    if (part === 0) break;
+    let distribue = 0;
+    const encore: number[] = [];
+    for (const i of affames) {
+      const besoin = utiles[i]!.texte.length - allocation[i]!;
+      const donne = Math.min(part, besoin);
+      allocation[i]! += donne;
+      distribue += donne;
+      if (allocation[i]! < utiles[i]!.texte.length) encore.push(i);
+    }
+    reste -= distribue;
+    if (encore.length === affames.length && distribue === 0) break;
+    affames = encore;
+  }
+  return utiles.map((p, i) => `## ${p.titre}\n${p.texte.slice(0, allocation[i])}`).join("\n\n");
 }
 
 /**

@@ -15,7 +15,8 @@ export interface Rapport {
   misAJourLe: string;
 }
 
-export const LIMITES_RAPPORT = { texteChars: 120_000, envoiChars: 60_000, pagesMin: 3 } as const;
+/** ~2 000 signes la page : 200 000 ≈ 100 pages de texte pur conservées au dépôt. */
+export const LIMITES_RAPPORT = { texteChars: 200_000, envoiChars: 60_000, pagesMin: 3 } as const;
 
 export function estRapport(v: unknown): v is Rapport {
   if (!v || typeof v !== "object") return false;

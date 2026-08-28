@@ -2,7 +2,7 @@
 
 **Un jury qui a lu ton mémoire, et qui t'appelle pour en parler.**
 
-Tu déposes ton rapport et ta présentation. Trois membres du jury les lisent **en entier, ligne à ligne**, puis t'appellent : ils parlent, tu réponds au micro, ils rebondissent — et ils **se souviennent de toi** d'un appel à l'autre. À la fin : une note calculée par du code sur treize critères pondérés, et un pronostic honnête pour le jour J.
+Tu déposes ton rapport et ta présentation. Quatre membres du jury les lisent **en entier, ligne à ligne**, puis t'appellent : ils parlent, tu réponds au micro, ils rebondissent — et ils **se souviennent de toi** d'un appel à l'autre. À la fin : une note calculée par du code sur treize critères pondérés, et un pronostic honnête pour le jour J.
 
 ### 👉 [Utiliser l'application](https://soutenance-coach.vercel.app)
 
@@ -14,7 +14,7 @@ Gratuit, open source, sans installation (Chrome ou Edge). L'audio et les fichier
 
 **L'élève-ingénieur, aux deux oraux qui décident de son année :**
 
-- **La soutenance** (PFA, PFE, mémoire, thèse) — un jury académique de trois voix : le rapporteur qui a lu le document de près, la présidente qui cadre, l'encadrant qui tend des perches mais n'accepte pas le flou.
+- **La soutenance** (PFA, PFE, mémoire, thèse) — un jury académique de quatre voix : le rapporteur qui a lu le document de près, la présidente qui cadre, l'encadrant qui tend des perches, et l'examinatrice externe — spécialiste de la filière du candidat, elle pousse sur le fond disciplinaire.
 - **L'entretien** (stage, alternance, premier poste) — une chargée de recrutement et un manager technique qui ont lu le CV **et** l'offre, et qui posent les questions de *ce* recruteur-là.
 
 Le parcours tient en une phrase, et la navigation la répète : **① dépose tes documents → ② passe un appel → ③ suis ta progression.**
@@ -23,7 +23,7 @@ Le parcours tient en une phrase, et la navigation la répète : **① dépose te
 
 ### Le jury lit tout — et le prouve
 
-Un mémoire de 60 pages est lu en passes successives (jusqu'à ~270 pages), et l'écran dit exactement ce qui a été couvert : *« Lu en entier : 42 pages, en 3 passes »* — ou l'avoue quand une passe a échoué. Une **relecture croisée** confronte ensuite la présentation au rapport, comme un vrai rapporteur : ce que le jury a compris, ce qui est solide, **ce qui ne concorde pas entre les deux documents** (chaque écart cité des deux côtés), et les questions auxquelles le dossier ne répond nulle part. Ces trouvailles deviennent les *notes du rapporteur* que le jury emporte dans l'appel.
+Un mémoire de 100 pages est lu en passes successives (jusqu'à ~270 pages), et l'écran dit exactement ce qui a été couvert : *« Lu en entier : 42 pages, en 3 passes »* — ou l'avoue quand une passe a échoué. Une **relecture croisée** confronte ensuite la présentation au rapport, comme un vrai rapporteur : ce que le jury a compris, ce qui est solide, **ce qui ne concorde pas entre les deux documents** (chaque écart cité des deux côtés), et les questions auxquelles le dossier ne répond nulle part. Ces trouvailles deviennent les *notes du rapporteur* que le jury emporte dans l'appel.
 
 ### Le jury se souvient
 
@@ -45,7 +45,7 @@ Ce projet applique la discipline apprise en stage chez [Propulsez](https://propu
 2. **S'abstenir plutôt qu'inventer.** Pas assez de données → « non mesuré », avec la raison. Grille trop peu couverte → pas de note. Rapport tronqué → la portée l'annonce (*« les 20 premières pages sur 37 »*).
 3. **Ne jamais croire le modèle sur parole.** Une « contradiction chiffrée » dont les deux citations portent les mêmes nombres (« 45 » / « quarante-cinq ») est **écartée par du code** — le prompt l'interdit, le parseur le vérifie. Une incohérence sans ses deux citations est jetée : une demi-accusation est pire que rien.
 4. **Le quota ne fuit pas.** Vérifié avant l'appel au modèle, consommé seulement après succès ; chaque route IA porte son `maxDuration` ; et un déploiement sans base **crie** dans les logs que les quotas sont désactivés au lieu de l'ouvrir en silence.
-5. **Tout est vérifié.** 452 tests unitaires, TypeScript strict, et des tests qui figent jusqu'aux consignes des prompts — pour qu'un remaniement n'efface pas une règle de conduite du jury.
+5. **Tout est vérifié.** 456 tests unitaires, TypeScript strict, et des tests qui figent jusqu'aux consignes des prompts — pour qu'un remaniement n'efface pas une règle de conduite du jury.
 
 ## Journal des incidents — trouvés, compris, corrigés
 
@@ -70,7 +70,7 @@ npm run dev        # http://localhost:3000
 Navigateur : **Chrome ou Edge** (Web Speech API pour la transcription — l'application le dit si le navigateur ne la propose pas).
 
 ```bash
-npm test           # 452 tests unitaires (Vitest)
+npm test           # 456 tests unitaires (Vitest)
 npm run typecheck  # TypeScript strict
 npm run build      # build de production
 ```

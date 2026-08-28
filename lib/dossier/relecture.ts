@@ -50,7 +50,7 @@ export interface Relecture {
 
 export const LIMITES_RELECTURE = {
   /** Le rapport, pour la confrontation. Au-delà, on le dit au candidat. */
-  rapportChars: 40_000,
+  rapportChars: 60_000,
   /** Les diapositives tiennent presque toujours ; on borne quand même. */
   slidesChars: 20_000,
   atoutsMax: 4,

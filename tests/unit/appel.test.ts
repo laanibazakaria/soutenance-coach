@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { assemblerContexte, construirePromptTour, construirePromptDebrief, parseTour, parseDebrief, validerHistorique, paroleCandidat, PERSONAS, LIMITES_APPEL } from "../../lib/appel";
+import { assemblerContexte, construirePromptTour, construirePromptDebrief, parseTour, parseDebrief, validerHistorique, paroleCandidat, PERSONAS, MEMBRES, LIMITES_APPEL } from "../../lib/appel";
+import { DOSSIER_MAX } from "../../lib/appel/lecture";
 
 const ctx = { mode: "soutenance" as const, contexte: "## Slides\nProjet de transcription audio, WER 12 %.", langue: "fr" as const, dureeMin: 10, historique: [] };
 
@@ -105,5 +106,58 @@ describe("appel avec le jury — variété entre deux appels", () => {
     expect(parseTour('{"replique":"Et le coût ?","membre":"martien"}', "soutenance")!.membre).toBe("rapporteur");
     expect(parseTour('{"replique":"Et le coût ?","membre":"presidente"}', "soutenance")!.membre).toBe("presidente");
     expect(parseTour('{"replique":"Et le coût ?"}', "entretien")!.membre).toBe("rh");
+  });
+});
+
+/**
+ * La répartition du budget de contexte. L'ancienne version partageait à parts
+ * égales : un mémoire de cent pages était coupé pendant que dix diapositives
+ * gaspillaient leur part. Le budget suit désormais le besoin.
+ */
+describe("assemblerContexte — le budget suit le besoin", () => {
+  it("rend aux grandes sections ce que les petites n'utilisent pas", () => {
+    const petit = "x".repeat(1_000);
+    const gros = "y".repeat(50_000);
+    const t = assemblerContexte([
+      { titre: "Slides", texte: petit },
+      { titre: "Mémoire", texte: gros },
+    ], 30_000);
+    // Le mémoire reçoit ~29 000 — pas 15 000 comme avec le partage égal.
+    expect((t.match(/y/g) ?? []).length).toBeGreaterThan(28_000);
+    expect((t.match(/x/g) ?? []).length).toBe(1_000);
+  });
+
+  it("reste équitable quand tout le monde est affamé", () => {
+    const a = "a".repeat(50_000);
+    const b = "b".repeat(50_000);
+    const t = assemblerContexte([{ titre: "A", texte: a }, { titre: "B", texte: b }], 20_000);
+    const na = (t.match(/a/g) ?? []).length;
+    const nb = (t.match(/b/g) ?? []).length;
+    expect(Math.abs(na - nb)).toBeLessThan(10);
+    expect(na + nb).toBeLessThanOrEqual(20_000);
+  });
+
+  it("un mémoire de cent pages tient entier dans le dossier de lecture", () => {
+    // 200 000 signes = la limite du dépôt ; DOSSIER_MAX doit les absorber
+    // aux côtés des slides et des notes du rapporteur.
+    const memoire = "q".repeat(200_000);
+    const t = assemblerContexte([
+      { titre: "Diapositives", texte: "s".repeat(15_000) },
+      { titre: "Mémoire", texte: memoire },
+      { titre: "Notes", texte: "n".repeat(2_000) },
+    ], DOSSIER_MAX);
+    expect((t.match(/q/g) ?? []).length).toBe(200_000);
+  });
+});
+
+describe("le jury de soutenance à quatre", () => {
+  it("compte l'examinatrice externe, avec le timbre encore libre", () => {
+    const s = MEMBRES.soutenance;
+    expect(s).toHaveLength(4);
+    const ex = s.find((m) => m.id === "examinatrice")!;
+    expect(ex.voix).toBe("vive");
+    expect(ex.obsession).toContain("filière");
+    // Quatre timbres distincts : chaque membre garde sa voix.
+    expect(new Set(s.map((m) => m.voix)).size).toBe(4);
   });
 });

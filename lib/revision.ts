@@ -34,7 +34,12 @@ export interface Revision {
   nbSeances: number;
 }
 
-/** Deux formulations de la même question se rangent ensemble. */
+/**
+ * Deux formulations de la même question se rangent ensemble. La clé n'est PAS
+ * tronquée court : un préfixe (« Alors, Zakaria : … ») décale tout, et deux
+ * clés tronquées d'une question longue ne se contiendraient plus l'une
+ * l'autre — c'est arrivé sur un historique réel.
+ */
 function cleQuestion(q: string): string {
   return q
     .toLowerCase()
@@ -42,7 +47,7 @@ function cleQuestion(q: string): string {
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, " ")
     .trim()
-    .slice(0, 120);
+    .slice(0, 400);
 }
 
 interface AppelStocke {
@@ -73,10 +78,23 @@ export function construireRevision(storage: StorageLike): Revision {
   const poser = (statut: keyof typeof rang, q: QuestionRevue) => {
     if (!q.question || q.question.trim().length < 8) return;
     const cle = cleQuestion(q.question);
-    const existante = entrees.get(cle);
+    // Vu sur un historique réel : le jury préfixe parfois sa question
+    // (« Alors, Zakaria : … ») — deux clés dont l'une contient l'autre
+    // désignent la même question. Trente signes de garde contre les
+    // rapprochements accidentels.
+    let cible = cle;
+    if (!entrees.has(cle) && cle.length >= 30) {
+      for (const k of entrees.keys()) {
+        if (k.length >= 30 && (k.includes(cle) || cle.includes(k))) {
+          cible = k;
+          break;
+        }
+      }
+    }
+    const existante = entrees.get(cible);
     if (existante && rang[existante.statut] > rang[statut]) return;
     if (existante && rang[existante.statut] === rang[statut] && existante.q.date > q.date) return;
-    entrees.set(cle, { statut, q });
+    entrees.set(cible, { statut, q });
   };
 
   for (let i = 0; i < st.length; i++) {

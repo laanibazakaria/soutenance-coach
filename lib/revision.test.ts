@@ -89,3 +89,52 @@ describe("tout revoir — l'historique rangé par question", () => {
     expect(r.posees[0]!.tuAsDit).toContain("parce que");
   });
 });
+
+/**
+ * Vu sur l'historique réel de l'utilisateur : le jury avait préfixé sa
+ * question d'ouverture — « Alors, Zakaria : qu'est-ce que tu as fait
+ * toi-même… » — et la même question, ratée au débrief sans le préfixe,
+ * apparaissait en double. Deux clés dont l'une contient l'autre désignent
+ * la même question.
+ */
+describe("le rapprochement des questions préfixées", () => {
+  it("range la version préfixée avec la version ratée, sans doublon", () => {
+    const q = "Qu'est-ce que tu as fait toi-même pour fiabiliser Coach IA, sans compter le reste ?";
+    const r = construireRevision(
+      stockage({
+        "sc.ia.v1:appel:a": appel("2026-08-27T10:00:00Z", [{ role: "assistant", content: `Alors, Zakaria : ${q}` }], [
+          { question: q, ceQueTuAsDit: "…", mieux: "énumérer une action précise" },
+        ]),
+      }),
+    );
+    expect(r.aRetravailler).toHaveLength(1);
+    expect(r.posees).toHaveLength(0);
+  });
+
+  it("ne rapproche pas deux questions courtes par accident", () => {
+    const r = construireRevision(
+      stockage({
+        "sc.ia.v1:appel:a": appel("2026-08-27T10:00:00Z", [
+          { role: "assistant", content: "Pourquoi ce choix ?" },
+          { role: "assistant", content: "Et pourquoi ce choix précis de seuil, dans votre contexte ?" },
+        ]),
+      }),
+    );
+    expect(r.posees).toHaveLength(2);
+  });
+
+  it("rapproche aussi une question LONGUE préfixée — le cas réel exact", () => {
+    // La clé tronquée à 120 signes échouait ici : le préfixe décale tout.
+    const q =
+      "Qu'est-ce que tu as fait toi-même pour fiabiliser Coach IA, sans compter ce que j'ai pu relire ou corriger derrière toi, et quelles preuves concrètes peux-tu en donner au jury aujourd'hui ?";
+    const r = construireRevision(
+      stockage({
+        "sc.ia.v1:appel:a": appel("2026-08-27T10:00:00Z", [{ role: "assistant", content: `Alors, Zakaria : ${q}` }], [
+          { question: q, ceQueTuAsDit: "…", mieux: "énumérer une action précise" },
+        ]),
+      }),
+    );
+    expect(r.aRetravailler).toHaveLength(1);
+    expect(r.posees).toHaveLength(0);
+  });
+});

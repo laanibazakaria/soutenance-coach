@@ -116,6 +116,16 @@ function LienNav({ href, label, icone, actif, etape, faite }: { href: string; la
 /** Barre latérale (bureau) : navigation, les oraux choisis, l'action principale, le compte. */
 export default function Sidebar() {
   const chemin = usePathname();
+  // Le tiroir mobile : ouvert par le bouton de la barre du haut, refermé par
+  // le voile, la croix, ou n'importe quelle navigation. Sur bureau, cet état
+  // est sans effet — la barre est toujours visible.
+  const [ouverte, setOuverte] = useState(false);
+  useEffect(() => {
+    const ouvrir = () => setOuverte(true);
+    window.addEventListener("menu-mobile", ouvrir);
+    return () => window.removeEventListener("menu-mobile", ouvrir);
+  }, []);
+  useEffect(() => setOuverte(false), [chemin]);
   const actifs = useModulesActifs();
   const usage = useUsage();
   const admin = usage?.admin ?? false;
@@ -144,7 +154,9 @@ export default function Sidebar() {
   const etape2Faite = etat.e2;
 
   return (
-    <nav className="sidebar" aria-label="Navigation principale">
+    <>
+    {ouverte && <button type="button" className="sidebar-voile" aria-label="Fermer le menu" onClick={() => setOuverte(false)} />}
+    <nav className={`sidebar${ouverte ? " ouverte" : ""}`} aria-label="Navigation principale">
       <div className="sidebar-brand">
         <Marque taille={26} />
       </div>
@@ -189,6 +201,7 @@ export default function Sidebar() {
       </div>
       <PiedUtilisateur />
     </nav>
+    </>
   );
 }
 
@@ -294,7 +307,7 @@ export function OngletsMobiles() {
         <span className="mobile-record">{I.micro}</span>
       </Link>
       {onglet("/app/sessions", "Sessions", I.sessions, chemin.startsWith("/app/sessions"))}
-      {onglet("/app/guides", "Guides", I.guides, chemin === "/app/guides")}
+      {onglet("/app/appel", "Appel", I.appel, chemin.startsWith("/app/appel"))}
     </nav>
   );
 }

@@ -990,7 +990,7 @@ body.appel-en-cours .module-tabs { display: none; }
 .revision-detail em { font-style: normal; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--dim); display: block; margin-bottom: 2px; }
 .revision-mieux { color: var(--txt); }
 .revision-mieux em { color: var(--violet); }
-.revision-quand { display: block; margin-top: 10px; font-size: 0.68rem; color: var(--dim); }
+.revision-quand { display: block; margin-top: 10px; font-size: 0.78rem; color: var(--dim); }
 @media print {
   .revision .toolbar { display: none; }
   .revision-carte { break-inside: avoid; }

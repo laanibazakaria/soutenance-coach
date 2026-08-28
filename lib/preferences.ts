@@ -57,12 +57,17 @@ export function resumerModules(storage: StorageEnumerable, sessions: SessionReco
       if (!p) return { ...base, jours: null, pourcent: null, sousTitre: "Pas encore de date", prochaineAction: { titre: "Donne ta date de soutenance", lien: "/app/soutenance" } };
       const plan = construirePlan(p, detecterContexte(storage, sessions), aujourdhui);
       const suivante = plan.aFaire[0] ?? plan.prochaine;
+      // La veille et le jour J, on ne commence rien : on relit ce qui existe.
+      const urgence =
+        plan.joursRestants !== null && plan.joursRestants <= 1
+          ? { titre: plan.joursRestants <= 0 ? "C'est aujourd'hui : relis ton antisèche, puis respire" : "C'est demain : relis ton antisèche et tes questions", lien: "/app/bilan" }
+          : null;
       return {
         ...base,
         jours: plan.joursRestants,
         pourcent: plan.progression.pourcent,
         sousTitre: `${LIBELLES[p.type]} · ${p.dureeMin} min`,
-        prochaineAction: suivante ? { titre: suivante.titre, lien: suivante.lien } : { titre: "Tout est fait — respire", lien: "/app/soutenance" },
+        prochaineAction: urgence ?? (suivante ? { titre: suivante.titre, lien: suivante.lien } : { titre: "Tout est fait — respire", lien: "/app/soutenance" }),
       };
     }
     if (id === "entretien") {
@@ -70,12 +75,17 @@ export function resumerModules(storage: StorageEnumerable, sessions: SessionReco
       if (!c) return { ...base, jours: null, pourcent: null, sousTitre: "Pas encore de profil", prochaineAction: { titre: "Renseigne le poste, l'offre et ton CV", lien: "/app/entretien" } };
       const etapes = etapesEntretien({ candidature: c, sessions, questionsGenerees: lireCache(storage, cleQuestionsEntretien(c)) !== null });
       const suivante = etapes.find((e) => !e.faite);
+      const joursE = c.dateEntretien ? joursEntre(aujourdhui, c.dateEntretien) : null;
+      const urgenceE =
+        joursE !== null && joursE <= 1
+          ? { titre: joursE <= 0 ? "C'est aujourd'hui : relis les questions de ce recruteur" : "C'est demain : relis les questions et ton pitch", lien: "/app/entretien" }
+          : null;
       return {
         ...base,
-        jours: c.dateEntretien ? joursEntre(aujourdhui, c.dateEntretien) : null,
+        jours: joursE,
         pourcent: Math.round((etapes.filter((e) => e.faite).length / etapes.length) * 100),
         sousTitre: [c.poste, c.entreprise].filter(Boolean).join(" · ") || "Entretien",
-        prochaineAction: suivante ? { titre: suivante.titre, lien: suivante.lien } : { titre: "Tout est fait — respire", lien: "/app/entretien" },
+        prochaineAction: urgenceE ?? (suivante ? { titre: suivante.titre, lien: suivante.lien } : { titre: "Tout est fait — respire", lien: "/app/entretien" }),
       };
     }
     // Plus que deux oraux : on ne devrait jamais arriver ici.

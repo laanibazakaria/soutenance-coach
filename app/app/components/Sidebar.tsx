@@ -11,6 +11,10 @@ import { Avatar, libelleForfait } from "./BarreHaut";
 import { moduleDuChemin } from "./ModuleTabs";
 import { lireModulesActifs, TOUS_LES_MODULES, type ModuleActif } from "@/lib/preferences";
 import { surSynchronisation } from "@/lib/sync/client";
+import { listeDeckSauvegarde } from "@/lib/slides/persistance";
+import { lireCandidature } from "@/lib/entretien/persistance";
+import { lireCache } from "@/lib/ia-cache";
+import { estRapport } from "@/lib/rapport";
 
 /* Icônes en traits fins (24×24, stroke 1.8). */
 const I = {
@@ -100,10 +104,10 @@ function useModulesActifs(): ModuleActif[] {
   return actifs;
 }
 
-function LienNav({ href, label, icone, actif, etape }: { href: string; label: string; icone: React.ReactNode; actif: boolean; etape?: number }) {
+function LienNav({ href, label, icone, actif, etape, faite }: { href: string; label: string; icone: React.ReactNode; actif: boolean; etape?: number; faite?: boolean }) {
   return (
     <Link href={href} className={`sidebar-link${actif ? " active" : ""}`} aria-current={actif ? "page" : undefined}>
-      {etape ? <span className="sidebar-etape" aria-hidden="true">{etape}</span> : <span className="sidebar-icone">{icone}</span>}
+      {etape ? <span className={`sidebar-etape${faite ? " faite" : ""}`} aria-hidden="true">{faite ? "✓" : etape}</span> : <span className="sidebar-icone">{icone}</span>}
       {label}
     </Link>
   );
@@ -118,6 +122,26 @@ export default function Sidebar() {
   const moduleCourant = moduleDuChemin(chemin)?.id;
   const modules = TOUS_LES_MODULES.filter((m) => actifs.includes(m.id));
   const soutenanceActive = actifs.includes("soutenance") || actifs.length === 0;
+  const [etat, setEtat] = useState({ e1: false, e2: false });
+  useEffect(() => {
+    const lire = () => {
+      const st = window.localStorage;
+      const e1 = soutenanceActive
+        ? listeDeckSauvegarde(st) !== null && estRapport(lireCache<unknown>(st, "rapport:texte"))
+        : lireCandidature(st) !== null;
+      // Un appel déjà passé pour ce mode : la clé du cache suffit.
+      let e2 = false;
+      for (let i = 0; i < st.length; i++) {
+        const k = st.key(i);
+        if (k && k.startsWith("sc.ia.v1:appel:")) { e2 = true; break; }
+      }
+      setEtat({ e1, e2 });
+    };
+    lire();
+    return surSynchronisation(lire);
+  }, [soutenanceActive]);
+  const etape1Faite = etat.e1;
+  const etape2Faite = etat.e2;
 
   return (
     <nav className="sidebar" aria-label="Navigation principale">
@@ -129,11 +153,11 @@ export default function Sidebar() {
 
       <div className="sidebar-section">Le chemin</div>
       {soutenanceActive ? (
-        <LienNav href="/app/documents" etape={1} label="Dépose tes documents" icone={I.documents} actif={chemin.startsWith("/app/documents")} />
+        <LienNav href="/app/documents" etape={1} label="Dépose tes documents" icone={I.documents} actif={chemin.startsWith("/app/documents")} faite={etape1Faite} />
       ) : (
-        <LienNav href="/app/entretien" etape={1} label="Renseigne CV et offre" icone={I.documents} actif={false} />
+        <LienNav href="/app/entretien" etape={1} label="Renseigne CV et offre" icone={I.documents} actif={false} faite={etape1Faite} />
       )}
-      <LienNav href="/app/appel" etape={2} label={soutenanceActive ? "Passe un appel au jury" : "Passe un appel au recruteur"} icone={I.appel} actif={chemin.startsWith("/app/appel")} />
+      <LienNav href="/app/appel" etape={2} label={soutenanceActive ? "Appelle ton jury" : "Appelle le recruteur"} icone={I.appel} actif={chemin.startsWith("/app/appel")} faite={etape2Faite} />
       <LienNav href="/app/bilan" etape={3} label="Suis ta progression" icone={I.sessions} actif={chemin.startsWith("/app/bilan")} />
 
       <div className="sidebar-section">Chaque jour</div>

@@ -625,6 +625,7 @@ kbd { font-family: inherit; font-size: 0.78em; background: var(--bg2); border: 1
   font-size: 0.68rem; font-weight: 800; background: var(--bg2); color: var(--violet); border: 1px solid var(--violet-border);
 }
 .sidebar-link.active .sidebar-etape { background: var(--violet); color: #fff; border-color: var(--violet); }
+.sidebar-etape.faite { background: var(--ok); color: #fff; border-color: var(--ok); }
 .sidebar-icone svg { width: 100%; height: 100%; }
 .sidebar-bas { flex: none; margin-top: auto; padding-top: 18px; display: flex; flex-direction: column; gap: 12px; }
 .sidebar-cta { justify-content: center; width: 100%; padding: 13px 16px; border-radius: 12px; font-size: 0.95rem; }

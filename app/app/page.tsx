@@ -9,10 +9,7 @@ import type { SessionRecord } from "@/lib/types";
 import { TOUS_LES_MODULES, lireModulesActifs, sauverModulesActifs, resumerModules, type ModuleActif, type ResumeModule } from "@/lib/preferences";
 import { pousserTout, surSynchronisation, signalerSynchronisation } from "@/lib/sync/client";
 import { lireCache } from "@/lib/ia-cache";
-import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCandidature } from "@/lib/entretien/persistance";
-import { estRapport } from "@/lib/rapport";
-import { CLE_RAPPORT } from "./components/RapportView";
 import type { Serie } from "@/lib/quotidien";
 import { chiffresSemaine, dateLongue, salutation } from "@/lib/accueil";
 import { useUsage } from "@/lib/usage-client";
@@ -43,7 +40,6 @@ function AccueilInner() {
   const [resumes, setResumes] = useState<ResumeModule[]>([]);
   const [serie, setSerie] = useState<Serie | null>(null);
   const [maintenant, setMaintenant] = useState<Date | null>(null);
-  const [dossierPret, setDossierPret] = useState(false);
   const [entretienPret, setEntretienPret] = useState(false);
   const { data: session } = useSession();
   const usage = useUsage();
@@ -58,11 +54,6 @@ function AccueilInner() {
       setSerie(lireCache<Serie>(window.localStorage, "serie"));
       setMaintenant(new Date());
       // Le jury n'interroge pas à l'aveugle : sans dossier, l'appel refuse. Autant
-      // que l'accueil envoie au dépôt plutôt qu'au mur.
-      setDossierPret(
-        listeDeckSauvegarde(window.localStorage) !== null ||
-          estRapport(lireCache<unknown>(window.localStorage, CLE_RAPPORT)),
-      );
       setEntretienPret(lireCandidature(window.localStorage) !== null);
     };
     lire();

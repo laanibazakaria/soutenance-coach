@@ -67,7 +67,7 @@ export function annoterTranscription(transcript: string): Segment[] {
     const type: Segment["type"] = canonique ? "bequille" : "normal";
     const dernier = segments[segments.length - 1];
     const espace = /^\s+$/.test(m);
-    if (dernier && (espace ? dernier.type === "normal" || segmentSuivantMemeBequille(morceaux, idx, marque, dernier.canonique) : dernier.type === type && dernier.canonique === canonique)) {
+    if (dernier && (espace ? dernier.type === "normal" || segmentSuivantMemeBequille(idx, marque, dernier.canonique) : dernier.type === type && dernier.canonique === canonique)) {
       dernier.texte += m;
     } else if (espace && dernier) {
       // Un espace après une béquille : on ouvre un segment normal.
@@ -80,7 +80,7 @@ export function annoterTranscription(transcript: string): Segment[] {
 }
 
 /** Un espace au milieu d'une expression multi-mots (« du coup ») reste dans le segment béquille. */
-function segmentSuivantMemeBequille(morceaux: string[], idxEspace: number, marque: Map<number, string>, canonique?: string): boolean {
+function segmentSuivantMemeBequille(idxEspace: number, marque: Map<number, string>, canonique?: string): boolean {
   if (!canonique) return false;
   return marque.get(idxEspace + 1) === canonique && MULTI_WORD.some(([c]) => c === canonique);
 }

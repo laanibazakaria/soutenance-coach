@@ -8,10 +8,6 @@ import type { SessionRecord } from "@/lib/types";
 import TrendsView from "@/app/components/TrendsView";
 import ParcoursView from "../components/ParcoursView";
 import RapportView from "../components/RapportView";
-import { lireCache } from "@/lib/ia-cache";
-import { listeDeckSauvegarde } from "@/lib/slides/persistance";
-import { genererQuestions, selectionnerPourEntrainement } from "@/lib/jury";
-import type { JuryQuestion } from "@/lib/slides/types";
 import { pousserTout, surSynchronisation } from "@/lib/sync/client";
 import { Icone } from "@/app/components/Icone";
 
@@ -27,7 +23,6 @@ export default function SoutenancePage() {
 
   if (sessions === null) return null;
 
-  const deck = listeDeckSauvegarde(window.localStorage);
 
   const trends = sessions.length > 0 ? buildTrendReport(sessions) : null;
   const anyTrendUnlocked = trends?.some((t) => t.trend !== "absent") ?? false;

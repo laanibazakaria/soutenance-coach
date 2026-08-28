@@ -11,7 +11,7 @@
  *    part des constats établis ici.
  */
 
-import type { Deck, JuryQuestion, Slide } from "../slides/types";
+import type { Deck, JuryQuestion } from "../slides/types";
 
 /** Thèmes détectés dans un support, avec les expressions qui les révèlent. */
 const THEMES: ReadonlyArray<{

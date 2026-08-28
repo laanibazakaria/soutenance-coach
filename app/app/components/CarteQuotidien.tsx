@@ -6,7 +6,6 @@ import { lireCache } from "@/lib/ia-cache";
 import { calculerSerie, phraseSerie, type Serie } from "@/lib/quotidien";
 import { dateDuJour } from "@/lib/parcours";
 import { surSynchronisation } from "@/lib/sync/client";
-import { useToast } from "@/app/components/Toast";
 import { Icone, IconeBadge } from "@/app/components/Icone";
 
 /** Sur l'accueil : la question du jour (faite ou pas), la série, et le bouton des rappels. */
@@ -14,8 +13,6 @@ export default function CarteQuotidien() {
   const aujourdhui = dateDuJour();
   const [serie, setSerie] = useState<Serie | null>(null);
   const [faite, setFaite] = useState(false);
-  const [occupe, setOccupe] = useState(false);
-  const toast = useToast();
 
   useEffect(() => {
     const lire = () => {

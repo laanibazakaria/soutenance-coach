@@ -42,12 +42,10 @@ export function nombresDe(phrase: string): number[] {
   const trouves: number[] = [];
   const suite = mots(phrase);
   let courant: number | null = null;
-  let dernier = 0;
 
   const clore = () => {
     if (courant !== null) trouves.push(courant);
     courant = null;
-    dernier = 0;
   };
 
   for (const m of suite) {
@@ -64,29 +62,24 @@ export function nombresDe(phrase: string): number[] {
     }
     if (courant === null) {
       courant = v;
-      dernier = v;
       continue;
     }
     // « quatre-vingts » : en français, vingt se multiplie après une unité.
     if (v === 20 && courant >= 2 && courant <= 9) {
       courant *= 20;
-      dernier = 20;
       continue;
     }
     if (v === 100 || v === 1000) {
       courant *= v;
-      dernier = v;
       continue;
     }
     // On complète seulement une dizaine ronde : « dix-huit » et « soixante-dix »
     // se composent, « cinq trois » sont deux nombres distincts.
     if (courant % 10 === 0 && courant >= 10 && v < courant) {
       courant += v;
-      dernier = v;
     } else {
       clore();
       courant = v;
-      dernier = v;
     }
   }
   clore();

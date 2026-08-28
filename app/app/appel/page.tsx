@@ -483,6 +483,12 @@ function AppelInner() {
     setVoixNaturelle(!voixNavigateurExcellente(voixRef.current));
     // Un premier « parler » vide débloque la synthèse vocale sur mobile (geste utilisateur requis).
     if (supporte.voix) await parler(" ", langue, voixRef.current);
+    // Le jury lit le dossier avant de parler — c'est la promesse du bouton, et
+    // elle n'avait JAMAIS été branchée : toute la machinerie de lecture
+    // existait sans que rien ne l'appelle. Une fois par dossier, grâce au
+    // cache ; en cas d'échec, l'erreur s'affiche et on ne fait pas semblant.
+    const f = await lireDossier();
+    if (!f) return;
     await tourDuJury([]);
   }
 

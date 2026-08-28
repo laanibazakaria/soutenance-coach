@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { lireLangue, courte, type Langue } from "@/lib/langue";
+import { lireLangue, type Langue } from "@/lib/langue";
 import { useEnregistrement } from "../hooks/useEnregistrement";
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCache, cleCache } from "@/lib/ia-cache";

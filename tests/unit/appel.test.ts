@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assemblerContexte, construirePromptTour, construirePromptDebrief, parseTour, parseDebrief, validerHistorique, paroleCandidat, PERSONAS, MEMBRES, LIMITES_APPEL } from "../../lib/appel";
+import { assemblerContexte, construirePromptTour, construirePromptDebrief, parseTour, parseDebrief, validerHistorique, paroleCandidat, MEMBRES, LIMITES_APPEL } from "../../lib/appel";
 import { DOSSIER_MAX } from "../../lib/appel/lecture";
 
 const ctx = { mode: "soutenance" as const, contexte: "## Slides\nProjet de transcription audio, WER 12 %.", langue: "fr" as const, dureeMin: 10, historique: [] };

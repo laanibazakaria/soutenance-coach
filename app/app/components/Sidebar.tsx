@@ -163,6 +163,7 @@ export default function Sidebar() {
       <div className="sidebar-section">Chaque jour</div>
       <LienNav href="/app/question-du-jour" label="La question du jour" icone={I.jour} actif={chemin.startsWith("/app/question-du-jour")} />
       <LienNav href="/app/sessions" label="Mes sessions passées" icone={I.sessions} actif={chemin.startsWith("/app/sessions")} />
+      <LienNav href="/app/revision" label="Tout revoir" icone={I.guides} actif={chemin.startsWith("/app/revision")} />
       <LienNav href="/app/guides" label="Les guides" icone={I.guides} actif={chemin === "/app/guides"} />
 
       <div className="sidebar-section">Mes oraux</div>

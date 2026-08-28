@@ -141,6 +141,9 @@ function SessionsInner() {
           <Link href="/app/bilan" className="btn small">
             <Icone nom="document" /> Bilan
           </Link>
+          <Link href="/app/revision" className="btn small">
+            <Icone nom="fiches" /> Tout revoir
+          </Link>
         </div>
       </div>
       <label className="champ champ-large recherche">

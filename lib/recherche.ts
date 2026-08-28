@@ -16,6 +16,7 @@ export interface Page {
 export const PAGES: ReadonlyArray<Page> = [
   { titre: "Accueil", detail: "Ce que tu prépares, où tu en es", lien: "/app" },
   { titre: "La question du jour", detail: "Une question, une minute au micro", lien: "/app/question-du-jour", mots: "quotidien série rappel" },
+  { titre: "Tout revoir", detail: "Chaque question déjà posée, rangée pour la révision", lien: "/app/revision", mots: "réviser questions historique répéter" },
   { titre: "Mes sessions", detail: "Toutes tes répétitions, l'avis du coach", lien: "/app/sessions", mots: "historique transcription export import" },
   { titre: "Mon bilan", detail: "Une photographie de ta préparation, à imprimer", lien: "/app/bilan", mots: "pdf partager encadrant" },
   { titre: "L'appel avec le jury IA", detail: "Il parle, tu réponds, il rebondit — en direct", lien: "/app/appel", mots: "simulation vocale entretien oral direct voix" },

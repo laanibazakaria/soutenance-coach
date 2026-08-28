@@ -978,6 +978,24 @@ body.appel-en-cours .module-tabs { display: none; }
      verrouillées reviendront quand elles s'ouvriront. */
 }
 
+/* Tout revoir : l'historique rangé par question. Les cartes sont sobres —
+   c'est une page qu'on lit en boucle, pas un tableau de bord. */
+.revision section { margin-bottom: 32px; }
+.revision-carte { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; }
+.revision-ratee { border-left: 3px solid var(--gold); }
+.revision-solide { border-left: 3px solid var(--ok); }
+.revision-posee { border-left: 3px solid var(--line); }
+.revision-question { margin: 0; font-size: 0.95rem; font-weight: 600; line-height: 1.5; }
+.revision-detail { margin: 8px 0 0; font-size: 0.86rem; line-height: 1.55; color: var(--muted); }
+.revision-detail em { font-style: normal; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--dim); display: block; margin-bottom: 2px; }
+.revision-mieux { color: var(--txt); }
+.revision-mieux em { color: var(--violet); }
+.revision-quand { display: block; margin-top: 10px; font-size: 0.68rem; color: var(--dim); }
+@media print {
+  .revision .toolbar { display: none; }
+  .revision-carte { break-inside: avoid; }
+}
+
 /* Les pages hors-piste : 404 et erreur. Elles se rendent hors de la coquille de
    l'application (pas de barre latérale), donc elles portent leur propre mise
    en page — centrée, sobre, avec une sortie claire. */

@@ -15,7 +15,7 @@ export interface EcouteSegments {
   disponible: () => boolean;
 }
 
-const SEGMENT_MS = 3_500;
+const SEGMENT_MS = 3_000;
 const SILENCES_POUR_FINIR = 2;
 
 export function useEcouteSegments(): EcouteSegments {

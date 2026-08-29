@@ -17,6 +17,7 @@ import { saveSession, countWords } from "@/lib/storage";
 import { pousserTout, signalerSynchronisation } from "@/lib/sync/client";
 import { signalerAppelIa } from "@/lib/usage-client";
 import { voixDisponible, meilleureVoix, voixParTimbre, parler, taire, voixNavigateurExcellente, parlerNaturel, taireNaturel, deverrouillerAudio, type VoixMembre } from "@/lib/voix";
+import { segmentsPreferes, noterSegmentsPreferes } from "@/lib/dictee";
 import { CLE_RAPPORT } from "../components/RapportView";
 import { useEcouteSegments } from "../hooks/useEcouteSegments";
 import { passagesPour } from "@/lib/memoire/client";
@@ -381,7 +382,7 @@ function AppelInner() {
     finalRef.current = "";
     setInterim("");
     redemarragesRef.current = 0;
-    if (!Ctor || segmentsForcesRef.current) {
+    if (!Ctor || segmentsForcesRef.current || segmentsPreferes()) {
       // Pas de reconnaissance vocale (Firefox, Safari, mobiles) : segments de
       // 3,5 s transcrits par Whisper. Fin de réponse : deux segments muets.
       const finirSegments = () => {
@@ -446,6 +447,7 @@ function AppelInner() {
     const basculerSurWhisper = () => {
       if (segmentsForcesRef.current || recRef.current !== rec) return;
       segmentsForcesRef.current = true;
+      noterSegmentsPreferes();
       nettoyerEcoute();
       toast.info("Ton navigateur ne transcrit pas lui-même : la transcription passe par le serveur.");
       ecouter(hist);

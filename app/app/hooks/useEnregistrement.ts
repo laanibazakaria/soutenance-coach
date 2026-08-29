@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { countWords } from "@/lib/storage";
 import { mesurerAudio, type MesuresAudio } from "@/lib/audio/mesures";
+import { segmentsPreferes, noterSegmentsPreferes } from "@/lib/dictee";
 
 export type Phase = "idle" | "recording" | "stopped";
 export type Langue = "fr-FR" | "en-US";
@@ -15,15 +16,7 @@ export function getRecognitionCtor(): SpeechRecognitionConstructor | null {
 
 const PAS_MESURE_MS = 100;
 
-/**
- * Vrai dès qu'un appareil a prouvé que sa dictée native ne transcrit rien
- * (le Samsung de Zakaria : elle démarre, puis silence). On passe alors par
- * segments envoyés au serveur (/api/transcrire) — et on y reste pour toute
- * la session de navigation, pour ne pas re-perdre 12 s à chaque essai.
- */
-let segmentsPrefere = false;
-
-const SEGMENT_MS = 3_500;
+const SEGMENT_MS = 3_000;
 
 export interface Enregistrement {
   phase: Phase;
@@ -205,7 +198,7 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
   /** La dictée native a prouvé qu'elle ne rend rien ici : segments serveur. */
   function basculerSurSegments() {
     if (segRecRef.current || stoppingRef.current) return;
-    segmentsPrefere = true;
+    noterSegmentsPreferes();
     recognitionRef.current?.abort();
     recognitionRef.current = null;
     setInterimText("");
@@ -291,8 +284,8 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
     timerRef.current = setInterval(() => setElapsedMs(Date.now() - startedAtRef.current), 250);
 
     // Pas de dictée native, ou une dictée qui a déjà prouvé son silence
-    // (le cas Samsung) : segments serveur directement.
-    if (!Ctor || segmentsPrefere) {
+    // (le cas Samsung, mémorisé d'une visite à l'autre) : segments direct.
+    if (!Ctor || segmentsPreferes()) {
       tournerSegments();
       setPhase("recording");
       return true;
@@ -358,7 +351,7 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
     // provisoire), et le repli serveur prend la suite.
     basculeTimerRef.current = setTimeout(() => {
       if (!resultatsRecusRef.current && recognitionRef.current === rec) basculerSurSegments();
-    }, 12_000);
+    }, 8_000);
     setPhase("recording");
     return true;
   }

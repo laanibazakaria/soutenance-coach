@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
+import { lexiqueDepuisAppareil } from "@/lib/lexique-appareil";
 
 /**
  * L'écoute pour les navigateurs sans reconnaissance vocale (Firefox, Safari,
@@ -64,6 +65,10 @@ export function useEcouteSegments(): EcouteSegments {
           const fd = new FormData();
           fd.append("audio", blob, "segment.webm");
           fd.append("langue", langue);
+          // Le vocabulaire du dossier : Whisper écorche les sigles et noms
+          // propres qu'on ne lui a pas soufflés.
+          const lexique = lexiqueDepuisAppareil(window.localStorage);
+          if (lexique) fd.append("lexique", lexique);
           fetch("/api/transcrire", { method: "POST", body: fd })
             .then((r) => (r.ok ? (r.json() as Promise<{ texte?: string }>) : { texte: "" }))
             .then(({ texte }) => {

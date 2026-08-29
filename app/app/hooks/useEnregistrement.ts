@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { countWords } from "@/lib/storage";
 import { mesurerAudio, type MesuresAudio } from "@/lib/audio/mesures";
+import { lexiqueDepuisAppareil } from "@/lib/lexique-appareil";
 import { segmentsPreferes, noterSegmentsPreferes } from "@/lib/dictee";
 
 export type Phase = "idle" | "recording" | "stopped";
@@ -168,6 +169,8 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
       const fd = new FormData();
       fd.append("audio", blob, "segment.webm");
       fd.append("langue", langue.startsWith("en") ? "en" : "fr");
+      const lexique = lexiqueDepuisAppareil(window.localStorage);
+      if (lexique) fd.append("lexique", lexique);
       enVolRef.current += 1;
       flushFaitRef.current = true;
       fetch("/api/transcrire", { method: "POST", body: fd })

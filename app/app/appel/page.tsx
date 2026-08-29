@@ -460,7 +460,11 @@ function AppelInner() {
       noterSegmentsPreferes();
       nettoyerEcoute();
       toast.info("Ton navigateur ne transcrit pas lui-même : la transcription passe par le serveur.");
-      ecouter(hist);
+      // Sur Android, la reconnaissance native garde le micro un instant après
+      // abort() : un flux pris trop tôt enregistre du silence.
+      window.setTimeout(() => {
+        if (!arreteRef.current) ecouter(hist);
+      }, 400);
     };
 
     const relancerSilence = () => {

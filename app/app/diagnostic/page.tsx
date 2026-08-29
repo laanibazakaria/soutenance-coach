@@ -12,7 +12,7 @@ import { mesurerFenetre, PAS_ECHANTILLON_MS } from "@/lib/decoupe-voix";
 
 type Verdict = { nom: string; ok: boolean | null; detail: string };
 
-const VERSION_DIAG = "diag-2026-08-29-c";
+const VERSION_DIAG = "diag-2026-08-29-d";
 
 /**
  * L'état de la mémoire de panne (sc.dictee.segments) : quand elle est posée,
@@ -92,45 +92,6 @@ export default function DiagnosticPage() {
       pousser({ nom: "Micro", ok: false, detail: `refusé ou absent (${(e as Error).name})` });
     }
 
-    // ── 2. La dictée du navigateur — on la lance vraiment et on écoute ses
-    //      événements pendant six secondes : sur certains téléphones elle
-    //      « existe » mais échoue à l'exécution.
-    const Ctor = window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null;
-    if (!Ctor) {
-      pousser({ nom: "Dictée du navigateur", ok: false, detail: "absente — le repli serveur prendra la suite" });
-    } else {
-      const resultat = await new Promise<Verdict>((res) => {
-        const rec = new Ctor();
-        rec.lang = "fr-FR";
-        rec.interimResults = true;
-        let vivante = false;
-        const fin = (ok: boolean, detail: string) => {
-          try {
-            rec.abort();
-          } catch {
-            /* déjà arrêtée */
-          }
-          res({ nom: "Dictée du navigateur", ok, detail });
-        };
-        rec.addEventListener("audiostart", () => {
-          vivante = true;
-        });
-        rec.onresult = (ev: SpeechRecognitionEvent) => {
-          let entendu = "";
-          for (let i = 0; i < ev.results.length; i++) entendu += ev.results[i]![0]!.transcript;
-          if (entendu.trim()) fin(true, `elle entend : « ${entendu.trim().slice(0, 60)} »`);
-        };
-        rec.onerror = (ev: SpeechRecognitionErrorEvent) => fin(false, `erreur « ${ev.error} » — le repli serveur prendra la suite`);
-        window.setTimeout(() => fin(vivante, vivante ? "démarrée et à l'écoute (parle pour vérifier la transcription)" : "ne démarre jamais — le repli serveur prendra la suite"), 6000);
-        try {
-          rec.start();
-        } catch (e) {
-          fin(false, `démarrage impossible (${(e as Error).message})`);
-        }
-      });
-      pousser(resultat);
-    }
-
     // ── 3. Le repli d'enregistrement (segments transcrits par le serveur).
     const typeSupporte = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find(
       (t) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t),
@@ -141,7 +102,10 @@ export default function DiagnosticPage() {
       detail: typeSupporte ? `disponible (${typeSupporte})` : "MediaRecorder indisponible",
     });
 
-    // ── 3 bis. La chaîne de transcription serveur, DE BOUT EN BOUT : on
+    // ── 3 bis. La chaîne de transcription serveur, DE BOUT EN BOUT — et
+    //    AVANT la dictée native : sur Android, celle-ci garde le micro après
+    //    son arrêt, et ce test mesurait le conflit (pic 0.000), pas le
+    //    circuit. Chaque test prend désormais son micro en premier. On
     //    enregistre 4 s (parle !), on envoie à /api/transcrire, on montre le
     //    texte rendu. C'est le circuit qu'utilise le repli sur téléphone —
     //    si un maillon casse (deux enregistreurs, format, réseau, Groq),
@@ -222,6 +186,45 @@ export default function DiagnosticPage() {
         })();
       });
       pousser(verdictTr);
+    }
+
+    // ── 2. La dictée du navigateur — on la lance vraiment et on écoute ses
+    //      événements pendant six secondes : sur certains téléphones elle
+    //      « existe » mais échoue à l'exécution.
+    const Ctor = window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null;
+    if (!Ctor) {
+      pousser({ nom: "Dictée du navigateur", ok: false, detail: "absente — le repli serveur prendra la suite" });
+    } else {
+      const resultat = await new Promise<Verdict>((res) => {
+        const rec = new Ctor();
+        rec.lang = "fr-FR";
+        rec.interimResults = true;
+        let vivante = false;
+        const fin = (ok: boolean, detail: string) => {
+          try {
+            rec.abort();
+          } catch {
+            /* déjà arrêtée */
+          }
+          res({ nom: "Dictée du navigateur", ok, detail });
+        };
+        rec.addEventListener("audiostart", () => {
+          vivante = true;
+        });
+        rec.onresult = (ev: SpeechRecognitionEvent) => {
+          let entendu = "";
+          for (let i = 0; i < ev.results.length; i++) entendu += ev.results[i]![0]!.transcript;
+          if (entendu.trim()) fin(true, `elle entend : « ${entendu.trim().slice(0, 60)} »`);
+        };
+        rec.onerror = (ev: SpeechRecognitionErrorEvent) => fin(false, `erreur « ${ev.error} » — le repli serveur prendra la suite`);
+        window.setTimeout(() => fin(vivante, vivante ? "démarrée et à l'écoute (parle pour vérifier la transcription)" : "ne démarre jamais — le repli serveur prendra la suite"), 6000);
+        try {
+          rec.start();
+        } catch (e) {
+          fin(false, `démarrage impossible (${(e as Error).message})`);
+        }
+      });
+      pousser(resultat);
     }
 
     // ── 4. Le contexte audio — déverrouillé ici même, dans le geste du bouton.

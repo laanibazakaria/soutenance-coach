@@ -41,20 +41,27 @@ export async function POST(request: Request) {
   }
 
   const consigne = langue === "en" ? "Say this calmly, like a precise and attentive interviewer: " : "Dis ceci calmement, comme un membre de jury précis et attentif : ";
-  let reponse: Response;
-  try {
-    reponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODELE}:streamGenerateContent?alt=sse&key=${encodeURIComponent(cle)}`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: consigne + texte }] }],
-        generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voix } } } },
-      }),
-      signal: AbortSignal.timeout(30_000),
-    });
-  } catch {
-    return NextResponse.json({ erreur: "Voix injoignable." }, { status: 504 });
+  // Gemini TTS a des ratés passagers (502 constaté en vrai le 29/08) : un
+  // deuxième essai court évite de rendre un tour de jury muet pour si peu.
+  let reponse: Response | null = null;
+  for (let essai = 0; essai < 2; essai++) {
+    try {
+      reponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODELE}:streamGenerateContent?alt=sse&key=${encodeURIComponent(cle)}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: consigne + texte }] }],
+          generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voix } } } },
+        }),
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch {
+      reponse = null;
+    }
+    if (reponse?.ok && reponse.body) break;
+    if (essai === 0) await new Promise((r) => setTimeout(r, 700));
   }
+  if (!reponse) return NextResponse.json({ erreur: "Voix injoignable." }, { status: 504 });
   if (!reponse.ok || !reponse.body) return NextResponse.json({ erreur: "Voix indisponible.", status: reponse.status }, { status: 502 });
 
   const lecteur = reponse.body.getReader();

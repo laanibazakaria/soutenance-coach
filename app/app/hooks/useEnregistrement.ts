@@ -231,14 +231,36 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
     segTimerRef.current = setTimeout(fermerSegment, ecouteur ? FILET_SEGMENT_MS : SEGMENT_FIXE_MS);
   }
 
-  /** La dictée native a prouvé qu'elle ne rend rien ici : segments serveur. */
+  /**
+   * La dictée native a prouvé qu'elle ne rend rien ici : segments serveur.
+   * Avec un micro NEUF : sur Android, la reconnaissance native garde le
+   * micro même après abort() — le flux obtenu avant elle enregistre du
+   * silence (pic 0.000 mesuré au diagnostic du 29/08). On libère tout, on
+   * laisse le service lâcher prise, puis on reprend un flux frais.
+   */
   function basculerSurSegments() {
     if (segRecRef.current || stoppingRef.current) return;
     noterSegmentsPreferes();
     recognitionRef.current?.abort();
     recognitionRef.current = null;
     setInterimText("");
-    tournerSegments();
+    void (async () => {
+      mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+      arreterCapture();
+      ecouteurSegRef.current?.fermer();
+      ecouteurSegRef.current = null;
+      await new Promise((r) => setTimeout(r, 400));
+      if (stoppingRef.current) return;
+      try {
+        mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch {
+        setError("Le micro ne revient pas après la bascule. Recharge la page.");
+        return;
+      }
+      demarrerCapture(mediaStreamRef.current);
+      tournerSegments();
+    })();
   }
 
   function cleanup() {

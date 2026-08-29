@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { mesurerFenetre, PAS_ECHANTILLON_MS } from "@/lib/decoupe-voix";
 
 /**
  * Le diagnostic de l'appareil : chaque circuit dont l'appel dépend, testé sur
@@ -11,7 +12,7 @@ import { useEffect, useState } from "react";
 
 type Verdict = { nom: string; ok: boolean | null; detail: string };
 
-const VERSION_DIAG = "diag-2026-08-29-b";
+const VERSION_DIAG = "diag-2026-08-29-c";
 
 /**
  * L'état de la mémoire de panne (sc.dictee.segments) : quand elle est posée,
@@ -149,8 +150,33 @@ export default function DiagnosticPage() {
       const verdictTr = await new Promise<Verdict>((res) => {
         void (async () => {
           let flux: MediaStream | null = null;
+          let fermerNiveaux = () => {};
+          const niveaux: number[] = [];
           try {
             flux = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Les niveaux du micro pendant le test : c'est sur eux que la
+            // découpe à la voix décide « parole » ou « silence » — les voir
+            // sur la capture permet de régler les seuils pour CE micro.
+            try {
+              const ctxN = new AudioContext();
+              const srcN = ctxN.createMediaStreamSource(flux);
+              const anaN = ctxN.createAnalyser();
+              anaN.fftSize = 1024;
+              srcN.connect(anaN);
+              const tamponN = new Float32Array(anaN.fftSize);
+              const timerN = window.setInterval(() => {
+                anaN.getFloatTimeDomainData(tamponN);
+                let somme = 0;
+                for (let i = 0; i < tamponN.length; i++) somme += tamponN[i]! * tamponN[i]!;
+                niveaux.push(Math.sqrt(somme / tamponN.length));
+              }, PAS_ECHANTILLON_MS);
+              fermerNiveaux = () => {
+                clearInterval(timerN);
+                void ctxN.close().catch(() => {});
+              };
+            } catch {
+              /* sans analyseur, le test de transcription garde sa valeur */
+            }
             const enr = new MediaRecorder(flux, { mimeType: typeSupporte });
             const morceaux: Blob[] = [];
             enr.ondataavailable = (e) => {
@@ -158,9 +184,12 @@ export default function DiagnosticPage() {
             };
             enr.onstop = () => {
               void (async () => {
+                fermerNiveaux();
                 flux?.getTracks().forEach((t) => t.stop());
+                const m = mesurerFenetre(niveaux);
+                const micro = niveaux.length > 0 ? ` [micro : pic ${m.pic.toFixed(3)}, fond ${m.plancher.toFixed(3)}, seuil ${m.seuilParole.toFixed(3)} → ${m.parle ? "parole détectée" : "AUCUNE parole détectée"}]` : "";
                 const blob = new Blob(morceaux, { type: typeSupporte });
-                if (blob.size < 200) return res({ nom: "Transcription serveur", ok: false, detail: `enregistrement quasi vide (${blob.size} octets) — le micro capte-t-il ?` });
+                if (blob.size < 200) return res({ nom: "Transcription serveur", ok: false, detail: `enregistrement quasi vide (${blob.size} octets) — le micro capte-t-il ?${micro}` });
                 const fd = new FormData();
                 fd.append("audio", blob, "segment.webm");
                 fd.append("langue", "fr");
@@ -171,10 +200,10 @@ export default function DiagnosticPage() {
                   if (!r.ok) return res({ nom: "Transcription serveur", ok: false, detail: `réponse ${r.status} : ${j.erreur ?? "?"}` });
                   const texte = (j.texte ?? "").trim();
                   res(texte
-                    ? { nom: "Transcription serveur", ok: true, detail: `en ${((Date.now() - debut) / 1000).toFixed(1)} s, il a entendu : « ${texte.slice(0, 70)} »` }
-                    : { nom: "Transcription serveur", ok: false, detail: `le serveur a répondu en ${((Date.now() - debut) / 1000).toFixed(1)} s mais n'a rien entendu — as-tu parlé pendant les 4 s ?` });
+                    ? { nom: "Transcription serveur", ok: true, detail: `en ${((Date.now() - debut) / 1000).toFixed(1)} s, il a entendu : « ${texte.slice(0, 70)} »${micro}` }
+                    : { nom: "Transcription serveur", ok: false, detail: `le serveur a répondu en ${((Date.now() - debut) / 1000).toFixed(1)} s mais n'a rien entendu — as-tu parlé pendant les 4 s ?${micro}` });
                 } catch (e) {
-                  res({ nom: "Transcription serveur", ok: false, detail: `envoi impossible (${(e as Error).name})` });
+                  res({ nom: "Transcription serveur", ok: false, detail: `envoi impossible (${(e as Error).name})${micro}` });
                 }
               })();
             };

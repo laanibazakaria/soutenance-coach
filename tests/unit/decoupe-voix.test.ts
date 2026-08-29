@@ -37,4 +37,13 @@ describe("decouper", () => {
     expect(contientParole(silence(40))).toBe(false);
     expect(contientParole(parole(5))).toBe(true);
   });
+
+  it("s'adapte aux micros de téléphone qui écrasent les niveaux", () => {
+    // Voix faible (0,009) sur fond très bas (0,002) : un seuil fixe à 0,012
+    // la classait silence — le seuil adaptatif la reconnaît.
+    const voixFaible = [...Array.from({ length: 8 }, () => 0.002), ...Array.from({ length: 20 }, () => 0.009)];
+    expect(contientParole(voixFaible)).toBe(true);
+    // Et la pause se détecte aussi à ces niveaux-là.
+    expect(decouper([...voixFaible, ...Array.from({ length: 6 }, () => 0.002)])).toBe("couper");
+  });
 });

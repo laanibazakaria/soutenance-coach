@@ -167,6 +167,15 @@ function AppelInner() {
   const finalRef = useRef("");
   const silenceRef = useRef<number | null>(null);
   const silencesRef = useRef(0);
+  // Tant qu'un appel est en cours, chaque toucher d'écran re-déverrouille le
+  // contexte audio : Android le re-suspend volontiers pendant les attentes
+  // (lecture du dossier, réflexion du jury), et un contexte suspendu rend
+  // la voix du serveur muette.
+  useEffect(() => {
+    const rearmer = () => deverrouillerAudio();
+    window.addEventListener("pointerdown", rearmer);
+    return () => window.removeEventListener("pointerdown", rearmer);
+  }, []);
   /** Les deux voix muettes : on prévient une seule fois, l'appel continue par écrit. */
   const voixMuettesRef = useRef(false);
   /** Reconnaissance native en échec (iPhone, WebView) : on force le repli Whisper. */

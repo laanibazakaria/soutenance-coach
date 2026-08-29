@@ -42,8 +42,8 @@ function InstallerApp() {
 import { useEtatApp, oralPrioritaire } from "../hooks/useEtatApp";
 import { useEtatSync, libelleSync } from "./SyncCompte";
 import { Avatar, libelleForfait } from "./BarreHaut";
-import { moduleDuChemin } from "./ModuleTabs";
-import { lireModulesActifs, TOUS_LES_MODULES, type ModuleActif } from "@/lib/preferences";
+import { lireModulesActifs, type ModuleActif } from "@/lib/preferences";
+import { listeOraux, oralActif, basculerSurOral, adopterEspaceExistant, type Oral } from "@/lib/oraux";
 import { surSynchronisation } from "@/lib/sync/client";
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCandidature } from "@/lib/entretien/persistance";
@@ -104,7 +104,6 @@ const I = {
   ),
 };
 
-const ICONES_MODULES: Record<ModuleActif, React.ReactNode> = { soutenance: I.soutenance, entretien: I.entretien };
 
 export function Marque({ taille = 24 }: { taille?: number }) {
   return (
@@ -125,6 +124,18 @@ export function Marque({ taille = 24 }: { taille?: number }) {
       </span>
     </Link>
   );
+}
+
+/** Les oraux (dossiers nommés) et l'actif — avec adoption d'un espace d'avant les dossiers. */
+function useOraux(): { oraux: Oral[]; actifId: string | null } {
+  const [etat, setEtat] = useState<{ oraux: Oral[]; actifId: string | null }>({ oraux: [], actifId: null });
+  useEffect(() => {
+    adopterEspaceExistant(window.localStorage);
+    const lire = () => setEtat({ oraux: listeOraux(window.localStorage), actifId: oralActif(window.localStorage)?.id ?? null });
+    lire();
+    return surSynchronisation(lire);
+  }, []);
+  return etat;
 }
 
 /** Les modules actifs, relus après chaque synchronisation ou changement de préférences. */
@@ -161,10 +172,9 @@ export default function Sidebar() {
   }, []);
   useEffect(() => setOuverte(false), [chemin]);
   const actifs = useModulesActifs();
+  const { oraux, actifId } = useOraux();
   const usage = useUsage();
   const admin = usage?.admin ?? false;
-  const moduleCourant = moduleDuChemin(chemin)?.id;
-  const modules = TOUS_LES_MODULES.filter((m) => actifs.includes(m.id));
   const soutenanceActive = actifs.includes("soutenance") || actifs.length === 0;
   const [etat, setEtat] = useState({ e1: false, e2: false });
   useEffect(() => {
@@ -213,13 +223,25 @@ export default function Sidebar() {
       <LienNav href="/app/guides" label="Les guides" icone={I.guides} actif={chemin === "/app/guides"} />
 
       <div className="sidebar-section">Mes oraux</div>
-      {modules.map((m) => (
-        <LienNav key={m.id} href={m.hub} label={m.nom} icone={ICONES_MODULES[m.id]} actif={moduleCourant === m.id} />
+      {oraux.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          className={`sidebar-link sidebar-oral${o.id === actifId ? " active" : ""}`}
+          onClick={() => {
+            // Basculer d'oral recharge l'app entière : chaque page relit son
+            // espace de travail au chargement, aucun état ne survit à tort.
+            if (o.id !== actifId) {
+              basculerSurOral(window.localStorage, o.id);
+              window.location.assign("/app");
+            }
+          }}
+        >
+          <span className="sidebar-icone">{o.type === "soutenance" ? "🎓" : "💼"}</span>
+          <span className="sidebar-oral-nom">{o.nom}</span>
+        </button>
       ))}
-      <Link href="/app?choisir=1" className="sidebar-link sidebar-link-ajout">
-        <span className="sidebar-icone">{I.plus}</span>
-        {modules.length === 0 ? "Choisir mes oraux" : "Ajouter un oral"}
-      </Link>
+      <LienNav href="/app/oraux" label={oraux.length === 0 ? "Commencer un oral" : "Ajouter un oral"} icone={I.plus} actif={chemin.startsWith("/app/oraux")} />
 
       <div className="sidebar-section">Compte</div>
       <LienNav href="/app/connexion" label="Mon compte" icone={I.compte} actif={chemin.startsWith("/app/connexion")} />

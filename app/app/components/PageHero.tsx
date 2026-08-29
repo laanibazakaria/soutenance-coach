@@ -26,6 +26,7 @@ const ENTETES: ReadonlyArray<{ prefixe: string; exact?: boolean; centre?: boolea
   { prefixe: "/app/sessions", entete: { section: "Ton historique", titre: "Mes sessions", sousTitre: "Toutes tes répétitions, tous tes oraux — avec l'avis du coach sur chacune." } },
   { prefixe: "/app/revision", entete: { section: "Avant le jour J", titre: "Tout revoir", sousTitre: "Chaque question déjà posée, rangée pour la révision — les ratées d'abord, avec ce qu'il fallait dire." } },
   { prefixe: "/app/diagnostic", entete: { section: "Support", titre: "Diagnostic de l'appareil", sousTitre: "Micro, dictée, voix : chaque circuit testé sur place, avec un verdict à capturer." } },
+  { prefixe: "/app/oraux", entete: { section: "Mes oraux", titre: "Un dossier par oral", sousTitre: "Chaque oral a un nom et garde tout : documents, appels, progression. Commence, ferme, reviens — rien ne s'écrase." } },
   { prefixe: "/app/guides", entete: { section: "À lire avant", titre: "Les guides", sousTitre: "Un guide par oral. Tout ce qu'on découvre d'habitude trop tard." } },
   { prefixe: "/app/soutenance-blanche", centre: true, entete: { section: "Soutenance", titre: "Soutenance blanche", sousTitre: "L'exposé avec tes slides, le jury qui enchaîne et relance, le débrief. La répétition générale." } },
   { prefixe: "/app/soutenance", entete: { section: "Soutenance", titre: "Ton parcours", sousTitre: "Chaque jour, ce qu'il faut faire — et ce que ton activité a déjà prouvé." } },

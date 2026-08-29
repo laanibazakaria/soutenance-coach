@@ -70,7 +70,10 @@ const FOURNISSEURS: Record<string, Fournisseur> = {
     nom: "nvidia",
     url: "https://integrate.api.nvidia.com/v1/chat/completions",
     cle: () => process.env.NVIDIA_API_KEY,
-    modele: () => process.env.NVIDIA_MODEL ?? "meta/llama-3.3-70b-instruct",
+    // llama-3.3-70b a été retiré du catalogue NVIDIA (410 Gone, constaté le
+    // 29/08/2026). En direct, nemotron-3-super rend un JSON propre — son
+    // raisonnement reste dans le champ séparé (contrairement à OpenRouter).
+    modele: () => process.env.NVIDIA_MODEL ?? "nvidia/nemotron-3-super-120b-a12b",
   },
   openrouter: {
     nom: "openrouter",

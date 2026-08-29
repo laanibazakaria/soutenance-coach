@@ -41,15 +41,29 @@ export async function meilleureVoix(langue: "fr" | "en"): Promise<SpeechSynthesi
 let enCours: SpeechSynthesisUtterance | null = null;
 
 /** Dit le texte, et se résout quand c'est fini (ou interrompu). */
+/**
+ * Chrome sur Android coupe net une énonciation longue après une quinzaine de
+ * secondes — une réplique de jury de 400 signes s'arrêtait en plein milieu.
+ * Le correctif connu : découper en phrases et les enchaîner ; chaque
+ * énonciation courte tient sous la limite.
+ */
+function decouperEnPhrases(texte: string): string[] {
+  const morceaux = texte.match(/[^.!?…]+[.!?…]+["»']?\s*|[^.!?…]+$/g) ?? [texte];
+  // Regrouper les phrases très courtes pour garder un débit naturel.
+  const phrases: string[] = [];
+  for (const m of morceaux) {
+    const dernier = phrases[phrases.length - 1];
+    if (dernier !== undefined && dernier.length + m.length < 140) phrases[phrases.length - 1] = dernier + m;
+    else phrases.push(m);
+  }
+  return phrases.map((ph) => ph.trim()).filter(Boolean);
+}
+
 export function parler(texte: string, langue: "fr" | "en", voix: SpeechSynthesisVoice | null, options: { debit?: number; hauteur?: number } = {}): Promise<void> {
   return new Promise((resolve) => {
     if (!voixDisponible()) return resolve();
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(texte);
-    u.lang = langue === "en" ? "en-US" : "fr-FR";
-    if (voix) u.voice = voix;
-    u.rate = options.debit ?? 1;
-    u.pitch = options.hauteur ?? 1;
+    const phrases = decouperEnPhrases(texte);
     let fini = false;
     const terminer = () => {
       if (fini) return;
@@ -57,10 +71,22 @@ export function parler(texte: string, langue: "fr" | "en", voix: SpeechSynthesis
       enCours = null;
       resolve();
     };
-    u.onend = terminer;
-    u.onerror = terminer;
-    enCours = u;
-    window.speechSynthesis.speak(u);
+    let index = 0;
+    const suivante = () => {
+      if (fini) return;
+      if (index >= phrases.length) return terminer();
+      const u = new SpeechSynthesisUtterance(phrases[index]!);
+      index += 1;
+      u.lang = langue === "en" ? "en-US" : "fr-FR";
+      if (voix) u.voice = voix;
+      u.rate = options.debit ?? 1;
+      u.pitch = options.hauteur ?? 1;
+      u.onend = suivante;
+      u.onerror = suivante;
+      enCours = u;
+      window.speechSynthesis.speak(u);
+    };
+    suivante();
     // Filet : certains navigateurs n'émettent jamais onend si la synthèse est coupée.
     const estimeMs = Math.min(60_000, 1500 + texte.length * 70);
     setTimeout(terminer, estimeMs + 3000);

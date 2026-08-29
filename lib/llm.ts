@@ -86,26 +86,13 @@ const FOURNISSEURS: Record<string, Fournisseur> = {
     nom: "cerebras",
     url: "https://api.cerebras.ai/v1/chat/completions",
     cle: () => process.env.CEREBRAS_API_KEY,
-    // Le palier gratuit 2026 ne sert plus que gpt-oss-120b et glm-4.7
-    // (contexte plafonné à 8K : les tours à gros dossier passeront leur tour).
+    // Vérifié le 29/08/2026 avec une vraie clé : l'inférence rend 402
+    // « payment required » sur les deux modèles servis (gpt-oss-120b,
+    // gemma-4-31b) — le « gratuit » de Cerebras exige désormais un moyen de
+    // paiement. L'entrée reste au cas où leur palier libre revienne ; sans
+    // clé posée, la cascade l'ignore. (SambaNova pareil — carte exigée — et
+    // GitHub Models a fermé le 30/07/2026 : pistes écartées après essai.)
     modele: () => process.env.CEREBRAS_MODEL ?? "gpt-oss-120b",
-  },
-  sambanova: {
-    nom: "sambanova",
-    url: "https://api.sambanova.ai/v1/chat/completions",
-    cle: () => process.env.SAMBANOVA_API_KEY,
-    // Palier gratuit permanent : ~200k tokens/jour PAR modèle, 20 req/min.
-    // Vérifier le nom exact du modèle dans leur console au moment de la clé.
-    modele: () => process.env.SAMBANOVA_MODEL ?? "Meta-Llama-3.3-70B-Instruct",
-  },
-  github: {
-    nom: "github",
-    url: "https://models.github.ai/inference/chat/completions",
-    // Un jeton GitHub classique (fine-grained, permission « Models: read »)
-    // suffit : c'est le palier gratuit le plus simple à obtenir — et il sert
-    // des modèles autrement payants (GPT-4.1-mini : ~150 requêtes/jour).
-    cle: () => process.env.GITHUB_MODELS_TOKEN,
-    modele: () => process.env.GITHUB_MODELS_MODEL ?? "openai/gpt-4.1-mini",
   },
   zai: {
     nom: "zai",
@@ -151,7 +138,7 @@ const FOURNISSEURS: Record<string, Fournisseur> = {
   },
 };
 
-const SECOURS = ["nvidia", "cerebras", "sambanova", "github", "openrouter", "cloudflare", "zai", "cohere", "huggingface", "ovh", "kilo"];
+const SECOURS = ["nvidia", "cerebras", "openrouter", "cloudflare", "zai", "cohere", "huggingface", "ovh", "kilo"];
 
 /**
  * L'ordre d'essai. Les deux premiers sont ceux qu'on maîtrise (Mistral pour

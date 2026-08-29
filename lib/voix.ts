@@ -89,6 +89,27 @@ export function voixNavigateurExcellente(voix: SpeechSynthesisVoice | null): boo
 let contexteAudio: AudioContext | null = null;
 let lectureEnCours: { arreter: () => void } | null = null;
 
+/**
+ * À appeler DANS le geste utilisateur (le clic qui lance l'appel), avant tout
+ * await : les navigateurs mobiles gardent le contexte audio suspendu tant
+ * qu'un resume() n'a pas eu lieu pendant un geste. Le nôtre arrivait au tour
+ * du jury, trop tard — d'où des voix muettes sur téléphone.
+ */
+export function deverrouillerAudio(): void {
+  try {
+    const ctx = obtenirContexte();
+    if (ctx.state === "suspended") void ctx.resume();
+    // Une frame de silence scelle le déverrouillage sur iOS.
+    const tampon = ctx.createBuffer(1, 1, ctx.sampleRate);
+    const source = ctx.createBufferSource();
+    source.buffer = tampon;
+    source.connect(ctx.destination);
+    source.start(0);
+  } catch {
+    // Sans Web Audio, les voix du navigateur prendront le relais.
+  }
+}
+
 function obtenirContexte(): AudioContext {
   contexteAudio ??= new AudioContext();
   return contexteAudio;

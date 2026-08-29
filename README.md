@@ -92,7 +92,7 @@ En local : `.env.local` (ignoré par git). Sur Vercel : *Settings → Environmen
 
 ## Limites connues
 
-- La transcription dépend du navigateur : hors Chrome/Edge, l'appel vocal n'est pas disponible.
+- La transcription utilise la dictée du navigateur quand elle existe (Chrome, Edge), et bascule d'elle-même sur une transcription serveur (Whisper) quand elle manque ou échoue — le cas des iPhone. Les voix du jury se déverrouillent au geste de lancement, comme l'exigent les navigateurs mobiles.
 - Le pronostic est une estimation calibrée sur la grille, pas une promesse — il le dit lui-même.
 - Un rapport au-delà de ~40 000 signes n'est confronté qu'en partie lors de la relecture croisée (la portée l'affiche).
 

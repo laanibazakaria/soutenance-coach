@@ -16,7 +16,7 @@ import { lireModulesActifs } from "@/lib/preferences";
 import { saveSession, countWords } from "@/lib/storage";
 import { pousserTout, signalerSynchronisation } from "@/lib/sync/client";
 import { signalerAppelIa } from "@/lib/usage-client";
-import { voixDisponible, meilleureVoix, voixParTimbre, parler, taire, voixNavigateurExcellente, parlerNaturel, taireNaturel, type VoixMembre } from "@/lib/voix";
+import { voixDisponible, meilleureVoix, voixParTimbre, parler, taire, voixNavigateurExcellente, parlerNaturel, taireNaturel, deverrouillerAudio, type VoixMembre } from "@/lib/voix";
 import { CLE_RAPPORT } from "../components/RapportView";
 import { useEcouteSegments } from "../hooks/useEcouteSegments";
 import { passagesPour } from "@/lib/memoire/client";
@@ -166,6 +166,9 @@ function AppelInner() {
   const finalRef = useRef("");
   const silenceRef = useRef<number | null>(null);
   const silencesRef = useRef(0);
+  /** Reconnaissance native en échec (iPhone, WebView) : on force le repli Whisper. */
+  const segmentsForcesRef = useRef(false);
+  const redemarragesRef = useRef(0);
   const [muet, setMuet] = useState(false);
   const maxRef = useRef<number | null>(null);
   const debutRef = useRef(0);
@@ -364,7 +367,8 @@ function AppelInner() {
     setPhase("ecoute");
     finalRef.current = "";
     setInterim("");
-    if (!Ctor) {
+    redemarragesRef.current = 0;
+    if (!Ctor || segmentsForcesRef.current) {
       // Pas de reconnaissance vocale (Firefox, Safari, mobiles) : segments de
       // 3,5 s transcrits par Whisper. Fin de réponse : deux segments muets.
       const finirSegments = () => {
@@ -424,6 +428,16 @@ function AppelInner() {
     };
     finirReponseRef.current = finir;
 
+    // Sur iPhone et dans certaines WebViews, la reconnaissance native EXISTE
+    // mais échoue à l'exécution — sans cette bascule, l'appel restait muet.
+    const basculerSurWhisper = () => {
+      if (segmentsForcesRef.current || recRef.current !== rec) return;
+      segmentsForcesRef.current = true;
+      nettoyerEcoute();
+      toast.info("Ton navigateur ne transcrit pas lui-même : la transcription passe par le serveur.");
+      ecouter(hist);
+    };
+
     const relancerSilence = () => {
       if (silenceRef.current) window.clearTimeout(silenceRef.current);
       silenceRef.current = window.setTimeout(finir, SILENCE_MS);
@@ -446,6 +460,13 @@ function AppelInner() {
     rec.onend = () => {
       // Chrome coupe la reconnaissance après un silence : on relance tant que la réponse n'est pas finie.
       if (recRef.current === rec && !arreteRef.current) {
+        redemarragesRef.current += 1;
+        // Des fins en rafale sans le moindre mot : le service ne marche pas
+        // vraiment ici — on passe au repli plutôt que de mouliner en silence.
+        if (redemarragesRef.current > 4 && finalRef.current.trim() === "") {
+          basculerSurWhisper();
+          return;
+        }
         try {
           rec.start();
         } catch {
@@ -457,6 +478,12 @@ function AppelInner() {
       if (ev.error === "not-allowed" || ev.error === "audio-capture") {
         setErreur("Le micro est refusé ou absent. Autorise-le pour répondre au jury.");
         void terminerAppel(hist);
+        return;
+      }
+      // Service indisponible, réseau, langue : la permission est bonne mais le
+      // service natif ne rend rien — le repli Whisper prend la suite.
+      if (ev.error === "service-not-allowed" || ev.error === "network" || ev.error === "language-not-supported") {
+        basculerSurWhisper();
       }
     };
     maxRef.current = window.setTimeout(finir, REPONSE_MAX_MS);
@@ -468,6 +495,9 @@ function AppelInner() {
   }
 
   async function demarrer() {
+    // DANS le geste, avant tout await : les mobiles ne déverrouillent l'audio
+    // que pendant un geste utilisateur — après, il est trop tard.
+    deverrouillerAudio();
     setErreur(null);
     setDebrief(null);
     setSessionId(null);

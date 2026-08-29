@@ -41,30 +41,60 @@ export async function POST(request: Request) {
   }
 
   const consigne = langue === "en" ? "Say this calmly, like a precise and attentive interviewer: " : "Dis ceci calmement, comme un membre de jury précis et attentif : ";
-  // Gemini TTS a des ratés passagers (502 constaté en vrai le 29/08) : un
-  // deuxième essai court évite de rendre un tour de jury muet pour si peu.
-  let reponse: Response | null = null;
-  for (let essai = 0; essai < 2; essai++) {
+  const corpsGemini = JSON.stringify({
+    contents: [{ parts: [{ text: consigne + texte }] }],
+    generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voix } } } },
+  });
+
+  /**
+   * Le secours NON-flux. Vérifié clé en main le 29/08/2026, même minute,
+   * même clé : streamGenerateContent rendait 429 « quota dépassé » pendant
+   * que generateContent rendait 200 — Google compte le flux TTS gratuit
+   * dans un seau à part, vite à sec. L'audio arrive alors entier (1 à 3 s
+   * pour une réplique de jury) au lieu de couler : parfaitement audible,
+   * juste un peu moins immédiat.
+   */
+  async function viaNonFlux(): Promise<NextResponse | null> {
     try {
-      reponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODELE}:streamGenerateContent?alt=sse&key=${encodeURIComponent(cle)}`, {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODELE}:generateContent?key=${encodeURIComponent(cle ?? "")}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: consigne + texte }] }],
-          generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voix } } } },
-        }),
-        signal: AbortSignal.timeout(30_000),
+        body: corpsGemini,
+        signal: AbortSignal.timeout(40_000),
+      });
+      if (!r.ok) return null;
+      const j = (await r.json()) as { candidates?: Array<{ content?: { parts?: Array<{ inlineData?: { mimeType?: string; data?: string } }> } }> };
+      const part = j.candidates?.[0]?.content?.parts?.find((p) => p.inlineData?.data)?.inlineData;
+      if (!part?.data) return null;
+      const rate = Number(/rate=(\d+)/.exec(part.mimeType ?? "")?.[1] ?? 24_000) || 24_000;
+      const pcm = Buffer.from(part.data, "base64");
+      if (cache.size > 60) cache.delete(cache.keys().next().value as string);
+      cache.set(cleCache, { pcm, rate });
+      return new NextResponse(new Uint8Array(pcm), {
+        headers: { "content-type": "application/octet-stream", "x-voix-rate": String(rate), "x-voix-flux": "non", "cache-control": "no-store" },
       });
     } catch {
-      reponse = null;
+      return null;
     }
-    if (reponse?.ok && reponse.body) break;
-    // 429 = limite PAR MINUTE du palier gratuit : 700 ms n'y changeaient
-    // rien, 3 s laissent la fenêtre glisser. Autres ratés : bref répit.
-    if (essai === 0) await new Promise((r) => setTimeout(r, reponse?.status === 429 ? 3_000 : 700));
   }
-  if (!reponse) return NextResponse.json({ erreur: "Voix injoignable." }, { status: 504 });
-  if (!reponse.ok || !reponse.body) return NextResponse.json({ erreur: "Voix indisponible.", status: reponse.status }, { status: 502 });
+
+  let reponse: Response | null = null;
+  try {
+    reponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODELE}:streamGenerateContent?alt=sse&key=${encodeURIComponent(cle)}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: corpsGemini,
+      signal: AbortSignal.timeout(30_000),
+    });
+  } catch {
+    reponse = null;
+  }
+  if (!reponse?.ok || !reponse.body) {
+    const secours = await viaNonFlux();
+    if (secours) return secours;
+    if (!reponse) return NextResponse.json({ erreur: "Voix injoignable." }, { status: 504 });
+    return NextResponse.json({ erreur: "Voix indisponible.", status: reponse.status }, { status: 502 });
+  }
 
   const lecteur = reponse.body.getReader();
   const decodeur = new TextDecoder();

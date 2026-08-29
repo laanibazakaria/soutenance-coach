@@ -163,6 +163,10 @@ export async function parlerNaturel(texte: string, langue: "fr" | "en", voix: Ti
   try {
     const ctx = obtenirContexte();
     if (ctx.state === "suspended") await ctx.resume();
+    // Android peut suspendre le contexte en plein appel (écran verrouillé,
+    // perte du focus audio) : le son partirait dans le vide et on croirait
+    // avoir parlé. Mieux vaut avouer l'échec — le texte prend le relais.
+    if (ctx.state !== "running") return false;
     const r = await fetch("/api/voix", {
       method: "POST",
       headers: { "content-type": "application/json" },

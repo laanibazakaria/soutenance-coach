@@ -346,7 +346,17 @@ function AppelInner() {
       setPhase("jury-parle");
       let dit = false;
       const timbre = membreParId(mode, membre).voix;
-      if (voixNaturelle) dit = await parlerNaturel(replique, langue, timbre);
+      if (voixNaturelle) {
+        dit = await parlerNaturel(replique, langue, timbre);
+        // Une minute chargée côté serveur ou un réseau mobile qui tousse ne
+        // doivent pas rendre un tour muet : une seconde chance avant le repli
+        // (sur les appareils à synthèse cassée, le repli navigateur est muet).
+        if (!dit && !arreteRef.current) {
+          deverrouillerAudio();
+          await new Promise((r) => setTimeout(r, 1200));
+          dit = await parlerNaturel(replique, langue, timbre);
+        }
+      }
       if (!dit && !arreteRef.current && supporte.voix) {
         const v = voixMembresRef.current?.[timbre];
         dit = await parler(replique, langue, v?.voix ?? voixRef.current, { debit: v?.debit ?? 1.02, hauteur: v?.hauteur });

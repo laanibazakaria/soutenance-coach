@@ -59,7 +59,9 @@ export async function POST(request: Request) {
       reponse = null;
     }
     if (reponse?.ok && reponse.body) break;
-    if (essai === 0) await new Promise((r) => setTimeout(r, 700));
+    // 429 = limite PAR MINUTE du palier gratuit : 700 ms n'y changeaient
+    // rien, 3 s laissent la fenêtre glisser. Autres ratés : bref répit.
+    if (essai === 0) await new Promise((r) => setTimeout(r, reponse?.status === 429 ? 3_000 : 700));
   }
   if (!reponse) return NextResponse.json({ erreur: "Voix injoignable." }, { status: 504 });
   if (!reponse.ok || !reponse.body) return NextResponse.json({ erreur: "Voix indisponible.", status: reponse.status }, { status: 502 });

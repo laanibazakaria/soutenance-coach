@@ -12,7 +12,7 @@ import { mesurerFenetre, PAS_ECHANTILLON_MS } from "@/lib/decoupe-voix";
 
 type Verdict = { nom: string; ok: boolean | null; detail: string };
 
-const VERSION_DIAG = "diag-2026-08-29-d";
+const VERSION_DIAG = "diag-2026-08-29-e";
 
 /**
  * L'état de la mémoire de panne (sc.dictee.segments) : quand elle est posée,
@@ -257,7 +257,19 @@ export default function DiagnosticPage() {
         signal: AbortSignal.timeout(20_000),
       });
       const octets = r.ok ? (await r.arrayBuffer()).byteLength : 0;
-      pousser({ nom: "Voix du serveur (/api/voix)", ok: r.ok && octets > 1000, detail: r.ok ? `${Math.round(octets / 1024)} Ko d'audio reçus` : `réponse ${r.status}${r.status === 429 ? " — quota du mois épuisé" : ""}` });
+      // Le vrai statut du fournisseur voyage dans le corps : un 502 qui
+      // enveloppe un 429 Google veut dire « minute saturée », pas « en panne ».
+      let cause = "";
+      if (!r.ok) {
+        try {
+          const j = (await r.json()) as { status?: number };
+          if (j.status === 429) cause = " (minute saturée chez le fournisseur — réessaie dans une minute)";
+          else if (j.status) cause = ` (fournisseur : ${j.status})`;
+        } catch {
+          /* corps illisible */
+        }
+      }
+      pousser({ nom: "Voix du serveur (/api/voix)", ok: r.ok && octets > 1000, detail: r.ok ? `${Math.round(octets / 1024)} Ko d'audio reçus` : `réponse ${r.status}${r.status === 429 ? " — quota du mois épuisé" : cause}` });
     } catch (e) {
       pousser({ nom: "Voix du serveur (/api/voix)", ok: false, detail: (e as Error).name });
     }

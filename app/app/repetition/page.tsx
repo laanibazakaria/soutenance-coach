@@ -175,8 +175,8 @@ export default function RepetitionPage() {
   }
   terminerRef.current = terminer;
 
-  function sauvegarder(destination?: string) {
-    const transcript = rec.transcript();
+  async function sauvegarder(destination?: string) {
+    const transcript = await rec.attendreTranscription();
     const id = idRef.current || crypto.randomUUID();
     idRef.current = id;
     const blob = rec.audioBlob();

@@ -98,7 +98,7 @@ export default function QuestionDuJourPage() {
   async function terminer() {
     if (arretAuto.current) clearTimeout(arretAuto.current);
     rec.stop();
-    const transcript = rec.transcript();
+    const transcript = await rec.attendreTranscription();
     if (!question) return;
     const latenceMs = Date.now() - affichageRef.current;
     const analyse = analyserReponse(transcript, latenceMs);

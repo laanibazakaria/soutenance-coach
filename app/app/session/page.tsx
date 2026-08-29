@@ -56,8 +56,8 @@ export default function SessionPage() {
   const targetMs = targetMinutes === null ? undefined : targetMinutes * 60_000;
   const { phase, supported, finalText, interimText, elapsedMs, error } = rec;
 
-  function save() {
-    const transcript = rec.transcript();
+  async function save() {
+    const transcript = await rec.attendreTranscription();
     const id = idRef.current || crypto.randomUUID();
     const blob = rec.audioBlob();
     if (blob) void sauverAudio(id, blob);

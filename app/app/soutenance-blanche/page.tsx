@@ -101,7 +101,7 @@ export default function SoutenanceBlanchePage() {
 
   async function terminer() {
     rec.stop();
-    const transcript = rec.transcript();
+    const transcript = await rec.attendreTranscription();
     if (!question) return;
     const analyse = analyserReponse(transcript, Date.now() - affichageRef.current);
     setPhase("evaluation");

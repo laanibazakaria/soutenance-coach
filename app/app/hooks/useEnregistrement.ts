@@ -15,6 +15,16 @@ export function getRecognitionCtor(): SpeechRecognitionConstructor | null {
 
 const PAS_MESURE_MS = 100;
 
+/**
+ * Vrai dès qu'un appareil a prouvé que sa dictée native ne transcrit rien
+ * (le Samsung de Zakaria : elle démarre, puis silence). On passe alors par
+ * segments envoyés au serveur (/api/transcrire) — et on y reste pour toute
+ * la session de navigation, pour ne pas re-perdre 12 s à chaque essai.
+ */
+let segmentsPrefere = false;
+
+const SEGMENT_MS = 3_500;
+
 export interface Enregistrement {
   phase: Phase;
   supported: boolean;
@@ -31,6 +41,13 @@ export interface Enregistrement {
   startedAt(): number;
   /** Transcription finalisée, nettoyée. */
   transcript(): string;
+  /**
+   * Comme transcript(), mais attend d'abord que la transcription soit réglée :
+   * en repli serveur, le dernier segment part À l'arrêt et revient une à
+   * quatre secondes plus tard — le lire trop tôt tronquait la réponse.
+   * En dictée native, résout immédiatement. Borné à 8 s.
+   */
+  attendreTranscription(): Promise<string>;
   /** L'audio enregistré (webm/opus), disponible après l'arrêt — reste sur l'appareil. */
   audioBlob(): Blob | null;
   /** Mesures sur le son (silences, dynamique), disponibles après l'arrêt. */
@@ -66,12 +83,22 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
   const morceauxRef = useRef<Blob[]>([]);
   const blobRef = useRef<Blob | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  // Le repli par segments (navigateurs sans dictée, ou dictée native muette).
+  const segRecRef = useRef<MediaRecorder | null>(null);
+  const segTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const basculeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resultatsRecusRef = useRef(false);
+  const redemarragesRef = useRef(0);
+  /** Segments partis en transcription et pas encore revenus. */
+  const enVolRef = useRef(0);
+  /** Faux entre l'arrêt d'un enregistreur de segment et l'envoi de sa fin. */
+  const flushFaitRef = useRef(true);
   const rmsRef = useRef<number[]>([]);
   const mesureTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mesuresRef = useRef<MesuresAudio | null>(null);
 
   useEffect(() => {
-    setSupported(getRecognitionCtor() !== null);
+    setSupported(getRecognitionCtor() !== null || (typeof MediaRecorder !== "undefined" && Boolean(navigator.mediaDevices?.getUserMedia)));
     return () => cleanup();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -88,10 +115,108 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
     audioCtxRef.current = null;
   }
 
+  function arreterSegments() {
+    if (segTimerRef.current) clearTimeout(segTimerRef.current);
+    segTimerRef.current = null;
+    if (basculeTimerRef.current) clearTimeout(basculeTimerRef.current);
+    basculeTimerRef.current = null;
+    try {
+      if (segRecRef.current && segRecRef.current.state !== "inactive") {
+        flushFaitRef.current = false;
+        segRecRef.current.stop();
+      }
+    } catch {
+      /* déjà arrêté */
+    }
+    segRecRef.current = null;
+  }
+
+  /**
+   * Le repli : le micro est enregistré par segments autonomes de ~3,5 s
+   * (un MediaRecorder redémarré à chaque fois — un fragment de timeslice
+   * n'est pas un fichier lisible), chaque segment part en transcription au
+   * serveur et le texte s'accumule comme si la dictée native l'avait rendu.
+   */
+  function tournerSegments() {
+    const flux = mediaStreamRef.current;
+    if (stoppingRef.current || !flux) return;
+    const type = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find((t) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t));
+    let enr: MediaRecorder;
+    try {
+      enr = new MediaRecorder(flux, type ? { mimeType: type } : undefined);
+    } catch {
+      // Deux enregistreurs sur le même flux, certains navigateurs refusent :
+      // on sacrifie la capture locale, la transcription passe d'abord.
+      try {
+        recorderRef.current?.stop();
+      } catch {
+        /* déjà arrêté */
+      }
+      recorderRef.current = null;
+      try {
+        enr = new MediaRecorder(flux, type ? { mimeType: type } : undefined);
+      } catch {
+        return;
+      }
+    }
+    segRecRef.current = enr;
+    const morceaux: Blob[] = [];
+    enr.ondataavailable = (e) => {
+      if (e.data.size > 0) morceaux.push(e.data);
+    };
+    enr.onstop = () => {
+      // Le segment suivant démarre tout de suite : pas de trou d'écoute.
+      if (!stoppingRef.current) tournerSegments();
+      const blob = new Blob(morceaux, { type: type ?? "audio/webm" });
+      if (blob.size < 200) {
+        flushFaitRef.current = true;
+        return;
+      }
+      const fd = new FormData();
+      fd.append("audio", blob, "segment.webm");
+      fd.append("langue", langue.startsWith("en") ? "en" : "fr");
+      enVolRef.current += 1;
+      flushFaitRef.current = true;
+      fetch("/api/transcrire", { method: "POST", body: fd })
+        .then((r) => (r.ok ? (r.json() as Promise<{ texte?: string }>) : { texte: "" }))
+        .then(({ texte }) => {
+          const propre = (texte ?? "").trim();
+          if (!propre) return;
+          finalRef.current += propre + " ";
+          setFinalText(finalRef.current);
+        })
+        .catch(() => {
+          /* segment perdu : le suivant compensera */
+        })
+        .finally(() => {
+          enVolRef.current -= 1;
+        });
+    };
+    enr.start();
+    segTimerRef.current = setTimeout(() => {
+      try {
+        if (enr.state === "recording") enr.stop();
+      } catch {
+        /* déjà arrêté */
+      }
+    }, SEGMENT_MS);
+  }
+
+  /** La dictée native a prouvé qu'elle ne rend rien ici : segments serveur. */
+  function basculerSurSegments() {
+    if (segRecRef.current || stoppingRef.current) return;
+    segmentsPrefere = true;
+    recognitionRef.current?.abort();
+    recognitionRef.current = null;
+    setInterimText("");
+    tournerSegments();
+  }
+
   function cleanup() {
     stoppingRef.current = true;
     recognitionRef.current?.abort();
     recognitionRef.current = null;
+    arreterSegments();
     arreterCapture();
     mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
     mediaStreamRef.current = null;
@@ -143,7 +268,7 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
   async function start(): Promise<boolean> {
     setError(null);
     const Ctor = getRecognitionCtor();
-    if (!Ctor) return false;
+    if (!Ctor && typeof MediaRecorder === "undefined") return false;
 
     try {
       mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -153,12 +278,33 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
     }
     if (mediaStreamRef.current) demarrerCapture(mediaStreamRef.current);
 
+    stoppingRef.current = false;
+    finalRef.current = "";
+    confSumRef.current = 0;
+    confWeightRef.current = 0;
+    resultatsRecusRef.current = false;
+    redemarragesRef.current = 0;
+    setFinalText("");
+    setInterimText("");
+    startedAtRef.current = Date.now();
+    setElapsedMs(0);
+    timerRef.current = setInterval(() => setElapsedMs(Date.now() - startedAtRef.current), 250);
+
+    // Pas de dictée native, ou une dictée qui a déjà prouvé son silence
+    // (le cas Samsung) : segments serveur directement.
+    if (!Ctor || segmentsPrefere) {
+      tournerSegments();
+      setPhase("recording");
+      return true;
+    }
+
     const rec = new Ctor();
     rec.lang = langue;
     rec.continuous = true;
     rec.interimResults = true;
 
     rec.onresult = (ev) => {
+      resultatsRecusRef.current = true;
       let interim = "";
       for (let i = ev.resultIndex; i < ev.results.length; i++) {
         const res = ev.results[i];
@@ -180,6 +326,10 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
     };
 
     rec.onerror = (ev) => {
+      // Service indisponible ou langue refusée : la permission est bonne mais
+      // le service natif ne rendra rien — le repli serveur prend la suite.
+      if (ev.error === "service-not-allowed" || ev.error === "language-not-supported") return basculerSurSegments();
+      if (ev.error === "network" && !resultatsRecusRef.current) return basculerSurSegments();
       // "no-speech" / "aborted" : cycle de vie normal ; "network" : micro-coupure
       // du service de reconnaissance, onend suit et on redémarre seul.
       if (ev.error !== "no-speech" && ev.error !== "aborted" && ev.error !== "network") {
@@ -189,6 +339,10 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
 
     rec.onend = () => {
       if (!stoppingRef.current && recognitionRef.current === rec) {
+        redemarragesRef.current += 1;
+        // Des fins en rafale sans le moindre mot : le service ne marche pas
+        // vraiment ici — repli plutôt que de mouliner en silence.
+        if (redemarragesRef.current > 4 && finalRef.current.trim() === "") return basculerSurSegments();
         try {
           rec.start();
         } catch {
@@ -197,18 +351,14 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
       }
     };
 
-    stoppingRef.current = false;
-    finalRef.current = "";
-    confSumRef.current = 0;
-    confWeightRef.current = 0;
-    setFinalText("");
-    setInterimText("");
     recognitionRef.current = rec;
-    startedAtRef.current = Date.now();
-    setElapsedMs(0);
-    timerRef.current = setInterval(() => setElapsedMs(Date.now() - startedAtRef.current), 250);
-
     rec.start();
+    // Démarrée mais muette : sur certains Android, la dictée « écoute » sans
+    // jamais rendre un mot. Douze secondes sans le moindre résultat (même
+    // provisoire), et le repli serveur prend la suite.
+    basculeTimerRef.current = setTimeout(() => {
+      if (!resultatsRecusRef.current && recognitionRef.current === rec) basculerSurSegments();
+    }, 12_000);
     setPhase("recording");
     return true;
   }
@@ -216,6 +366,7 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
   function stop() {
     stoppingRef.current = true;
     recognitionRef.current?.stop();
+    arreterSegments();
     mesuresRef.current = mesurerAudio(rmsRef.current, PAS_MESURE_MS);
     arreterCapture();
     mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
@@ -238,6 +389,13 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
     confidence: () => (confWeightRef.current > 0 ? confSumRef.current / confWeightRef.current : undefined),
     startedAt: () => startedAtRef.current,
     transcript: () => finalRef.current.trim(),
+    attendreTranscription: async () => {
+      const debut = Date.now();
+      while ((!flushFaitRef.current || enVolRef.current > 0) && Date.now() - debut < 8_000) {
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      return finalRef.current.trim();
+    },
     audioBlob: () => blobRef.current,
     mesuresAudio: () => mesuresRef.current,
   };

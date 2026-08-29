@@ -57,7 +57,7 @@ export default function OrauxPage() {
             type="text"
             value={nom}
             maxLength={60}
-            placeholder={type === "soutenance" ? "Ex. : PFE — plateforme IA médicale" : "Ex. : Ingénieur IA — GELCO"}
+            placeholder={type === "soutenance" ? "Ex. : PFA, PFE, mémoire, thèse — ton sujet" : "Ex. : le poste et l'entreprise"}
             onChange={(e) => setNom(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") commencer();

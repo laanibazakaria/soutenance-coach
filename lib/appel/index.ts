@@ -295,7 +295,15 @@ export function validerHistorique(brut: unknown): Message[] {
   return brut
     .filter((m): m is { role: string; content: string } => Boolean(m) && typeof m === "object" && typeof (m as { role?: unknown }).role === "string" && typeof (m as { content?: unknown }).content === "string")
     .filter((m) => m.role === "user" || m.role === "assistant")
-    .map((m) => ({ role: m.role as Message["role"], content: m.content.trim().slice(0, m.role === "user" ? LIMITES_APPEL.reponseChars : LIMITES_APPEL.repliqueChars) }))
+    // Le membre qui a parlé fait partie de l'historique : sans lui, le serveur
+    // ne peut ni dire « la dernière personne était X », ni compter les tours
+    // d'affilée, ni retirer la parole — la rotation entière reposait sur rien
+    // (bug trouvé au test grandeur nature du 29/08/2026).
+    .map((m) => ({
+      role: m.role as Message["role"],
+      content: m.content.trim().slice(0, m.role === "user" ? LIMITES_APPEL.reponseChars : LIMITES_APPEL.repliqueChars),
+      ...(m.role === "assistant" && typeof (m as { membre?: unknown }).membre === "string" ? { membre: ((m as unknown as { membre: string }).membre).slice(0, 40) } : {}),
+    }))
     .filter((m) => m.content !== "")
     .slice(-LIMITES_APPEL.toursMax * 2);
 }

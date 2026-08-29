@@ -206,7 +206,9 @@ async function viaGemini(prompt: string, options: OptionsIA): Promise<ResultatIA
 async function viaOpenAICompatible(f: Fournisseur, prompt: string, options: OptionsIA): Promise<ResultatIA> {
   const cle = f.cle();
   if (!cle) return { ok: false, status: 503, code: "cle_absente", erreur: "Fournisseur non configuré." };
-  const messages: Message[] = options.messages ? [{ role: "system", content: prompt }, ...options.messages] : [{ role: "user", content: prompt }];
+  // Ne transmettre que role et content : l'historique d'appel porte des champs
+  // à nous (le membre du jury qui parle) que les API strictes rejetteraient.
+  const messages: Message[] = options.messages ? [{ role: "system", content: prompt }, ...options.messages.map((m) => ({ role: m.role, content: m.content }))] : [{ role: "user", content: prompt }];
   const json = options.json ?? true;
   try {
     const reponse = await fetch(f.urlDynamique ? f.urlDynamique() : f.url, {

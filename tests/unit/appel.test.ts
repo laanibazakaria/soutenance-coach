@@ -241,3 +241,14 @@ describe("la parole retirée par le code", () => {
     expect(membreDeRemplacement(hist3.slice(2), "soutenance", rap)).toBeNull();
   });
 });
+
+describe("validerHistorique et le membre", () => {
+  it("préserve le membre des répliques du jury — la rotation entière en dépend", () => {
+    const h = validerHistorique([
+      { role: "assistant", content: "Q ?", membre: "rapporteur" },
+      { role: "user", content: "R.", membre: "je-triche" },
+    ]);
+    expect(h[0]!.membre).toBe("rapporteur");
+    expect(h[1]!.membre).toBeUndefined();
+  });
+});

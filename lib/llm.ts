@@ -86,13 +86,33 @@ const FOURNISSEURS: Record<string, Fournisseur> = {
     nom: "cerebras",
     url: "https://api.cerebras.ai/v1/chat/completions",
     cle: () => process.env.CEREBRAS_API_KEY,
-    modele: () => process.env.CEREBRAS_MODEL ?? "llama3.3-70b",
+    // Le palier gratuit 2026 ne sert plus que gpt-oss-120b et glm-4.7
+    // (contexte plafonné à 8K : les tours à gros dossier passeront leur tour).
+    modele: () => process.env.CEREBRAS_MODEL ?? "gpt-oss-120b",
+  },
+  sambanova: {
+    nom: "sambanova",
+    url: "https://api.sambanova.ai/v1/chat/completions",
+    cle: () => process.env.SAMBANOVA_API_KEY,
+    // Palier gratuit permanent : ~200k tokens/jour PAR modèle, 20 req/min.
+    // Vérifier le nom exact du modèle dans leur console au moment de la clé.
+    modele: () => process.env.SAMBANOVA_MODEL ?? "Meta-Llama-3.3-70B-Instruct",
+  },
+  github: {
+    nom: "github",
+    url: "https://models.github.ai/inference/chat/completions",
+    // Un jeton GitHub classique (fine-grained, permission « Models: read »)
+    // suffit : c'est le palier gratuit le plus simple à obtenir — et il sert
+    // des modèles autrement payants (GPT-4.1-mini : ~150 requêtes/jour).
+    cle: () => process.env.GITHUB_MODELS_TOKEN,
+    modele: () => process.env.GITHUB_MODELS_MODEL ?? "openai/gpt-4.1-mini",
   },
   zai: {
     nom: "zai",
     url: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
     cle: () => process.env.ZAI_API_KEY,
-    modele: () => process.env.ZAI_MODEL ?? "glm-4-flash",
+    // glm-4-flash a été remplacé par glm-4.7-flash au palier gratuit (01/2026).
+    modele: () => process.env.ZAI_MODEL ?? "glm-4.7-flash",
   },
   ovh: {
     nom: "ovh",
@@ -131,7 +151,7 @@ const FOURNISSEURS: Record<string, Fournisseur> = {
   },
 };
 
-const SECOURS = ["nvidia", "cerebras", "openrouter", "cloudflare", "zai", "cohere", "huggingface", "ovh", "kilo"];
+const SECOURS = ["nvidia", "cerebras", "sambanova", "github", "openrouter", "cloudflare", "zai", "cohere", "huggingface", "ovh", "kilo"];
 
 /**
  * L'ordre d'essai. Les deux premiers sont ceux qu'on maîtrise (Mistral pour

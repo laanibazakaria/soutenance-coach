@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 
 type Verdict = { nom: string; ok: boolean | null; detail: string };
 
-const VERSION_DIAG = "diag-2026-08-28-b";
+const VERSION_DIAG = "diag-2026-08-29-a";
 
 export default function DiagnosticPage() {
   const [verdicts, setVerdicts] = useState<Verdict[]>([]);
@@ -150,7 +150,7 @@ export default function DiagnosticPage() {
           res({ nom: "Voix du navigateur", ok, detail });
         };
         u.onend = () => fin(true, "phrase prononcée jusqu'au bout");
-        u.onerror = (ev) => fin(false, `erreur « ${ev.error} »`);
+        u.onerror = (ev) => fin(false, `erreur « ${ev.error} » — pas bloquant si la voix du serveur est ✅ : l\u2019appel l\u2019utilisera`);
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(u);
         window.setTimeout(() => fin(false, "aucun son en 12 s — synthèse muette"), 12_000);

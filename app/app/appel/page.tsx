@@ -166,6 +166,8 @@ function AppelInner() {
   const finalRef = useRef("");
   const silenceRef = useRef<number | null>(null);
   const silencesRef = useRef(0);
+  /** Les deux voix muettes : on prévient une seule fois, l'appel continue par écrit. */
+  const voixMuettesRef = useRef(false);
   /** Reconnaissance native en échec (iPhone, WebView) : on force le repli Whisper. */
   const segmentsForcesRef = useRef(false);
   const redemarragesRef = useRef(0);
@@ -342,14 +344,25 @@ function AppelInner() {
       setHistorique(nouveau);
       setPhase("jury-parle");
       let dit = false;
-      if (voixNaturelle) dit = await parlerNaturel(replique, langue, membreParId(mode, membre).voix);
-      if (!dit && !arreteRef.current) {
-        if (supporte.voix) {
-          const timbre = membreParId(mode, membre).voix;
-          const v = voixMembresRef.current?.[timbre];
-          await parler(replique, langue, v?.voix ?? voixRef.current, { debit: v?.debit ?? 1.02, hauteur: v?.hauteur });
+      const timbre = membreParId(mode, membre).voix;
+      if (voixNaturelle) dit = await parlerNaturel(replique, langue, timbre);
+      if (!dit && !arreteRef.current && supporte.voix) {
+        const v = voixMembresRef.current?.[timbre];
+        dit = await parler(replique, langue, v?.voix ?? voixRef.current, { debit: v?.debit ?? 1.02, hauteur: v?.hauteur });
+        // Sur certains Android, la synthèse du navigateur est cassée
+        // (« synthesis-failed ») alors que la voix du serveur marche : elle
+        // prend le relais, pour cette réplique et tout le reste de l'appel.
+        if (!dit && !arreteRef.current && !voixNaturelle) {
+          dit = await parlerNaturel(replique, langue, timbre);
+          if (dit) setVoixNaturelle(true);
         }
-        else await new Promise((r) => setTimeout(r, Math.min(8000, 800 + replique.length * 45)));
+      }
+      if (!dit && !arreteRef.current) {
+        if (!voixMuettesRef.current) {
+          voixMuettesRef.current = true;
+          toast.info("Aucune voix ne sort sur cet appareil — l'appel continue par écrit, lis les questions à l'écran.");
+        }
+        await new Promise((r) => setTimeout(r, Math.min(8000, 800 + replique.length * 45)));
       }
       if (arreteRef.current) return;
       if (fin) {

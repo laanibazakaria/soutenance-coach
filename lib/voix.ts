@@ -59,17 +59,24 @@ function decouperEnPhrases(texte: string): string[] {
   return phrases.map((ph) => ph.trim()).filter(Boolean);
 }
 
-export function parler(texte: string, langue: "fr" | "en", voix: SpeechSynthesisVoice | null, options: { debit?: number; hauteur?: number } = {}): Promise<void> {
+/**
+ * Résout `true` si au moins une phrase a été réellement prononcée. Sur certains
+ * Android, speechSynthesis échoue (« synthesis-failed ») sur chaque énonciation
+ * alors même que l'appareil annonce des voix françaises — sans ce verdict,
+ * l'échec était avalé et le jury restait muet sans recours.
+ */
+export function parler(texte: string, langue: "fr" | "en", voix: SpeechSynthesisVoice | null, options: { debit?: number; hauteur?: number } = {}): Promise<boolean> {
   return new Promise((resolve) => {
-    if (!voixDisponible()) return resolve();
+    if (!voixDisponible()) return resolve(false);
     window.speechSynthesis.cancel();
     const phrases = decouperEnPhrases(texte);
     let fini = false;
+    let prononce = false;
     const terminer = () => {
       if (fini) return;
       fini = true;
       enCours = null;
-      resolve();
+      resolve(prononce);
     };
     let index = 0;
     const suivante = () => {
@@ -81,7 +88,10 @@ export function parler(texte: string, langue: "fr" | "en", voix: SpeechSynthesis
       if (voix) u.voice = voix;
       u.rate = options.debit ?? 1;
       u.pitch = options.hauteur ?? 1;
-      u.onend = suivante;
+      u.onend = () => {
+        prononce = true;
+        suivante();
+      };
       u.onerror = suivante;
       enCours = u;
       window.speechSynthesis.speak(u);

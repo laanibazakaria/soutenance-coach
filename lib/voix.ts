@@ -158,6 +158,16 @@ function obtenirContexte(): AudioContext {
  */
 export type Timbre = "grave" | "claire" | "vive" | "posee";
 
+/**
+ * La raison du dernier échec de la voix naturelle — pour que l'écran (et
+ * l'utilisateur qui nous envoie une capture) nomme la panne au lieu d'un
+ * générique « aucune voix ne sort ».
+ */
+let derniereRaison = "";
+export function raisonVoixNaturelle(): string {
+  return derniereRaison;
+}
+
 export async function parlerNaturel(texte: string, langue: "fr" | "en", voix: Timbre = "grave"): Promise<boolean> {
   let annule = false;
   try {
@@ -170,7 +180,10 @@ export async function parlerNaturel(texte: string, langue: "fr" | "en", voix: Ti
     if (ctx.state !== "running") {
       await new Promise((r) => setTimeout(r, 300));
       if (ctx.state === "suspended") await ctx.resume().catch(() => {});
-      if ((ctx.state as string) !== "running") return false;
+      if ((ctx.state as string) !== "running") {
+        derniereRaison = `contexte audio « ${ctx.state} »`;
+        return false;
+      }
     }
     const r = await fetch("/api/voix", {
       method: "POST",
@@ -178,7 +191,16 @@ export async function parlerNaturel(texte: string, langue: "fr" | "en", voix: Ti
       body: JSON.stringify({ texte, langue, voix }),
       signal: AbortSignal.timeout(30_000),
     });
-    if (!r.ok || !r.body) return false;
+    if (!r.ok || !r.body) {
+      let interne = "";
+      try {
+        interne = String(((await r.json()) as { status?: number }).status ?? "");
+      } catch {
+        /* corps illisible */
+      }
+      derniereRaison = `serveur ${r.status}${interne ? ` (fournisseur ${interne})` : ""}`;
+      return false;
+    }
     const rate = Number(r.headers.get("x-voix-rate") ?? 24_000) || 24_000;
     const lecteur = r.body.getReader();
     lectureEnCours = {
@@ -225,12 +247,16 @@ export async function parlerNaturel(texte: string, langue: "fr" | "en", voix: Ti
       jouer(impair ? octets.slice(0, octets.length - impair) : octets);
     }
     if (annule) return true;
-    if (!recu) return false;
+    if (!recu) {
+      derniereRaison = "flux audio vide";
+      return false;
+    }
     // Attendre la fin de la lecture planifiée.
     const resteS = Math.max(0, prochainDepart - ctx.currentTime);
     await new Promise((r2) => setTimeout(r2, resteS * 1000 + 60));
     return true;
-  } catch {
+  } catch (e) {
+    derniereRaison = `réseau/lecture (${e instanceof Error ? e.name : "?"})`;
     return false;
   } finally {
     lectureEnCours = null;

@@ -16,7 +16,7 @@ import { lireModulesActifs } from "@/lib/preferences";
 import { saveSession, countWords } from "@/lib/storage";
 import { pousserTout, signalerSynchronisation } from "@/lib/sync/client";
 import { signalerAppelIa } from "@/lib/usage-client";
-import { voixDisponible, meilleureVoix, voixParTimbre, parler, taire, voixNavigateurExcellente, parlerNaturel, taireNaturel, deverrouillerAudio, type VoixMembre } from "@/lib/voix";
+import { voixDisponible, meilleureVoix, voixParTimbre, parler, taire, voixNavigateurExcellente, parlerNaturel, taireNaturel, deverrouillerAudio, raisonVoixNaturelle, type VoixMembre } from "@/lib/voix";
 import { segmentsPreferes, noterSegmentsPreferes } from "@/lib/dictee";
 import { CLE_RAPPORT } from "../components/RapportView";
 import { useEcouteSegments } from "../hooks/useEcouteSegments";
@@ -380,7 +380,8 @@ function AppelInner() {
       if (!dit && !arreteRef.current) {
         if (!voixMuettesRef.current) {
           voixMuettesRef.current = true;
-          toast.info("Aucune voix ne sort sur cet appareil — l'appel continue par écrit, lis les questions à l'écran.");
+          const raison = raisonVoixNaturelle();
+          toast.info(`Aucune voix ne sort${raison ? ` — cause : ${raison}` : ""}. L'appel continue par écrit, la voix retente au prochain tour.`);
         }
         await new Promise((r) => setTimeout(r, Math.min(8000, 800 + replique.length * 45)));
       }

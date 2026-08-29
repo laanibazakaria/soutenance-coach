@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { appelerIA } from "@/lib/llm";
 import { verifierQuota } from "@/lib/quota-serveur";
-import { construirePromptTour, parseTour, validerHistorique, PERSONAS, LIMITES_APPEL, type ModeAppel } from "@/lib/appel";
+import { construirePromptTour, finImposee, membreDeRemplacement, parseTour, validerHistorique, PERSONAS, LIMITES_APPEL, type ModeAppel } from "@/lib/appel";
 
 /** Vercel tue la route à ce plafond : mieux vaut le choisir que le subir. */
 export const maxDuration = 60;
@@ -52,5 +52,8 @@ export async function POST(request: Request) {
   const tour = parseTour(resultat.texte, contexte.mode);
   if (!tour) return NextResponse.json({ erreur: "Le jury a bafouillé. Réessaie.", code: "format" }, { status: 502 });
   if (confirmer) await confirmer();
-  return NextResponse.json({ ...tour, fournisseur: resultat.fournisseur });
+  // Ni la parole ni la fin n'appartiennent au modèle : après trois questions
+  // d'affilée du même membre, le code la retire ; passé le temps, il raccroche.
+  const remplacant = membreDeRemplacement(contexte.historique, contexte.mode, tour.membre);
+  return NextResponse.json({ ...tour, ...(remplacant ? { membre: remplacant } : {}), fin: tour.fin || finImposee(contexte.dureeMin, ecouleS), fournisseur: resultat.fournisseur });
 }

@@ -161,3 +161,83 @@ describe("le jury de soutenance à quatre", () => {
     expect(new Set(s.map((m) => m.voix)).size).toBe(4);
   });
 });
+
+// ── Le test grandeur nature du 29/08/2026 (simulation de 15 min sur un vrai
+//    dossier) : rapporteur 8 tours sur 12, présidente muette, et des questions
+//    encore posées une minute après la fin. Ces verrous l'empêchent de revenir.
+import { finImposee } from "@/lib/appel";
+
+describe("rotation imposée et fin d'appel", () => {
+  const membreDe = (mode: "soutenance" | "entretien") => MEMBRES[mode][1]!.id;
+
+  it("après 3 questions d'affilée du même membre, la consigne devient impérative et nominative", () => {
+    const membre = membreDe("soutenance");
+    const historique = [
+      { role: "assistant" as const, content: "Q1 ?", membre },
+      { role: "user" as const, content: "R1." },
+      { role: "assistant" as const, content: "Q2 ?", membre },
+      { role: "user" as const, content: "R2." },
+      { role: "assistant" as const, content: "Q3 ?", membre },
+      { role: "user" as const, content: "R3." },
+    ];
+    const p = construirePromptTour({ mode: "soutenance", contexte: "x", langue: "fr", dureeMin: 15, historique }, 300);
+    expect(p).toContain("IMPÉRATIF");
+    expect(p).toContain(`ne peut PAS être « ${membre} »`);
+    expect(p).toContain("N'ont pas encore dit un mot");
+  });
+
+  it("à deux questions d'affilée, pas d'impératif : la relance légitime reste possible", () => {
+    const membre = membreDe("soutenance");
+    const historique = [
+      { role: "assistant" as const, content: "Q1 ?", membre },
+      { role: "user" as const, content: "R1." },
+      { role: "assistant" as const, content: "Q2 ?", membre },
+      { role: "user" as const, content: "R2." },
+    ];
+    const p = construirePromptTour({ mode: "soutenance", contexte: "x", langue: "fr", dureeMin: 15, historique }, 300);
+    expect(p).not.toContain("IMPÉRATIF");
+  });
+
+  it("la conclusion interdit toute nouvelle question et désigne qui parle", () => {
+    const p = construirePromptTour({ mode: "soutenance", contexte: "x", langue: "fr", dureeMin: 15, historique: [{ role: "assistant", content: "Q ?", membre: membreDe("soutenance") }, { role: "user", content: "R." }] }, 15 * 60 - 10);
+    expect(p).toContain("AUCUNE nouvelle question");
+    expect(p).toContain(`« ${MEMBRES.soutenance[0]!.id} »`);
+  });
+
+  it("passé 45 s au-delà du temps, le code impose la fin — jamais avant", () => {
+    expect(finImposee(15, 15 * 60 + 45)).toBe(true);
+    expect(finImposee(15, 15 * 60 + 30)).toBe(false);
+    expect(finImposee(15, 300)).toBe(false);
+  });
+});
+
+// Même l'interdit nominatif dans le prompt a été ignoré au test du 29/08 :
+// la route retire donc la parole elle-même.
+import { membreDeRemplacement } from "@/lib/appel";
+
+describe("la parole retirée par le code", () => {
+  const rap = MEMBRES.soutenance[1]!.id;
+  const hist3 = [
+    { role: "assistant" as const, content: "Q1 ?", membre: rap },
+    { role: "user" as const, content: "R1." },
+    { role: "assistant" as const, content: "Q2 ?", membre: rap },
+    { role: "user" as const, content: "R2." },
+    { role: "assistant" as const, content: "Q3 ?", membre: rap },
+    { role: "user" as const, content: "R3." },
+  ];
+
+  it("au 4e tour du même membre, un membre muet prend la parole", () => {
+    const r = membreDeRemplacement(hist3, "soutenance", rap);
+    expect(r).not.toBeNull();
+    expect(r).not.toBe(rap);
+    expect(MEMBRES.soutenance.some((m) => m.id === r)).toBe(true);
+  });
+
+  it("si le modèle change de lui-même, on ne touche à rien", () => {
+    expect(membreDeRemplacement(hist3, "soutenance", MEMBRES.soutenance[0]!.id)).toBeNull();
+  });
+
+  it("à moins de trois tours d'affilée, on ne touche à rien", () => {
+    expect(membreDeRemplacement(hist3.slice(2), "soutenance", rap)).toBeNull();
+  });
+});

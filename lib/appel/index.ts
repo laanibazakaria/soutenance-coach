@@ -162,6 +162,19 @@ export function construirePromptTour(c: ContexteAppel, ecouleS: number): string 
   const phase = resteS <= 45 ? "conclusion" : c.historique.length === 0 ? "ouverture" : "milieu";
   const langue = c.langue === "en" ? "Speak English only." : "Tu parles uniquement en français, naturel, à l'oral (pas de listes, pas de markdown).";
   const precedent = membrePrecedent(c.historique, membres);
+  // Combien de fois d'affilée le dernier membre vient-il de parler ? Le test
+  // grandeur nature du 29/08/2026 (simulation de 15 minutes sur un vrai
+  // dossier) a montré un rapporteur qui a pris 8 tours sur 12 malgré des
+  // réponses nettes, et une présidente muette de bout en bout : la règle
+  // souple « fais tourner la parole » ne suffit pas, on compte et on impose.
+  const repliques = c.historique.filter((m) => m.role === "assistant");
+  let dAffilee = 0;
+  for (let i = repliques.length - 1; i >= 0; i--) {
+    if (precedent && repliques[i]!.membre === precedent.id) dAffilee += 1;
+    else break;
+  }
+  const ontParle = new Set(repliques.map((m) => m.membre));
+  const muets = membres.filter((m) => !ontParle.has(m.id)).map((m) => m.id);
   const graine = Math.abs(Math.round(c.graine ?? 0));
   const ouvreur = membres[graine % membres.length]!;
   const angle = ANGLES_OUVERTURE[graine % ANGLES_OUVERTURE.length]!;
@@ -170,7 +183,7 @@ export function construirePromptTour(c: ContexteAppel, ecouleS: number): string 
   return [
     `Tu joues TOUT un jury d'oral, en direct, à la voix. ${langue}`,
     `LE JURY (${membres.length} personnes distinctes, qui ne cherchent pas la même chose) :\n${membres.map((m) => `- ${m.id} — ${m.nom} : ${m.role}. Ce qui l'intéresse : ${m.obsession}.`).join("\n")}`,
-    `À chaque tour, UNE SEULE personne parle. Choisis laquelle selon ce que le candidat vient de dire : celui dont c'est le domaine enchaîne. Fais tourner la parole, SAUF pour creuser : tant qu'une réponse reste vague, chiffrée sans protocole, ou à côté de la question, la même personne insiste — jusqu'à trois fois sur le même point, en resserrant à chaque fois. On ne change de sujet que lorsque la réponse est nette, ou que le candidat a reconnu qu'il ne sait pas. Elle reprend aussi la parole si le candidat n'a rien répondu (voir plus bas).${precedent ? ` La dernière personne à avoir parlé était « ${precedent.id} ».` : ""}`,
+    `À chaque tour, UNE SEULE personne parle. Choisis laquelle selon ce que le candidat vient de dire : celui dont c'est le domaine enchaîne. Fais tourner la parole, SAUF pour creuser : tant qu'une réponse reste vague, chiffrée sans protocole, ou à côté de la question, la même personne insiste — jusqu'à trois fois sur le même point, en resserrant à chaque fois. On ne change de sujet que lorsque la réponse est nette, ou que le candidat a reconnu qu'il ne sait pas. Elle reprend aussi la parole si le candidat n'a rien répondu (voir plus bas).${precedent ? ` La dernière personne à avoir parlé était « ${precedent.id} ».` : ""}${precedent && dAffilee >= 3 ? ` IMPÉRATIF : « ${precedent.id} » vient de poser ${dAffilee} questions d'affilée — il se tait maintenant et note ce qui lui manque pour le débrief. Ce tour-ci, le champ "membre" ne peut PAS être « ${precedent.id} » : un autre membre prend la parole, sur un aspect du dossier qui n'a pas encore été touché.` : ""}${muets.length > 0 && repliques.length >= 3 ? ` N'ont pas encore dit un mot : ${muets.map((m) => `« ${m} »`).join(", ")} — un oral où un membre du jury reste muet n'existe pas, fais-les entrer.` : ""}`,
     `Axes à couvrir au fil de l'oral (pas dans l'ordre, pas tous) : ${p.axes.map((a, i) => `${i + 1}) ${a}`).join(" ; ")}.`,
     "COMMENT ON PARLE : une seule question à la fois, une ou deux phrases, comme à l'oral. Réagis à ce qui vient d'être dit : si c'est vague, demande un exemple ou un chiffre précis ; si ça contredit le dossier, relève-le calmement en citant le dossier ; si c'est solide, dis-le en trois mots et passe à autre chose. Ne donne jamais la réponse. Ne commente jamais la forme (débit, hésitations, « euh »).",
     // Le client envoie « (silence) » quand le candidat n'a rien dit. Sans
@@ -198,7 +211,7 @@ ${c.contexte}`
     dejaPosees.length > 0 ? `DÉJÀ POSÉ lors de précédents entraînements — trouve autre chose :\n${dejaPosees.map((q: string) => `- ${q}`).join("\n")}` : "",
     `Temps : ${Math.round(ecouleS / 60)} min écoulées sur ${c.dureeMin}.`,
     phase === "conclusion"
-      ? 'C\'est la fin : la personne qui préside remercie, conclut en une phrase, et tu mets "fin" à true.'
+      ? `C'est la fin : c'est « ${membres[0]!.id} » qui parle. Remercie, conclus en une phrase — AUCUNE nouvelle question, sur rien — et mets "fin" à true.`
       : phase === "ouverture"
         ? `C'est le tout début. C'est « ${ouvreur.id} » (${ouvreur.nom}) qui ouvre, avec SA première question, formulée à sa manière. ${c.souvenirs ? "Il ouvre sur la mémoire du candidat : la première question restée sans bonne réponse, ou le point le plus faible." : `Angle imposé pour cette fois : ${angle}.`} Pas de préambule, pas de politesses : la question, directement.`
         : "Continue l'oral.",
@@ -231,6 +244,43 @@ export function parseTour(brut: string, mode: ModeAppel = "soutenance"): Tour | 
   } catch {
     return null;
   }
+}
+
+/**
+ * La parole non plus n'appartient pas au modèle. Le test du 29/08/2026 : même
+ * avec une consigne impérative et nominative dans le prompt (« le champ
+ * "membre" ne peut PAS être X »), le modèle a rendu X. Quand le même membre
+ * vient de poser trois questions d'affilée et que le modèle le renvoie
+ * encore, la route lui retire la parole : un membre encore muet la prend en
+ * priorité, sinon la personne qui préside, sinon le suivant dans l'ordre.
+ */
+export function membreDeRemplacement(historique: Message[], mode: ModeAppel, membreRendu: string): string | null {
+  const membres = MEMBRES[mode];
+  const repliques = historique.filter((m) => m.role === "assistant");
+  const dernier = repliques[repliques.length - 1]?.membre;
+  if (!dernier || membreRendu !== dernier) return null;
+  let dAffilee = 0;
+  for (let i = repliques.length - 1; i >= 0; i--) {
+    if (repliques[i]!.membre === dernier) dAffilee += 1;
+    else break;
+  }
+  if (dAffilee < 3) return null;
+  const ontParle = new Set(repliques.map((m) => m.membre));
+  const muet = membres.find((m) => !ontParle.has(m.id) && m.id !== dernier);
+  if (muet) return muet.id;
+  const president = membres[0]!;
+  if (president.id !== dernier) return president.id;
+  return membres.find((m) => m.id !== dernier)?.id ?? null;
+}
+
+/**
+ * La fin d'un appel n'appartient pas au modèle. Le test du 29/08/2026 : à
+ * 960 s d'un appel de 900, le jury posait encore des questions, "fin" jamais
+ * vrai — un appel réel n'aurait jamais raccroché. Passé 45 s au-delà du
+ * temps prévu, le code impose la fin, quoi que dise le modèle.
+ */
+export function finImposee(dureeMin: number, ecouleS: number): boolean {
+  return ecouleS - dureeMin * 60 >= 45;
 }
 
 /** Le membre par son identifiant, avec repli sur le premier du jury. */

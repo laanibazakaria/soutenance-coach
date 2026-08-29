@@ -28,7 +28,10 @@ export async function POST(request: Request) {
   if (fichier.size > TAILLE_MAX) return NextResponse.json({ erreur: "Segment trop lourd." }, { status: 413 });
 
   const essais: Array<{ nom: string; url: string; cle: string | undefined; modele: string }> = [
-    { nom: "groq", url: "https://api.groq.com/openai/v1/audio/transcriptions", cle: process.env.GROQ_API_KEY, modele: "whisper-large-v3-turbo" },
+    // large-v3 complet, pas turbo : sur des segments de 3-8 s, l'écart de
+    // latence est invisible et la précision (accents, termes techniques)
+    // est le vrai enjeu — retour de Zakaria : « pas bon à 100 % ».
+    { nom: "groq", url: "https://api.groq.com/openai/v1/audio/transcriptions", cle: process.env.GROQ_API_KEY, modele: process.env.GROQ_WHISPER_MODEL ?? "whisper-large-v3" },
     { nom: "mistral", url: "https://api.mistral.ai/v1/audio/transcriptions", cle: process.env.MISTRAL_API_KEY, modele: "voxtral-mini-latest" },
   ];
   for (const e of essais) {
@@ -38,6 +41,7 @@ export async function POST(request: Request) {
       fd.append("file", fichier, "segment.webm");
       fd.append("model", e.modele);
       fd.append("language", langue);
+      fd.append("temperature", "0");
       if (precedent && e.nom === "groq") fd.append("prompt", precedent);
       const r = await fetch(e.url, { method: "POST", headers: { authorization: `Bearer ${e.cle}` }, body: fd, signal: AbortSignal.timeout(20_000) });
       if (!r.ok) continue;

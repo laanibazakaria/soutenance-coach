@@ -360,7 +360,9 @@ function AppelInner() {
         // Une minute chargée côté serveur ou un réseau mobile qui tousse ne
         // doivent pas rendre un tour muet : une seconde chance avant le repli
         // (sur les appareils à synthèse cassée, le repli navigateur est muet).
-        if (!dit && !arreteRef.current) {
+        if (!dit && !arreteRef.current && !raisonVoixNaturelle().includes("429")) {
+          // Seconde chance — sauf quota fournisseur : re-frapper la même
+          // minute brûle deux requêtes de plus du même seau vide.
           deverrouillerAudio();
           await new Promise((r) => setTimeout(r, 1200));
           dit = await parlerNaturel(replique, langue, timbre);

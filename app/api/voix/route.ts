@@ -11,10 +11,16 @@ import { verifierQuota } from "@/lib/quota-serveur";
 const MODELE = process.env.GEMINI_TTS_MODEL ?? "gemini-3.1-flash-tts-preview";
 /** Quatre timbres nettement différents, un par membre du jury. */
 const VOIX = { grave: "Charon", claire: "Kore", vive: "Puck", posee: "Enceladus", jury: "Charon", recruteur: "Kore" } as const;
+/** Le seau du flux TTS vu à sec (429) : on l'évite dix minutes. */
+let fluxMortJusqua = 0;
+
 const cache = new Map<string, { pcm: Buffer; rate: number }>();
 
 export async function POST(request: Request) {
-  const cle = process.env.GEMINI_API_KEY;
+  // Une clé dédiée à la voix si elle existe : les quotas Google sont par
+  // projet, et séparer la voix du reste évite qu'un jour de tests LLM
+  // assèche le jury. À défaut, la clé commune.
+  const cle = process.env.GEMINI_TTS_KEY ?? process.env.GEMINI_API_KEY;
   if (!cle) return NextResponse.json({ erreur: "Voix indisponible." }, { status: 503 });
   // Vérifié mais jamais confirmé : la voix n'est pas décomptée — sinon dix
   // répliques videraient la moitié d'un mois — mais elle reste fermée à qui a
@@ -79,15 +85,20 @@ export async function POST(request: Request) {
   }
 
   let reponse: Response | null = null;
-  try {
-    reponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODELE}:streamGenerateContent?alt=sse&key=${encodeURIComponent(cle)}`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: corpsGemini,
-      signal: AbortSignal.timeout(30_000),
-    });
-  } catch {
-    reponse = null;
+  // Le seau du flux, une fois à sec, le reste un moment : inutile de brûler
+  // une requête du budget minuscule (2-3/min) pour re-vérifier à chaque tour.
+  if (Date.now() >= fluxMortJusqua) {
+    try {
+      reponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODELE}:streamGenerateContent?alt=sse&key=${encodeURIComponent(cle)}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: corpsGemini,
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch {
+      reponse = null;
+    }
+    if (reponse?.status === 429) fluxMortJusqua = Date.now() + 10 * 60_000;
   }
   if (!reponse?.ok || !reponse.body) {
     const secours = await viaNonFlux();

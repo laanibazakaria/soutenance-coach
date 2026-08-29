@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { countWords } from "@/lib/storage";
 import { mesurerAudio, type MesuresAudio } from "@/lib/audio/mesures";
-import { lexiqueDepuisAppareil } from "@/lib/lexique-appareil";
+import { decouper } from "@/lib/decoupe-voix";
+import { creerEcouteurNiveau, type EcouteurNiveau } from "./ecouteurNiveau";
 import { segmentsPreferes, noterSegmentsPreferes } from "@/lib/dictee";
 
 export type Phase = "idle" | "recording" | "stopped";
@@ -17,7 +18,9 @@ export function getRecognitionCtor(): SpeechRecognitionConstructor | null {
 
 const PAS_MESURE_MS = 100;
 
-const SEGMENT_MS = 3_000;
+/** Sans analyseur Web Audio, minuterie fixe ; sinon la coupe suit la voix. */
+const SEGMENT_FIXE_MS = 4_000;
+const FILET_SEGMENT_MS = 8_300;
 
 export interface Enregistrement {
   phase: Phase;
@@ -79,6 +82,7 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
   const audioCtxRef = useRef<AudioContext | null>(null);
   // Le repli par segments (navigateurs sans dictée, ou dictée native muette).
   const segRecRef = useRef<MediaRecorder | null>(null);
+  const ecouteurSegRef = useRef<EcouteurNiveau | null>(null);
   const segTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const basculeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resultatsRecusRef = useRef(false);
@@ -114,6 +118,8 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
     segTimerRef.current = null;
     if (basculeTimerRef.current) clearTimeout(basculeTimerRef.current);
     basculeTimerRef.current = null;
+    ecouteurSegRef.current?.fermer();
+    ecouteurSegRef.current = null;
     try {
       if (segRecRef.current && segRecRef.current.state !== "inactive") {
         flushFaitRef.current = false;
@@ -158,9 +164,41 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
     enr.ondataavailable = (e) => {
       if (e.data.size > 0) morceaux.push(e.data);
     };
+
+    // La coupe suit la voix : le segment se ferme à la pause, jamais en
+    // plein mot. Un segment sans parole ne part pas au serveur — c'est là
+    // que Whisper hallucine.
+    ecouteurSegRef.current ??= creerEcouteurNiveau(flux);
+    const ecouteur = ecouteurSegRef.current;
+    ecouteur?.nouveauSegment();
+    let contenaitParole = true;
+    let garde: ReturnType<typeof setInterval> | null = null;
+    const fermerSegment = () => {
+      if (garde) clearInterval(garde);
+      garde = null;
+      try {
+        if (enr.state === "recording") enr.stop();
+      } catch {
+        /* déjà arrêté */
+      }
+    };
+    if (ecouteur) {
+      garde = setInterval(() => {
+        const decision = decouper(ecouteur.niveaux());
+        if (decision === "continuer") return;
+        contenaitParole = decision === "couper";
+        fermerSegment();
+      }, 120);
+    }
+
     enr.onstop = () => {
+      if (garde) clearInterval(garde);
       // Le segment suivant démarre tout de suite : pas de trou d'écoute.
       if (!stoppingRef.current) tournerSegments();
+      if (!contenaitParole) {
+        flushFaitRef.current = true;
+        return;
+      }
       const blob = new Blob(morceaux, { type: type ?? "audio/webm" });
       if (blob.size < 200) {
         flushFaitRef.current = true;
@@ -169,8 +207,9 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
       const fd = new FormData();
       fd.append("audio", blob, "segment.webm");
       fd.append("langue", langue.startsWith("en") ? "en" : "fr");
-      const lexique = lexiqueDepuisAppareil(window.localStorage);
-      if (lexique) fd.append("lexique", lexique);
+      // La fin du texte déjà rendu, soufflée à Whisper : les phrases se
+      // recollent d'un segment à l'autre.
+      if (finalRef.current.trim()) fd.append("precedent", finalRef.current.trim().slice(-240));
       enVolRef.current += 1;
       flushFaitRef.current = true;
       fetch("/api/transcrire", { method: "POST", body: fd })
@@ -189,13 +228,7 @@ export function useEnregistrement(langue: Langue = "fr-FR"): Enregistrement {
         });
     };
     enr.start();
-    segTimerRef.current = setTimeout(() => {
-      try {
-        if (enr.state === "recording") enr.stop();
-      } catch {
-        /* déjà arrêté */
-      }
-    }, SEGMENT_MS);
+    segTimerRef.current = setTimeout(fermerSegment, ecouteur ? FILET_SEGMENT_MS : SEGMENT_FIXE_MS);
   }
 
   /** La dictée native a prouvé qu'elle ne rend rien ici : segments serveur. */

@@ -18,9 +18,12 @@ export async function POST(request: Request) {
   }
   const fichier = forme.get("audio");
   const langue = forme.get("langue") === "en" ? "en" : "fr";
-  // Le vocabulaire du dossier, soufflé à Whisper comme contexte : les sigles
-  // et noms propres (ENSIAS, Propulsez, RAG…) survivent à la transcription.
-  const lexique = typeof forme.get("lexique") === "string" ? (forme.get("lexique") as string).slice(0, 500) : "";
+  // La fin du texte déjà transcrit, soufflée à Whisper comme contexte : les
+  // phrases se recollent d'un segment à l'autre. (Un lexique de vocabulaire
+  // a été essayé le 30/08 et retiré le jour même : sur l'audio flou, Whisper
+  // « entendait » les mots soufflés — des termes jamais prononcés
+  // apparaissaient dans les réponses.)
+  const precedent = typeof forme.get("precedent") === "string" ? (forme.get("precedent") as string).slice(0, 300) : "";
   if (!(fichier instanceof Blob) || fichier.size < 200) return NextResponse.json({ texte: "" });
   if (fichier.size > TAILLE_MAX) return NextResponse.json({ erreur: "Segment trop lourd." }, { status: 413 });
 
@@ -35,7 +38,7 @@ export async function POST(request: Request) {
       fd.append("file", fichier, "segment.webm");
       fd.append("model", e.modele);
       fd.append("language", langue);
-      if (lexique && e.nom === "groq") fd.append("prompt", `Vocabulaire : ${lexique}.`);
+      if (precedent && e.nom === "groq") fd.append("prompt", precedent);
       const r = await fetch(e.url, { method: "POST", headers: { authorization: `Bearer ${e.cle}` }, body: fd, signal: AbortSignal.timeout(20_000) });
       if (!r.ok) continue;
       const j = (await r.json()) as { text?: string };

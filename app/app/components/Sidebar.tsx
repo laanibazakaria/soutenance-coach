@@ -127,11 +127,11 @@ export function Marque({ taille = 24 }: { taille?: number }) {
 }
 
 /** Les oraux (dossiers nommés) et l'actif — avec adoption d'un espace d'avant les dossiers. */
-function useOraux(): { oraux: Oral[]; actifId: string | null } {
-  const [etat, setEtat] = useState<{ oraux: Oral[]; actifId: string | null }>({ oraux: [], actifId: null });
+function useOraux(): { oraux: Oral[]; actif: Oral | null } {
+  const [etat, setEtat] = useState<{ oraux: Oral[]; actif: Oral | null }>({ oraux: [], actif: null });
   useEffect(() => {
     adopterEspaceExistant(window.localStorage);
-    const lire = () => setEtat({ oraux: listeOraux(window.localStorage), actifId: oralActif(window.localStorage)?.id ?? null });
+    const lire = () => setEtat({ oraux: listeOraux(window.localStorage), actif: oralActif(window.localStorage) });
     lire();
     return surSynchronisation(lire);
   }, []);
@@ -172,7 +172,8 @@ export default function Sidebar() {
   }, []);
   useEffect(() => setOuverte(false), [chemin]);
   const actifs = useModulesActifs();
-  const { oraux, actifId } = useOraux();
+  const { oraux, actif } = useOraux();
+  const actifId = actif?.id ?? null;
   const usage = useUsage();
   const admin = usage?.admin ?? false;
   const soutenanceActive = actifs.includes("soutenance") || actifs.length === 0;
@@ -207,14 +208,16 @@ export default function Sidebar() {
 
       <LienNav href="/app" label="Accueil" icone={I.accueil} actif={chemin === "/app"} />
 
-      <div className="sidebar-section">Le chemin</div>
+      <div className={`sidebar-section${actif ? " sidebar-section-oral" : ""}`}>
+        {actif ? `${actif.type === "soutenance" ? "🎓" : "💼"} ${actif.nom}` : "Le chemin"}
+      </div>
       {soutenanceActive ? (
-        <LienNav href="/app/documents" etape={1} label="Dépose tes documents" icone={I.documents} actif={chemin.startsWith("/app/documents")} faite={etape1Faite} />
+        <LienNav href="/app/documents" etape={1} label="Documents" icone={I.documents} actif={chemin.startsWith("/app/documents")} faite={etape1Faite} />
       ) : (
-        <LienNav href="/app/entretien" etape={1} label="Renseigne CV et offre" icone={I.documents} actif={false} faite={etape1Faite} />
+        <LienNav href="/app/entretien" etape={1} label="CV et offre" icone={I.documents} actif={false} faite={etape1Faite} />
       )}
-      <LienNav href="/app/appel" etape={2} label={soutenanceActive ? "Appelle ton jury" : "Appelle le recruteur"} icone={I.appel} actif={chemin.startsWith("/app/appel")} faite={etape2Faite} />
-      <LienNav href="/app/bilan" etape={3} label="Suis ta progression" icone={I.sessions} actif={chemin.startsWith("/app/bilan")} />
+      <LienNav href="/app/appel" etape={2} label={soutenanceActive ? "Appel du jury" : "Appel du recruteur"} icone={I.appel} actif={chemin.startsWith("/app/appel")} faite={etape2Faite} />
+      <LienNav href="/app/bilan" etape={3} label="Progression" icone={I.sessions} actif={chemin.startsWith("/app/bilan")} />
 
       <div className="sidebar-section">Chaque jour</div>
       <LienNav href="/app/question-du-jour" label="La question du jour" icone={I.jour} actif={chemin.startsWith("/app/question-du-jour")} />

@@ -1011,6 +1011,9 @@ body.appel-en-cours .module-tabs { display: none; }
 .installer-app { display: block; width: 100%; margin: 0 0 10px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 10px; background: none; color: var(--muted); font-size: 0.85rem; cursor: pointer; text-align: left; }
 .installer-app:hover { color: var(--ink); border-color: var(--muted); }
 
+/* La section qui porte le nom du dossier actif : une identité, pas un libellé. */
+.sidebar-section-oral { text-transform: none; letter-spacing: 0; font-size: 0.92rem; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* Mes oraux : des dossiers nommés, dans la barre et sur leur page. */
 .sidebar-oral { width: 100%; text-align: left; background: none; border: none; cursor: pointer; font: inherit; }
 .sidebar-oral-nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

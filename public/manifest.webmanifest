@@ -1,16 +1,36 @@
 {
+  "id": "/app",
   "name": "SoutenanceCoach",
   "short_name": "SoutenanceCoach",
-  "description": "Prépare ta soutenance, ton entretien, ton pitch, ton oral de concours — avec des chiffres, pas des impressions.",
+  "description": "Un jury de quatre voix lit ton dossier ligne à ligne et t'appelle : soutenance et entretien, notés par du code, pas par des impressions.",
   "start_url": "/app",
   "scope": "/",
   "display": "standalone",
   "background_color": "#fafafa",
-  "theme_color": "#0f766e",
+  "theme_color": "#fafafa",
   "lang": "fr",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
   ]
 }

@@ -1007,6 +1007,10 @@ body.appel-en-cours .module-tabs { display: none; }
   .revision-carte { break-inside: avoid; }
 }
 
+/* « Installer l'app » : un lien discret, pas un panneau publicitaire. */
+.installer-app { display: block; width: 100%; margin: 0 0 10px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 10px; background: none; color: var(--muted); font-size: 0.85rem; cursor: pointer; text-align: left; }
+.installer-app:hover { color: var(--ink); border-color: var(--muted); }
+
 /* Le diagnostic de l'appareil : des verdicts qu'on lit sur une capture floue. */
 .diagnostic .btn { margin: 14px 0 6px; }
 .diag-liste { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }

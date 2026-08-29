@@ -5,6 +5,40 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useUsage } from "@/lib/usage-client";
+
+/** L'événement d'installation PWA, absent des types du DOM. */
+interface EvenementInstallation extends Event {
+  prompt: () => Promise<void>;
+}
+
+/**
+ * « Installer l'app » : visible seulement quand le navigateur propose
+ * vraiment l'installation (Chrome Android, Edge, desktop). Une fois
+ * installée, l'événement ne revient plus — le bouton disparaît seul.
+ */
+function InstallerApp() {
+  const [invite, setInvite] = useState<EvenementInstallation | null>(null);
+  useEffect(() => {
+    const capter = (e: Event) => {
+      e.preventDefault();
+      setInvite(e as EvenementInstallation);
+    };
+    window.addEventListener("beforeinstallprompt", capter);
+    return () => window.removeEventListener("beforeinstallprompt", capter);
+  }, []);
+  if (!invite) return null;
+  return (
+    <button
+      className="installer-app"
+      onClick={() => {
+        void invite.prompt();
+        setInvite(null);
+      }}
+    >
+      📲 Installer l&apos;app sur cet appareil
+    </button>
+  );
+}
 import { useEtatApp, oralPrioritaire } from "../hooks/useEtatApp";
 import { useEtatSync, libelleSync } from "./SyncCompte";
 import { Avatar, libelleForfait } from "./BarreHaut";
@@ -236,6 +270,7 @@ function PiedUtilisateur() {
   const ratio = usage && usage.limite > 0 ? Math.min(1, usage.appels / usage.limite) : 0;
   return (
     <div className="sidebar-pied">
+      <InstallerApp />
       {connecte ? (
         <Link href="/app/connexion" className="sidebar-user">
           <Avatar nom={session?.user?.name} image={session?.user?.image} />

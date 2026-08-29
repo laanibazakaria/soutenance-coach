@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { nettoyerTranscription } from "@/lib/transcription";
 
 /**
  * Transcription d'un segment audio (3 à 5 s) pour les navigateurs sans
@@ -34,10 +35,11 @@ export async function POST(request: Request) {
       const r = await fetch(e.url, { method: "POST", headers: { authorization: `Bearer ${e.cle}` }, body: fd, signal: AbortSignal.timeout(20_000) });
       if (!r.ok) continue;
       const j = (await r.json()) as { text?: string };
-      const texte = (j.text ?? "").trim();
-      // Whisper hallucine des remerciements sur le silence : on les ignore.
-      const bruit = /^(merci|thank you|thanks|sous-titrage|amara\.org|\.|\s)*$/i;
-      return NextResponse.json({ texte: bruit.test(texte) ? "" : texte, fournisseur: e.nom });
+      // Whisper hallucine des phrases de fin de vidéo sur le silence — vu en
+      // vrai : « Sous-titrage Société Radio-Canada » en boucle dans une
+      // réponse. Le nettoyage retire ces phrases où qu'elles soient.
+      const texte = nettoyerTranscription((j.text ?? "").trim());
+      return NextResponse.json({ texte, fournisseur: e.nom });
     } catch {
       /* fournisseur suivant */
     }

@@ -11,7 +11,42 @@ import { useEffect, useState } from "react";
 
 type Verdict = { nom: string; ok: boolean | null; detail: string };
 
-const VERSION_DIAG = "diag-2026-08-29-a";
+const VERSION_DIAG = "diag-2026-08-29-b";
+
+/**
+ * L'état de la mémoire de panne (sc.dictee.segments) : quand elle est posée,
+ * TOUTES les pages écoutent par segments serveur. La montrer — et permettre
+ * de la retirer — évite de chercher un bug là où il y a juste un drapeau.
+ */
+function BasculeDictee() {
+  const [posee, setPosee] = useState(false);
+  useEffect(() => {
+    try {
+      setPosee(window.localStorage.getItem("sc.dictee.segments") === "1");
+    } catch {
+      /* stockage indisponible */
+    }
+  }, []);
+  if (!posee) return <p className="report-note a-gauche">Dictée du téléphone utilisée en direct (aucune bascule serveur mémorisée).</p>;
+  return (
+    <p className="report-note a-gauche">
+      ⚠ Cet appareil est marqué « dictée en panne » : toutes les pages transcrivent PAR LE SERVEUR (texte par vagues de ~3 s).{" "}
+      <button
+        className="btn ghost"
+        onClick={() => {
+          try {
+            window.localStorage.removeItem("sc.dictee.segments");
+          } catch {
+            /* stockage indisponible */
+          }
+          setPosee(false);
+        }}
+      >
+        Re-tester la dictée du téléphone
+      </button>
+    </p>
+  );
+}
 
 export default function DiagnosticPage() {
   const [verdicts, setVerdicts] = useState<Verdict[]>([]);
@@ -79,7 +114,11 @@ export default function DiagnosticPage() {
         rec.addEventListener("audiostart", () => {
           vivante = true;
         });
-        rec.onresult = () => fin(true, "elle transcrit — dis un mot pour la voir");
+        rec.onresult = (ev: SpeechRecognitionEvent) => {
+          let entendu = "";
+          for (let i = 0; i < ev.results.length; i++) entendu += ev.results[i]![0]!.transcript;
+          if (entendu.trim()) fin(true, `elle entend : « ${entendu.trim().slice(0, 60)} »`);
+        };
         rec.onerror = (ev: SpeechRecognitionErrorEvent) => fin(false, `erreur « ${ev.error} » — le repli serveur prendra la suite`);
         window.setTimeout(() => fin(vivante, vivante ? "démarrée et à l'écoute (parle pour vérifier la transcription)" : "ne démarre jamais — le repli serveur prendra la suite"), 6000);
         try {
@@ -100,6 +139,61 @@ export default function DiagnosticPage() {
       ok: Boolean(typeSupporte),
       detail: typeSupporte ? `disponible (${typeSupporte})` : "MediaRecorder indisponible",
     });
+
+    // ── 3 bis. La chaîne de transcription serveur, DE BOUT EN BOUT : on
+    //    enregistre 4 s (parle !), on envoie à /api/transcrire, on montre le
+    //    texte rendu. C'est le circuit qu'utilise le repli sur téléphone —
+    //    si un maillon casse (deux enregistreurs, format, réseau, Groq),
+    //    ce verdict le nomme.
+    if (typeSupporte) {
+      const verdictTr = await new Promise<Verdict>((res) => {
+        void (async () => {
+          let flux: MediaStream | null = null;
+          try {
+            flux = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const enr = new MediaRecorder(flux, { mimeType: typeSupporte });
+            const morceaux: Blob[] = [];
+            enr.ondataavailable = (e) => {
+              if (e.data.size > 0) morceaux.push(e.data);
+            };
+            enr.onstop = () => {
+              void (async () => {
+                flux?.getTracks().forEach((t) => t.stop());
+                const blob = new Blob(morceaux, { type: typeSupporte });
+                if (blob.size < 200) return res({ nom: "Transcription serveur", ok: false, detail: `enregistrement quasi vide (${blob.size} octets) — le micro capte-t-il ?` });
+                const fd = new FormData();
+                fd.append("audio", blob, "segment.webm");
+                fd.append("langue", "fr");
+                const debut = Date.now();
+                try {
+                  const r = await fetch("/api/transcrire", { method: "POST", body: fd, signal: AbortSignal.timeout(25_000) });
+                  const j = (await r.json()) as { texte?: string; erreur?: string };
+                  if (!r.ok) return res({ nom: "Transcription serveur", ok: false, detail: `réponse ${r.status} : ${j.erreur ?? "?"}` });
+                  const texte = (j.texte ?? "").trim();
+                  res(texte
+                    ? { nom: "Transcription serveur", ok: true, detail: `en ${((Date.now() - debut) / 1000).toFixed(1)} s, il a entendu : « ${texte.slice(0, 70)} »` }
+                    : { nom: "Transcription serveur", ok: false, detail: `le serveur a répondu en ${((Date.now() - debut) / 1000).toFixed(1)} s mais n'a rien entendu — as-tu parlé pendant les 4 s ?` });
+                } catch (e) {
+                  res({ nom: "Transcription serveur", ok: false, detail: `envoi impossible (${(e as Error).name})` });
+                }
+              })();
+            };
+            enr.start();
+            window.setTimeout(() => {
+              try {
+                if (enr.state === "recording") enr.stop();
+              } catch {
+                /* déjà arrêté */
+              }
+            }, 4000);
+          } catch (e) {
+            flux?.getTracks().forEach((t) => t.stop());
+            res({ nom: "Transcription serveur", ok: false, detail: `enregistreur impossible (${(e as Error).message})` });
+          }
+        })();
+      });
+      pousser(verdictTr);
+    }
 
     // ── 4. Le contexte audio — déverrouillé ici même, dans le geste du bouton.
     try {
@@ -170,6 +264,7 @@ export default function DiagnosticPage() {
         <b>envoie une capture d&apos;écran du résultat</b>.
       </p>
       <p className="report-note a-gauche">{sw}</p>
+      <BasculeDictee />
 
       <button className="btn primary big" onClick={() => void lancer()} disabled={enCours}>
         {enCours ? "Diagnostic en cours… (écoute le bip et la phrase)" : "Lancer le diagnostic"}

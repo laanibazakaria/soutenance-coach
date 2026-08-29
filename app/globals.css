@@ -1007,6 +1007,15 @@ body.appel-en-cours .module-tabs { display: none; }
   .revision-carte { break-inside: avoid; }
 }
 
+/* Le diagnostic de l'appareil : des verdicts qu'on lit sur une capture floue. */
+.diagnostic .btn { margin: 14px 0 6px; }
+.diag-liste { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.diag-liste li { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 3px; }
+.diag-liste b { font-size: 0.95rem; }
+.diag-liste small { font-size: 0.86rem; color: var(--muted); }
+.diag-ok { border-left: 3px solid var(--ok); }
+.diag-ko { border-left: 3px solid var(--danger); }
+
 /* Les pages hors-piste : 404 et erreur. Elles se rendent hors de la coquille de
    l'application (pas de barre latérale), donc elles portent leur propre mise
    en page — centrée, sobre, avec une sortie claire. */

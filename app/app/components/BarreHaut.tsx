@@ -196,6 +196,14 @@ function Cloche() {
 
 /** La barre du haut : recherche, forfait, cloche, avatar — logo et cloche sur mobile. */
 export default function BarreHaut() {
+  // Les service workers de l'époque des notifications push survivent à leur
+  // suppression du code : tant qu'ils restent enregistrés, ils peuvent servir
+  // une vieille version de l'app. On les désinscrit une fois pour toutes.
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    void navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => void r.unregister()));
+  }, []);
+
   const { data: session, status } = useSession();
   const usage = useUsage();
   const connecte = status === "authenticated" && !!session?.user;

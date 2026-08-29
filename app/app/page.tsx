@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { listSessions } from "@/lib/storage";
 import type { SessionRecord } from "@/lib/types";
 import { TOUS_LES_MODULES, lireModulesActifs, sauverModulesActifs, resumerModules, type ModuleActif, type ResumeModule } from "@/lib/preferences";
+import { oralActif } from "@/lib/oraux";
 import { pousserTout, surSynchronisation, signalerSynchronisation } from "@/lib/sync/client";
 import { lireCache } from "@/lib/ia-cache";
 import { lireCandidature } from "@/lib/entretien/persistance";
@@ -50,7 +51,10 @@ function AccueilInner() {
       const a = lireModulesActifs(window.localStorage);
       setSessions(s);
       setActifs(a);
-      setResumes(a ? resumerModules(window.localStorage, s, a) : []);
+      const oral = oralActif(window.localStorage);
+      // La carte porte le nom du dossier (« Ma soutenance de PFA »), pas le
+      // type générique — c'est le dossier qu'on continue, pas une catégorie.
+      setResumes((a ? resumerModules(window.localStorage, s, a) : []).map((r) => (oral && r.id === oral.type ? { ...r, nom: oral.nom } : r)));
       setSerie(lireCache<Serie>(window.localStorage, "serie"));
       setMaintenant(new Date());
       // Le jury n'interroge pas à l'aveugle : sans dossier, l'appel refuse. Autant

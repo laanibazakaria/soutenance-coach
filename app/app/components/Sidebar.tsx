@@ -126,6 +126,72 @@ export function Marque({ taille = 24 }: { taille?: number }) {
   );
 }
 
+/**
+ * Le sélecteur de dossier, en tête de barre — le standard des plateformes
+ * multi-espaces (Notion, Slack, Linear) : l'espace de travail courant est un
+ * bouton déroulant tout en haut, la navigation en dessous lui appartient.
+ */
+function SelecteurOral({ oraux, actif }: { oraux: Oral[]; actif: Oral | null }) {
+  const [ouvert, setOuvert] = useState(false);
+  useEffect(() => {
+    if (!ouvert) return;
+    const fermer = () => setOuvert(false);
+    // Au prochain clic n'importe où, le menu se referme (le clic sur un item
+    // navigue avant, via onMouseDown ci-dessous).
+    window.addEventListener("click", fermer);
+    return () => window.removeEventListener("click", fermer);
+  }, [ouvert]);
+  return (
+    <div className="oral-selecteur-conteneur">
+      <button
+        type="button"
+        className="oral-selecteur"
+        aria-haspopup="menu"
+        aria-expanded={ouvert}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOuvert((o) => !o);
+        }}
+      >
+        <span className="sidebar-icone">{actif ? (actif.type === "soutenance" ? I.soutenance : I.entretien) : I.plus}</span>
+        <span className="oral-selecteur-nom">{actif ? actif.nom : "Choisir un oral"}</span>
+        <span className="oral-selecteur-chevron" aria-hidden="true">
+          ▾
+        </span>
+      </button>
+      {ouvert && (
+        <div className="oral-menu" role="menu">
+          {oraux.map((o) => (
+            <button
+              key={o.id}
+              type="button"
+              role="menuitem"
+              className={`oral-menu-item${o.id === actif?.id ? " actif" : ""}`}
+              onMouseDown={() => {
+                if (o.id === actif?.id) return setOuvert(false);
+                basculerSurOral(window.localStorage, o.id);
+                window.location.assign("/app");
+              }}
+            >
+              <span className="sidebar-icone">{o.type === "soutenance" ? I.soutenance : I.entretien}</span>
+              <span className="oral-selecteur-nom">{o.nom}</span>
+              {o.id === actif?.id && <span aria-hidden="true">✓</span>}
+            </button>
+          ))}
+          {oraux.length > 0 && <div className="oral-menu-separateur" role="separator" />}
+          <Link href="/app/oraux" role="menuitem" className="oral-menu-item">
+            <span className="sidebar-icone">{I.plus}</span>
+            Nouvel oral
+          </Link>
+          <Link href="/app/oraux" role="menuitem" className="oral-menu-item oral-menu-gerer">
+            Gérer mes oraux
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Les oraux (dossiers nommés) et l'actif — avec adoption d'un espace d'avant les dossiers. */
 function useOraux(): { oraux: Oral[]; actif: Oral | null } {
   const [etat, setEtat] = useState<{ oraux: Oral[]; actif: Oral | null }>({ oraux: [], actif: null });
@@ -174,7 +240,6 @@ export default function Sidebar() {
   useEffect(() => setOuverte(false), [chemin]);
   const actifs = useModulesActifs();
   const { oraux, actif } = useOraux();
-  const actifId = actif?.id ?? null;
   const usage = useUsage();
   const admin = usage?.admin ?? false;
   const soutenanceActive = actifs.includes("soutenance") || actifs.length === 0;
@@ -207,11 +272,10 @@ export default function Sidebar() {
         <Marque taille={26} />
       </div>
 
+      <SelecteurOral oraux={oraux} actif={actif} />
+
       <LienNav href="/app" label="Accueil" icone={I.accueil} actif={chemin === "/app"} />
 
-      <div className={`sidebar-section${actif ? " sidebar-section-oral" : ""}`}>
-        {actif ? actif.nom : "Le chemin"}
-      </div>
       {soutenanceActive ? (
         <LienNav href="/app/documents" etape={1} label="Documents" icone={I.documents} actif={chemin.startsWith("/app/documents")} faite={etape1Faite} />
       ) : (
@@ -225,25 +289,6 @@ export default function Sidebar() {
       <LienNav href="/app/sessions" label="Sessions" icone={I.sessions} actif={chemin.startsWith("/app/sessions")} />
       <LienNav href="/app/revision" label="Révision" icone={I.guides} actif={chemin.startsWith("/app/revision")} />
       <LienNav href="/app/guides" label="Guides" icone={I.guides} actif={chemin === "/app/guides"} />
-
-      <div className="sidebar-section">Mes oraux</div>
-      {oraux.filter((o) => o.id !== actifId).map((o) => (
-        <button
-          key={o.id}
-          type="button"
-          className="sidebar-link sidebar-oral"
-          onClick={() => {
-            // Basculer d'oral recharge l'app entière : chaque page relit son
-            // espace de travail au chargement, aucun état ne survit à tort.
-            basculerSurOral(window.localStorage, o.id);
-            window.location.assign("/app");
-          }}
-        >
-          <span className="sidebar-icone">{o.type === "soutenance" ? I.soutenance : I.entretien}</span>
-          <span className="sidebar-oral-nom">{o.nom}</span>
-        </button>
-      ))}
-      <LienNav href="/app/oraux" label={oraux.length === 0 ? "Commencer un oral" : "Nouvel oral"} icone={I.plus} actif={chemin.startsWith("/app/oraux")} />
 
       {admin && <LienNav href="/app/admin" label="Admin" icone={I.admin} actif={chemin.startsWith("/app/admin")} />}
 

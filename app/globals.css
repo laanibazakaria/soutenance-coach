@@ -1014,6 +1014,19 @@ body.appel-en-cours .module-tabs { display: none; }
 /* La section qui porte le nom du dossier actif : une identité, pas un libellé. */
 .sidebar-section-oral { text-transform: none; letter-spacing: 0; font-size: 0.92rem; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* Le sélecteur d'oral, en tête de barre — le standard des multi-espaces. */
+.oral-selecteur-conteneur { position: relative; margin: 2px 0 10px; }
+.oral-selecteur { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); font: inherit; font-weight: 700; font-size: 0.92rem; color: var(--ink); cursor: pointer; text-align: left; }
+.oral-selecteur:hover { border-color: var(--muted); }
+.oral-selecteur-nom { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oral-selecteur-chevron { color: var(--muted); font-size: 0.8rem; }
+.oral-menu { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 60; background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 10px 30px rgba(15, 30, 30, 0.12); padding: 6px; display: flex; flex-direction: column; }
+.oral-menu-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: none; border-radius: 8px; background: none; font: inherit; font-size: 0.9rem; color: var(--ink); cursor: pointer; text-align: left; text-decoration: none; }
+.oral-menu-item:hover { background: var(--bg); }
+.oral-menu-item.actif { font-weight: 700; }
+.oral-menu-separateur { height: 1px; background: var(--line); margin: 6px 4px; }
+.oral-menu-gerer { color: var(--muted); font-size: 0.85rem; }
+
 /* Mes oraux : des dossiers nommés, dans la barre et sur leur page. */
 .sidebar-oral { width: 100%; text-align: left; background: none; border: none; cursor: pointer; font: inherit; }
 .sidebar-oral-nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

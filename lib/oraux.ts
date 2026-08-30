@@ -37,6 +37,8 @@ const PREFIXES_ESPACE = ["sc.deck.v1", "sc.candidature.v1", "sc.sessions.v1", "s
 interface Registre {
   actif: string | null;
   liste: Oral[];
+  /** Pierres tombales : les oraux supprimés, pour que la synchronisation ne les ressuscite pas. */
+  supprimes?: Array<{ id: string; quand: string }>;
 }
 
 type StorageEnumerable = StorageLike & { length: number; key(i: number): string | null; removeItem(cle: string): void };
@@ -47,7 +49,11 @@ function lireRegistre(storage: StorageLike): Registre {
     if (!brut) return { actif: null, liste: [] };
     const j = JSON.parse(brut) as Registre;
     if (!Array.isArray(j.liste)) return { actif: null, liste: [] };
-    return { actif: typeof j.actif === "string" ? j.actif : null, liste: j.liste.filter((o) => o && typeof o.id === "string" && typeof o.nom === "string") };
+    return {
+      actif: typeof j.actif === "string" ? j.actif : null,
+      liste: j.liste.filter((o) => o && typeof o.id === "string" && typeof o.nom === "string"),
+      supprimes: Array.isArray(j.supprimes) ? j.supprimes.filter((t) => t && typeof t.id === "string").slice(-100) : [],
+    };
   } catch {
     return { actif: null, liste: [] };
   }
@@ -169,14 +175,17 @@ export function supprimerOral(storage: StorageLike, id: string): void {
   const r = lireRegistre(storage);
   if (!r.liste.some((o) => o.id === id)) return;
   const liste = r.liste.filter((o) => o.id !== id);
+  // La pierre tombale : sans elle, la synchronisation ressusciterait l'oral
+  // depuis le compte à la visite suivante (vu en vrai le 30/08).
+  const supprimes = [...(r.supprimes ?? []), { id, quand: horodatage() }].slice(-100);
   if (r.actif === id) {
     geler(storage); // jeté, pas archivé : c'est une suppression
     const suivant = [...liste].sort((a, b) => (a.vuLe < b.vuLe ? 1 : -1))[0] ?? null;
     if (suivant) reveiller(storage, suivant.id);
-    ecrireRegistre(storage, { actif: suivant?.id ?? null, liste });
+    ecrireRegistre(storage, { actif: suivant?.id ?? null, liste, supprimes });
   } else {
     (storage as StorageEnumerable).removeItem(PREFIXE_ARCHIVE + id);
-    ecrireRegistre(storage, { actif: r.actif, liste });
+    ecrireRegistre(storage, { actif: r.actif, liste, supprimes });
   }
 }
 
@@ -234,9 +243,23 @@ export function fusionnerMondeOraux(storage: StorageLike, distantRegistre: unkno
   }
   const local = lireRegistre(storage);
   const parId = new Map<string, Oral>(local.liste.map((o) => [o.id, o]));
+  const tombalesLocales = new Set((local.supprimes ?? []).map((t) => t.id));
+  const tombalesDistantes = (Array.isArray(distant.supprimes) ? distant.supprimes : []).filter((t) => t && typeof t.id === "string");
+
+  // Les tombales du compte s'appliquent ici : un oral endormi supprimé
+  // ailleurs disparaît aussi de cet appareil. L'oral ACTIF est épargné —
+  // on ne détruit jamais l'espace où quelqu'un travaille.
+  for (const t of tombalesDistantes) {
+    const ici = parId.get(t.id);
+    if (ici && t.id !== local.actif && ici.vuLe <= t.quand) {
+      parId.delete(t.id);
+      (storage as StorageEnumerable).removeItem(PREFIXE_ARCHIVE + t.id);
+    }
+  }
 
   for (const d of distant.liste) {
     if (!d || typeof d.id !== "string") continue;
+    if (tombalesLocales.has(d.id)) continue; // supprimé ici : pas de résurrection
     const connu = parId.get(d.id);
     if (!connu) {
       // Même nom et type sous un autre identifiant : doublon de migration.
@@ -265,7 +288,13 @@ export function fusionnerMondeOraux(storage: StorageLike, distantRegistre: unkno
       }
     }
   }
-  ecrireRegistre(storage, { actif: local.actif, liste: [...parId.values()] });
+  // Union des tombales (bornée) : chaque appareil apprend les suppressions des autres.
+  const toutes = new Map<string, { id: string; quand: string }>();
+  for (const t of [...(local.supprimes ?? []), ...tombalesDistantes]) {
+    const deja = toutes.get(t.id);
+    if (!deja || deja.quand < t.quand) toutes.set(t.id, t);
+  }
+  ecrireRegistre(storage, { actif: local.actif, liste: [...parId.values()], supprimes: [...toutes.values()].slice(-100) });
 }
 
 /**

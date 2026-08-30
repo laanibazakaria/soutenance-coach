@@ -241,3 +241,37 @@ describe("fermer le dossier actif (le bureau du matin)", () => {
     expect(fermerOralActif(st)).toBe(false);
   });
 });
+
+describe("les pierres tombales de la synchronisation", () => {
+  it("un oral supprimé ici ne ressuscite pas depuis le compte", () => {
+    const st = fauxStorage();
+    creerOral(st, "Garde", "soutenance");
+    const mort = creerOral(st, "Doublon", "entretien");
+    supprimerOral(st, mort.id);
+    const registreDistant = JSON.stringify({ actif: null, liste: [
+      { id: mort.id, nom: "Doublon", type: "entretien", creeLe: "2026-08-29", vuLe: "2026-08-29" },
+    ] });
+    fusionnerMondeOraux(st, registreDistant, { [mort.id]: JSON.stringify({ "sc.candidature.v1": "revenant" }) });
+    expect(listeOraux(st).map((o) => o.nom)).toEqual(["Garde"]);
+    expect(archiveBrute(st, mort.id)).toBeNull();
+  });
+
+  it("une tombale venue du compte supprime l'oral endormi ici — jamais l'actif", () => {
+    const st = fauxStorage();
+    const garde = creerOral(st, "Actif", "soutenance");
+    st.setItem("sc.oraux.v1", JSON.stringify({ actif: garde.id, liste: [
+      garde,
+      { id: "dormeur", nom: "Dormeur", type: "entretien", creeLe: "2026-08-29", vuLe: "2026-08-29" },
+    ] }));
+    st.setItem("sc.oral.v1:dormeur", JSON.stringify({ "sc.candidature.v1": "x" }));
+    const registreDistant = JSON.stringify({ actif: null, liste: [], supprimes: [
+      { id: "dormeur", quand: "2026-08-30" },
+      { id: garde.id, quand: "2026-08-30" },
+    ] });
+    fusionnerMondeOraux(st, registreDistant, {});
+    const noms = listeOraux(st).map((o) => o.nom);
+    expect(noms).toContain("Actif"); // l'actif est épargné
+    expect(noms).not.toContain("Dormeur");
+    expect(archiveBrute(st, "dormeur")).toBeNull();
+  });
+});

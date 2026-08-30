@@ -43,7 +43,7 @@ import { useEtatApp, oralPrioritaire } from "../hooks/useEtatApp";
 import { useEtatSync, libelleSync } from "./SyncCompte";
 import { Avatar, libelleForfait } from "./BarreHaut";
 import { lireModulesActifs, type ModuleActif } from "@/lib/preferences";
-import { listeOraux, oralActif, basculerSurOral, adopterEspaceExistant, type Oral } from "@/lib/oraux";
+import { listeOraux, oralActif, basculerSurOral, adopterEspaceExistant, reparerHeritageMelange, type Oral } from "@/lib/oraux";
 import { surSynchronisation } from "@/lib/sync/client";
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCandidature } from "@/lib/entretien/persistance";
@@ -130,6 +130,7 @@ export function Marque({ taille = 24 }: { taille?: number }) {
 function useOraux(): { oraux: Oral[]; actif: Oral | null } {
   const [etat, setEtat] = useState<{ oraux: Oral[]; actif: Oral | null }>({ oraux: [], actif: null });
   useEffect(() => {
+    reparerHeritageMelange(window.localStorage);
     adopterEspaceExistant(window.localStorage);
     const lire = () => setEtat({ oraux: listeOraux(window.localStorage), actif: oralActif(window.localStorage) });
     lire();

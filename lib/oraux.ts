@@ -180,25 +180,129 @@ export function supprimerOral(storage: StorageLike, id: string): void {
   }
 }
 
-/** Devine le type d'un espace d'avant les oraux, d'après ce qu'il contient. */
-export function typeDevine(storage: StorageLike): TypeOral {
-  const deck = storage.getItem("sc.deck.v1");
-  const rapport = storage.getItem("sc.ia.v1:rapport:texte");
-  if (deck || rapport) return "soutenance";
-  return storage.getItem("sc.candidature.v1") ? "entretien" : "soutenance";
+/**
+ * Réparation : les appareils passés par la PREMIÈRE adoption (avant le
+ * découpage) ont un dossier unique, actif, au nom d'adoption, qui mélange
+ * encore soutenance et entretien — le mal qu'on voulait guérir. On le
+ * détecte aux deux marqueurs présents à la fois, on désadopte, et le
+ * découpage refait le travail proprement.
+ */
+export function reparerHeritageMelange(storage: StorageLike): void {
+  const r = lireRegistre(storage);
+  if (r.liste.length !== 1 || r.actif !== r.liste[0]!.id) return;
+  const o = r.liste[0]!;
+  if (o.nom !== "Ma soutenance" && o.nom !== "Mon entretien") return;
+  const aSoutenance = storage.getItem("sc.deck.v1") !== null || storage.getItem("sc.ia.v1:rapport:texte") !== null;
+  const aEntretien = storage.getItem("sc.candidature.v1") !== null;
+  if (!aSoutenance || !aEntretien) return;
+  (storage as StorageEnumerable).removeItem(CLE_REGISTRE);
+  adopterEspaceExistant(storage);
+}
+
+/** Les clés qui appartiennent sans ambiguïté à la soutenance. */
+function estCleSoutenance(k: string): boolean {
+  return (
+    k === "sc.deck.v1" ||
+    k === "sc.ia.v1:rapport:texte" ||
+    k === "sc.parcours.v1" ||
+    k.startsWith("sc.ia.v1:relecture:") ||
+    k.startsWith("sc.ia.v1:blanche:") ||
+    k.startsWith("sc.ia.v1:coach:") ||
+    k.startsWith("sc.ia.v1:fiches-etats:") ||
+    k.startsWith("sc.ia.v1:appel-lecture:soutenance")
+  );
+}
+
+/** Les clés qui appartiennent sans ambiguïté à l'entretien. */
+function estCleEntretien(k: string): boolean {
+  return k === "sc.candidature.v1" || k.startsWith("sc.ia.v1:appel-lecture:entretien") || k.startsWith("sc.ia.v1:questions");
+}
+
+/** Le mode d'un enregistrement (appel, session), enveloppe de cache ou non. */
+function modeDe(brut: string): TypeOral | null {
+  try {
+    const j = JSON.parse(brut) as { mode?: unknown; donnee?: { mode?: unknown } };
+    const m = (j.donnee && typeof j.donnee === "object" ? j.donnee.mode : undefined) ?? j.mode;
+    return m === "entretien" ? "entretien" : m === "soutenance" ? "soutenance" : null;
+  } catch {
+    return null;
+  }
+}
+
+/** La préférence de module telle que l'app la stocke, prête pour une archive. */
+function envelopperModules(storage: StorageLike, type: TypeOral): string | null {
+  sauverModulesActifs(storage, [type]);
+  const v = storage.getItem("sc.ia.v1:preferences:modules");
+  (storage as StorageEnumerable).removeItem("sc.ia.v1:preferences:modules");
+  return v;
 }
 
 /**
- * Migration : un appareil d'avant les oraux a du travail sans dossier. On
- * l'adopte tel quel comme premier oral (rien n'est gelé : il est déjà en
- * place), nommé d'après son type — renommable ensuite.
+ * Migration : un appareil d'avant les oraux a du travail sans dossier — et
+ * souvent des DEUX types mélangés dans le même espace (le mal d'origine).
+ * On DÉCOUPE : les affaires de soutenance dans un dossier « Ma soutenance »,
+ * celles d'entretien dans « Mon entretien » (les appels et sessions suivent
+ * chacun leur mode), et les deux partent dormir dans l'historique. L'espace
+ * actif reste VIDE : on entre chez soi dans une pièce rangée — on rouvre un
+ * ancien dossier quand on le décide, depuis « Mes oraux ».
  */
-export function adopterEspaceExistant(storage: StorageLike): Oral | null {
+export function adopterEspaceExistant(storage: StorageLike): Oral[] | null {
   const r = lireRegistre(storage);
   if (r.liste.length > 0) return null;
-  if (clesEspace(storage).length === 0) return null;
-  const type = typeDevine(storage);
-  const oral: Oral = { id: crypto.randomUUID(), nom: type === "soutenance" ? "Ma soutenance" : "Mon entretien", type, creeLe: horodatage(), vuLe: horodatage() };
-  ecrireRegistre(storage, { actif: oral.id, liste: [oral] });
-  return oral;
+  const cles = clesEspace(storage);
+  if (cles.length === 0) return null;
+
+  const sout: Record<string, string> = {};
+  const entr: Record<string, string> = {};
+  const sessionsSout: unknown[] = [];
+  const sessionsEntr: unknown[] = [];
+
+  for (const k of cles) {
+    const v = storage.getItem(k);
+    if (v === null) continue;
+    if (k === "sc.ia.v1:preferences:modules") {
+      // Regénérée par dossier plus bas.
+    } else if (k === "sc.sessions.v1") {
+      try {
+        for (const rec of JSON.parse(v) as Array<{ mode?: unknown }>) {
+          (rec && rec.mode === "entretien" ? sessionsEntr : sessionsSout).push(rec);
+        }
+      } catch {
+        sout[k] = v;
+      }
+    } else if (estCleSoutenance(k)) {
+      sout[k] = v;
+    } else if (estCleEntretien(k)) {
+      entr[k] = v;
+    } else if (k.startsWith("sc.ia.v1:appel:") && k !== "sc.ia.v1:appel:questions-posees") {
+      (modeDe(v) === "entretien" ? entr : sout)[k] = v;
+    } else {
+      // Par défaut chez la soutenance : c'est l'usage majoritaire.
+      sout[k] = v;
+    }
+    (storage as StorageEnumerable).removeItem(k);
+  }
+  if (sessionsSout.length > 0) sout["sc.sessions.v1"] = JSON.stringify(sessionsSout);
+  if (sessionsEntr.length > 0) entr["sc.sessions.v1"] = JSON.stringify(sessionsEntr);
+
+  const crees: Oral[] = [];
+  const ranger = (instantane: Record<string, string>, type: TypeOral, nom: string) => {
+    if (Object.keys(instantane).length === 0) return;
+    const modules = envelopperModules(storage, type);
+    if (modules) instantane["sc.ia.v1:preferences:modules"] = modules;
+    const oral: Oral = { id: crypto.randomUUID(), nom, type, creeLe: horodatage(), vuLe: horodatage() };
+    try {
+      storage.setItem(PREFIXE_ARCHIVE + oral.id, JSON.stringify(instantane));
+      crees.push(oral);
+    } catch {
+      // Archive impossible (stockage plein) : on remet les clés en place
+      // plutôt que de perdre le travail — l'espace redevient l'ancien monde.
+      restaurer(storage, instantane);
+    }
+  };
+  ranger(sout, "soutenance", "Ma soutenance");
+  ranger(entr, "entretien", "Mon entretien");
+  if (crees.length === 0) return null;
+  ecrireRegistre(storage, { actif: null, liste: crees });
+  return crees;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from "vitest";
-import { creerOral, basculerSurOral, listeOraux, oralActif, renommerOral, supprimerOral, adopterEspaceExistant, typeDevine } from "../../lib/oraux";
+import { creerOral, basculerSurOral, listeOraux, oralActif, renommerOral, supprimerOral, adopterEspaceExistant } from "../../lib/oraux";
 
 // Les oraux : des dossiers nommés qui ne se marchent pas dessus. Chaque test
 // vérifie la promesse centrale — rien ne fuit d'un oral à l'autre, rien ne
@@ -93,20 +93,82 @@ describe("les oraux", () => {
     expect(listeOraux(st)[0]!.nom).toBe("PFE — IA médicale");
   });
 
-  it("un appareil d'avant les oraux est adopté tel quel, sans rien perdre", () => {
+  it("l'héritage mélangé est DÉCOUPÉ en deux dossiers dormants, l'espace actif reste vide", () => {
     st.setItem("sc.ia.v1:rapport:texte", "mémoire existant");
-    st.setItem("sc.sessions.v1", "sessions existantes");
-    const o = adopterEspaceExistant(st);
-    expect(o?.type).toBe("soutenance");
-    expect(oralActif(st)?.id).toBe(o!.id);
-    // rien n'a été gelé : le travail est toujours en place
+    st.setItem("sc.candidature.v1", "candidature GELCO");
+    st.setItem("sc.ia.v1:appel:aaa", JSON.stringify({ donnee: { mode: "soutenance", dialogue: [] } }));
+    st.setItem("sc.ia.v1:appel:bbb", JSON.stringify({ donnee: { mode: "entretien", dialogue: [] } }));
+    st.setItem("sc.sessions.v1", JSON.stringify([{ id: "s1" }, { id: "s2", mode: "entretien" }]));
+
+    const crees = adopterEspaceExistant(st);
+    expect(crees).toHaveLength(2);
+    expect(crees!.map((o) => o.type).sort()).toEqual(["entretien", "soutenance"]);
+
+    // On entre dans une pièce rangée : rien d'actif, rien de pré-rempli.
+    expect(oralActif(st)).toBeNull();
+    expect(st.getItem("sc.ia.v1:rapport:texte")).toBeNull();
+    expect(st.getItem("sc.candidature.v1")).toBeNull();
+    expect(st.getItem("sc.sessions.v1")).toBeNull();
+
+    // Rouvrir « Ma soutenance » : ses affaires, et seulement les siennes.
+    const sout = crees!.find((o) => o.type === "soutenance")!;
+    basculerSurOral(st, sout.id);
     expect(st.getItem("sc.ia.v1:rapport:texte")).toBe("mémoire existant");
+    expect(st.getItem("sc.ia.v1:appel:aaa")).not.toBeNull();
+    expect(st.getItem("sc.ia.v1:appel:bbb")).toBeNull();
+    expect(st.getItem("sc.candidature.v1")).toBeNull();
+    expect(JSON.parse(st.getItem("sc.sessions.v1")!)).toHaveLength(1);
+
+    // Rouvrir « Mon entretien » : l'appel GELCO et sa session, rien d'autre.
+    const entr = crees!.find((o) => o.type === "entretien")!;
+    basculerSurOral(st, entr.id);
+    expect(st.getItem("sc.candidature.v1")).toBe("candidature GELCO");
+    expect(st.getItem("sc.ia.v1:appel:bbb")).not.toBeNull();
+    expect(st.getItem("sc.ia.v1:rapport:texte")).toBeNull();
+    const sessions = JSON.parse(st.getItem("sc.sessions.v1")!) as Array<{ mode?: string }>;
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0]!.mode).toBe("entretien");
+  });
+
+  it("un héritage d'un seul type ne crée qu'un dossier", () => {
+    st.setItem("sc.ia.v1:rapport:texte", "mémoire seul");
+    const crees = adopterEspaceExistant(st);
+    expect(crees).toHaveLength(1);
+    expect(crees![0]!.type).toBe("soutenance");
     // et l'adoption ne se refait pas
     expect(adopterEspaceExistant(st)).toBeNull();
   });
 
   it("un appareil vierge n'adopte rien", () => {
     expect(adopterEspaceExistant(st)).toBeNull();
-    expect(typeDevine(st)).toBe("soutenance");
+  });
+});
+
+// La première adoption (avant le découpage) laissait un dossier unique
+// mélangé et actif — la réparation le re-découpe.
+import { reparerHeritageMelange } from "../../lib/oraux";
+
+describe("réparation de l'héritage mélangé", () => {
+  it("un dossier d'adoption qui mélange les deux types est re-découpé", () => {
+    const st = fauxStorage();
+    st.setItem("sc.ia.v1:rapport:texte", "mémoire");
+    st.setItem("sc.candidature.v1", "candidature");
+    // l'ancienne adoption : un seul dossier, actif, tout dedans
+    st.setItem("sc.oraux.v1", JSON.stringify({ actif: "x", liste: [{ id: "x", nom: "Ma soutenance", type: "soutenance", creeLe: "2026-08-29", vuLe: "2026-08-29" }] }));
+    reparerHeritageMelange(st);
+    const liste = listeOraux(st);
+    expect(liste).toHaveLength(2);
+    expect(oralActif(st)).toBeNull();
+    expect(st.getItem("sc.ia.v1:rapport:texte")).toBeNull();
+  });
+
+  it("un dossier renommé par l'utilisateur n'est jamais touché", () => {
+    const st = fauxStorage();
+    st.setItem("sc.ia.v1:rapport:texte", "mémoire");
+    st.setItem("sc.candidature.v1", "candidature");
+    st.setItem("sc.oraux.v1", JSON.stringify({ actif: "x", liste: [{ id: "x", nom: "PFA — IA", type: "soutenance", creeLe: "2026-08-29", vuLe: "2026-08-29" }] }));
+    reparerHeritageMelange(st);
+    expect(listeOraux(st)).toHaveLength(1);
+    expect(oralActif(st)?.nom).toBe("PFA — IA");
   });
 });

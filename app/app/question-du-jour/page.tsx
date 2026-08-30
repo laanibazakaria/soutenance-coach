@@ -138,7 +138,7 @@ export default function QuestionDuJourPage() {
   if (!question) {
     return (
       <div className="card teaser">
-        Pas encore de question : <Link href="/app?choisir=1">choisis un oral</Link> et dépose ton support, ton CV ou ton dossier — la question du jour sera tirée de <i>ton</i> projet.
+        Pas encore de question : <Link href="/app/oraux">crée ton oral</Link> et dépose ton support, ton CV ou ton dossier — la question du jour sera tirée de <i>ton</i> projet.
       </div>
     );
   }

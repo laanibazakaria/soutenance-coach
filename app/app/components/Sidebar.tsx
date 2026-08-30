@@ -219,11 +219,11 @@ export default function Sidebar() {
       <LienNav href="/app/appel" etape={2} label={soutenanceActive ? "Appel du jury" : "Appel du recruteur"} icone={I.appel} actif={chemin.startsWith("/app/appel")} faite={etape2Faite} />
       <LienNav href="/app/bilan" etape={3} label="Progression" icone={I.sessions} actif={chemin.startsWith("/app/bilan")} />
 
-      <div className="sidebar-section">Chaque jour</div>
-      <LienNav href="/app/question-du-jour" label="La question du jour" icone={I.jour} actif={chemin.startsWith("/app/question-du-jour")} />
-      <LienNav href="/app/sessions" label="Mes sessions passées" icone={I.sessions} actif={chemin.startsWith("/app/sessions")} />
-      <LienNav href="/app/revision" label="Tout revoir" icone={I.guides} actif={chemin.startsWith("/app/revision")} />
-      <LienNav href="/app/guides" label="Les guides" icone={I.guides} actif={chemin === "/app/guides"} />
+      <div className="sidebar-section">Entraînement</div>
+      <LienNav href="/app/question-du-jour" label="Question du jour" icone={I.jour} actif={chemin.startsWith("/app/question-du-jour")} />
+      <LienNav href="/app/sessions" label="Sessions" icone={I.sessions} actif={chemin.startsWith("/app/sessions")} />
+      <LienNav href="/app/revision" label="Révision" icone={I.guides} actif={chemin.startsWith("/app/revision")} />
+      <LienNav href="/app/guides" label="Guides" icone={I.guides} actif={chemin === "/app/guides"} />
 
       <div className="sidebar-section">Mes oraux</div>
       {oraux.filter((o) => o.id !== actifId).map((o) => (
@@ -242,15 +242,12 @@ export default function Sidebar() {
           <span className="sidebar-oral-nom">{o.nom}</span>
         </button>
       ))}
-      <LienNav href="/app/oraux" label={oraux.length === 0 ? "Commencer un oral" : "Ajouter un oral"} icone={I.plus} actif={chemin.startsWith("/app/oraux")} />
+      <LienNav href="/app/oraux" label={oraux.length === 0 ? "Commencer un oral" : "Nouvel oral"} icone={I.plus} actif={chemin.startsWith("/app/oraux")} />
 
-      <div className="sidebar-section">Compte</div>
-      <LienNav href="/app/connexion" label="Mon compte" icone={I.compte} actif={chemin.startsWith("/app/connexion")} />
-      <LienNav href="/app/forfaits" label="Forfaits" icone={I.forfaits} actif={chemin.startsWith("/app/forfaits")} />
       {admin && <LienNav href="/app/admin" label="Admin" icone={I.admin} actif={chemin.startsWith("/app/admin")} />}
 
       <div className="sidebar-bas">
-        <CartePreparation nomDossier={actif?.nom} />
+        <CartePreparation />
         <Link href="/app/session" className="btn primary sidebar-cta">
           <span className="sidebar-icone">{I.micro}</span>
           S'entraîner au micro
@@ -263,7 +260,7 @@ export default function Sidebar() {
 }
 
 /** La carte « préparation » : l'oral le plus proche, et où on en est. */
-function CartePreparation({ nomDossier }: { nomDossier?: string }) {
+function CartePreparation() {
   const etat = useEtatApp();
   const oral = etat ? oralPrioritaire(etat.resumes) : null;
   if (!oral) return null;
@@ -272,7 +269,7 @@ function CartePreparation({ nomDossier }: { nomDossier?: string }) {
     <Link href={oral.hub} className="sidebar-prep" title={oral.prochaineAction.titre}>
       <span className="sidebar-prep-ligne">
         <span className="sidebar-prep-nom">
-          {nomDossier ?? oral.nom}
+          Préparation
           {oral.jours !== null && oral.jours >= 0 && <span className="sidebar-prep-j">J-{oral.jours}</span>}
         </span>
         <b>{pct}%</b>

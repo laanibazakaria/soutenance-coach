@@ -33,6 +33,10 @@ Chaque appel nourrit la mémoire du suivant. Le jury **rouvre sur la question re
 
 Un modèle de langage se trompe de manière *plausible* : une note fausse ressemble à une note juste. Ici, **l'IA juge chaque critère et cite ses raisons ; la moyenne pondérée est recalculée par du code** — et quand trop peu de critères ont pu être observés, il n'y a **pas de note du tout**, plutôt qu'un chiffre posé sur du vide. La grille distingue même ses deux volets : un appel ne juge que les *questions* ; seule la soutenance blanche, qui rejoue l'oral entier, peut mener à « Prêt ».
 
+### Des dossiers d'oraux, comme un vrai bureau
+
+Chaque oral est un **dossier nommé** (« PFA — IA médicale », « Ingénieur IA — GELCO ») qui possède tout : documents, appels, sessions, mémoire du jury, progression. On bascule de l'un à l'autre depuis un sélecteur en tête de navigation (le standard des plateformes multi-espaces) ; **à chaque retour sur le site, le travail de la veille est rangé dans l'historique** et l'on entre dans une pièce propre. La synchronisation multi-appareils transporte les dossiers entiers — avec des *pierres tombales* pour qu'une suppression ne ressuscite jamais depuis le compte.
+
 ### Le pronostic
 
 En tête de chaque grille, la réponse à la question qu'on se pose vraiment à 23h : **« Si ton oral était demain : entre 11,5 et 14,5 / 20. »** Fourchette calculée par du code, dont la largeur dit honnêtement ce qui n'a pas été observé.
@@ -45,7 +49,7 @@ Ce projet applique la discipline apprise en stage chez [Propulsez](https://propu
 2. **S'abstenir plutôt qu'inventer.** Pas assez de données → « non mesuré », avec la raison. Grille trop peu couverte → pas de note. Rapport tronqué → la portée l'annonce (*« les 20 premières pages sur 37 »*).
 3. **Ne jamais croire le modèle sur parole.** Une « contradiction chiffrée » dont les deux citations portent les mêmes nombres (« 45 » / « quarante-cinq ») est **écartée par du code** — le prompt l'interdit, le parseur le vérifie. Une incohérence sans ses deux citations est jetée : une demi-accusation est pire que rien.
 4. **Le quota ne fuit pas.** Vérifié avant l'appel au modèle, consommé seulement après succès ; chaque route IA porte son `maxDuration` ; et un déploiement sans base **crie** dans les logs que les quotas sont désactivés au lieu de l'ouvrir en silence.
-5. **Tout est vérifié.** 456 tests unitaires, TypeScript strict, et des tests qui figent jusqu'aux consignes des prompts — pour qu'un remaniement n'efface pas une règle de conduite du jury.
+5. **Tout est vérifié.** 505 tests unitaires, TypeScript strict, et des tests qui figent jusqu'aux consignes des prompts — pour qu'un remaniement n'efface pas une règle de conduite du jury.
 
 ## Journal des incidents — trouvés, compris, corrigés
 
@@ -59,6 +63,10 @@ Les leçons les plus utiles viennent d'appels réels :
 | « Prêt » affiché sur 3 critères évalués sur 12 | Seuil d'abstention absolu (6) sur des poids sommés à 18,5 | Seuil en ratio (60 % du volet) + « Prêt » réservé à l'oral entier |
 | Lecture du dossier : écran figé, quota brûlé, rien rendu | Pas de `maxDuration`, boucle de passes non bornée dans le temps | Budget temps explicite, arrêt propre, voyant « X passes sur Y » enfin branché |
 | La page annonçait 2 unités de quota par appel — il en coûtait 4 | Coût jamais recompté après ajout de la lecture et de la grille | Débrief + grille fusionnés (4 → 3 unités), coût affiché exact |
+| Transcription muette sur Android : l'enregistreur capte un silence absolu (pic RMS 0.000 au diagnostic) | La dictée native garde le micro même après `abort()` — tout flux pris pendant le conflit enregistre du vide | À la bascule serveur : tout libérer, 400 ms de lâcher-prise, reprendre un micro neuf |
+| « Sous-titrage Société Radio-Canada » répété dans les réponses au jury | Hallucination de Whisper sur les segments silencieux | Nettoyeur de phrases fantômes + découpe des segments **à la voix** (on coupe aux pauses, le silence ne voyage plus) |
+| La voix du jury rend 429 « quota dépassé » pendant que la même clé répond 200 à côté | Google épuise séparément le seau du *streaming* TTS gratuit | Repli automatique flux → non-flux, clé TTS dédiée, une seule requête par tour |
+| Un dossier supprimé ressuscite trente secondes plus tard | La synchronisation du compte ignorait les suppressions locales | Pierres tombales dans le registre, unies entre appareils — l'oral actif n'est jamais détruit à distance |
 
 ## Démarrer
 
@@ -70,7 +78,7 @@ npm run dev        # http://localhost:3000
 Navigateur : **Chrome ou Edge** (Web Speech API pour la transcription — l'application le dit si le navigateur ne la propose pas).
 
 ```bash
-npm test           # 456 tests unitaires (Vitest)
+npm test           # 505 tests unitaires (Vitest)
 npm run typecheck  # TypeScript strict
 npm run build      # build de production
 ```
@@ -92,7 +100,8 @@ En local : `.env.local` (ignoré par git). Sur Vercel : *Settings → Environmen
 
 ## Limites connues
 
-- La transcription utilise la dictée du navigateur quand elle existe (Chrome, Edge), et bascule d'elle-même sur une transcription serveur (Whisper) quand elle manque ou échoue — le cas des iPhone. Les voix du jury se déverrouillent au geste de lancement, comme l'exigent les navigateurs mobiles.
+- La transcription utilise la dictée du navigateur quand elle existe (Chrome, Edge), et bascule d'elle-même sur une transcription serveur (Whisper large-v3, segments découpés aux pauses de la voix) quand elle manque, échoue, ou garde le micro en otage — le cas des iPhone et de certains Android. La panne, une fois prouvée, est mémorisée : les visites suivantes partent directement sur le serveur. Les voix du jury se déverrouillent au geste de lancement et se réarment à chaque toucher d'écran, comme l'exigent les navigateurs mobiles.
+- L'application s'installe sur l'écran d'accueil (PWA, sans service worker — assumé), avec le même parcours qu'au bureau.
 - Le pronostic est une estimation calibrée sur la grille, pas une promesse — il le dit lui-même.
 - Un rapport au-delà de ~40 000 signes n'est confronté qu'en partie lors de la relecture croisée (la portée l'affiche).
 

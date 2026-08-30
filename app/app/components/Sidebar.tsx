@@ -206,7 +206,10 @@ function useOraux(): { oraux: Oral[]; actif: Oral | null } {
       const nouvelleVisite = window.sessionStorage.getItem("sc.visite") === null;
       const inactifMs = Date.now() - Number(window.localStorage.getItem("sc.activite.v1") ?? 0);
       if (nouvelleVisite && inactifMs > 2 * 60_000) {
-        if (fermerOralActif(window.localStorage) && window.location.pathname === "/app") window.location.replace("/app/oraux");
+        // Une nouvelle visite atterrit TOUJOURS sur « Mes oraux », d'où
+        // qu'elle entre : rester sur une page profonde montrerait les restes
+        // (coches, contenus) du dossier qu'on vient de ranger.
+        if (fermerOralActif(window.localStorage) && !window.location.pathname.startsWith("/app/oraux")) window.location.replace("/app/oraux");
       }
       window.sessionStorage.setItem("sc.visite", "1");
     } catch {

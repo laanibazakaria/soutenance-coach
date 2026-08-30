@@ -209,7 +209,7 @@ export default function Sidebar() {
       <LienNav href="/app" label="Accueil" icone={I.accueil} actif={chemin === "/app"} />
 
       <div className={`sidebar-section${actif ? " sidebar-section-oral" : ""}`}>
-        {actif ? `${actif.type === "soutenance" ? "🎓" : "💼"} ${actif.nom}` : "Le chemin"}
+        {actif ? actif.nom : "Le chemin"}
       </div>
       {soutenanceActive ? (
         <LienNav href="/app/documents" etape={1} label="Documents" icone={I.documents} actif={chemin.startsWith("/app/documents")} faite={etape1Faite} />
@@ -226,21 +226,19 @@ export default function Sidebar() {
       <LienNav href="/app/guides" label="Les guides" icone={I.guides} actif={chemin === "/app/guides"} />
 
       <div className="sidebar-section">Mes oraux</div>
-      {oraux.map((o) => (
+      {oraux.filter((o) => o.id !== actifId).map((o) => (
         <button
           key={o.id}
           type="button"
-          className={`sidebar-link sidebar-oral${o.id === actifId ? " active" : ""}`}
+          className="sidebar-link sidebar-oral"
           onClick={() => {
             // Basculer d'oral recharge l'app entière : chaque page relit son
             // espace de travail au chargement, aucun état ne survit à tort.
-            if (o.id !== actifId) {
-              basculerSurOral(window.localStorage, o.id);
-              window.location.assign("/app");
-            }
+            basculerSurOral(window.localStorage, o.id);
+            window.location.assign("/app");
           }}
         >
-          <span className="sidebar-icone">{o.type === "soutenance" ? "🎓" : "💼"}</span>
+          <span className="sidebar-icone">{o.type === "soutenance" ? I.soutenance : I.entretien}</span>
           <span className="sidebar-oral-nom">{o.nom}</span>
         </button>
       ))}
@@ -252,7 +250,7 @@ export default function Sidebar() {
       {admin && <LienNav href="/app/admin" label="Admin" icone={I.admin} actif={chemin.startsWith("/app/admin")} />}
 
       <div className="sidebar-bas">
-        <CartePreparation />
+        <CartePreparation nomDossier={actif?.nom} />
         <Link href="/app/session" className="btn primary sidebar-cta">
           <span className="sidebar-icone">{I.micro}</span>
           S'entraîner au micro
@@ -265,7 +263,7 @@ export default function Sidebar() {
 }
 
 /** La carte « préparation » : l'oral le plus proche, et où on en est. */
-function CartePreparation() {
+function CartePreparation({ nomDossier }: { nomDossier?: string }) {
   const etat = useEtatApp();
   const oral = etat ? oralPrioritaire(etat.resumes) : null;
   if (!oral) return null;
@@ -274,7 +272,7 @@ function CartePreparation() {
     <Link href={oral.hub} className="sidebar-prep" title={oral.prochaineAction.titre}>
       <span className="sidebar-prep-ligne">
         <span className="sidebar-prep-nom">
-          {oral.nom}
+          {nomDossier ?? oral.nom}
           {oral.jours !== null && oral.jours >= 0 && <span className="sidebar-prep-j">J-{oral.jours}</span>}
         </span>
         <b>{pct}%</b>

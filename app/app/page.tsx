@@ -1,24 +1,21 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { listSessions } from "@/lib/storage";
 import type { SessionRecord } from "@/lib/types";
-import { TOUS_LES_MODULES, lireModulesActifs, sauverModulesActifs, resumerModules, type ModuleActif, type ResumeModule } from "@/lib/preferences";
+import { TOUS_LES_MODULES, lireModulesActifs, resumerModules, type ModuleActif, type ResumeModule } from "@/lib/preferences";
 import { oralActif } from "@/lib/oraux";
-import { pousserTout, surSynchronisation, signalerSynchronisation } from "@/lib/sync/client";
+import { surSynchronisation } from "@/lib/sync/client";
 import { lireCache } from "@/lib/ia-cache";
 import { lireCandidature } from "@/lib/entretien/persistance";
 import type { Serie } from "@/lib/quotidien";
 import { chiffresSemaine, dateLongue, salutation } from "@/lib/accueil";
 import { useUsage } from "@/lib/usage-client";
-import { useToast } from "@/app/components/Toast";
 import { Icone, IconeBadge, type NomIcone } from "@/app/components/Icone";
 import CarteQuotidien from "./components/CarteQuotidien";
 import ParcoursSimple from "./components/ParcoursSimple";
-import FormulaireEtudiant from "./components/FormulaireEtudiant";
 import LigneSession from "./components/LigneSession";
 import EtatVide from "@/app/components/EtatVide";
 
@@ -32,12 +29,8 @@ export default function AccueilPage() {
 }
 
 function AccueilInner() {
-  const params = useSearchParams();
-  const choisirUrl = params.get("choisir") === "1";
   const [sessions, setSessions] = useState<SessionRecord[] | null>(null);
   const [actifs, setActifs] = useState<ModuleActif[] | null | undefined>(undefined);
-  const [choisir, setChoisir] = useState(false);
-  const [etapeProfil, setEtapeProfil] = useState(false);
   const [resumes, setResumes] = useState<ResumeModule[]>([]);
   const [serie, setSerie] = useState<Serie | null>(null);
   const [maintenant, setMaintenant] = useState<Date | null>(null);
@@ -63,35 +56,12 @@ function AccueilInner() {
     lire();
     return surSynchronisation(lire);
   }, []);
-  useEffect(() => setChoisir(choisirUrl), [choisirUrl]);
+  // Pas encore d'oral : la seule porte d'entrée est d'en créer un, nommé.
+  useEffect(() => {
+    if (actifs === null) window.location.replace("/app/oraux");
+  }, [actifs]);
 
-  if (actifs === undefined || sessions === null || maintenant === null) return null;
-
-  function enregistrer(liste: ModuleActif[]) {
-    const premiereFois = !actifs;
-    sauverModulesActifs(window.localStorage, liste);
-    setActifs(liste);
-    setResumes(resumerModules(window.localStorage, sessions ?? [], liste));
-    setChoisir(false);
-    if (premiereFois) setEtapeProfil(true);
-    signalerSynchronisation();
-    void pousserTout();
-    window.history.replaceState(null, "", "/app");
-  }
-
-  if (!actifs || choisir) {
-    return <Choix initial={actifs ?? []} premiereFois={!actifs} sansSessions={sessions.length === 0} onValider={enregistrer} onAnnuler={actifs ? () => setChoisir(false) : undefined} />;
-  }
-
-  if (etapeProfil) {
-    return (
-      <div className="choix">
-        <h2 className="onboarding-title">Fais connaissance avec ton jury</h2>
-        <p className="onboarding-lead">Dis-lui d&apos;où tu parles : un jury de l&apos;ENSIAS en IA ne pose pas les mêmes questions qu&apos;un jury de médecine.</p>
-        <FormulaireEtudiant onFait={() => setEtapeProfil(false)} libelleValider="C'est parti" />
-      </div>
-    );
-  }
+  if (actifs === undefined || actifs === null || sessions === null || maintenant === null) return null;
 
   const inactifs = TOUS_LES_MODULES.filter((m) => !actifs.includes(m.id));
   const recentes = sessions.slice(0, 4);
@@ -227,9 +197,9 @@ function AccueilInner() {
         <h2 className="list-title">
           <Icone nom="fiches" taille={18} /> Mes oraux
         </h2>
-        <button className="btn small" onClick={() => setChoisir(true)}>
+        <Link href="/app/oraux" className="btn small">
           <Icone nom="plus" /> Ajouter un oral
-        </button>
+        </Link>
       </div>
       <div className="accueil-grille">
         {resumes.map((r) => (
@@ -297,13 +267,13 @@ function AccueilInner() {
       </h2>
       <div className="accueil-decouvrir">
         {inactifs.map((m) => (
-          <button key={m.id} type="button" className="card accueil-feature card-hover" onClick={() => enregistrer([...actifs, m.id])}>
+          <Link key={m.id} href={`/app/oraux?type=${m.id}`} className="card accueil-feature card-hover">
             <IconeBadge nom={m.id} taille={36} />
             <span>
               <b>{m.nom}</b>
-              <small>{m.description} Activer le module.</small>
+              <small>{m.description} Créer un oral.</small>
             </span>
-          </button>
+          </Link>
         ))}
         <Feature icone="document" titre="Mon bilan" texte="Une photographie de ta préparation à imprimer, ou à partager avec ton encadrant." href="/app/bilan" />
         <Feature icone="guides" titre="Les guides" texte="Un guide par oral : dix minutes à lire, cinq à relire la veille." href="/app/guides" />
@@ -343,75 +313,5 @@ function Feature({ icone, titre, texte, href, nouveau }: { icone: NomIcone; titr
         <small>{texte}</small>
       </span>
     </Link>
-  );
-}
-
-function Choix({
-  initial,
-  premiereFois,
-  sansSessions,
-  onValider,
-  onAnnuler,
-}: {
-  initial: ModuleActif[];
-  premiereFois: boolean;
-  sansSessions: boolean;
-  onValider: (l: ModuleActif[]) => void;
-  onAnnuler?: () => void;
-}) {
-  const [choix, setChoix] = useState<ModuleActif[]>(initial.length ? initial : []);
-  const toast = useToast();
-  function basculer(id: ModuleActif) {
-    setChoix((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
-  }
-  return (
-    <div className="choix">
-      <h2 className="onboarding-title">{premiereFois ? "Qu'est-ce que tu prépares ?" : "Tes oraux"}</h2>
-      <p className="onboarding-lead">
-        {premiereFois
-          ? "Choisis un ou plusieurs oraux : l'application ne te montrera que ce qui te concerne. Tu pourras en ajouter plus tard."
-          : "Ajoute ou retire un oral. Rien n'est supprimé : un module retiré garde ses données."}
-      </p>
-      <div className="choix-grille">
-        {TOUS_LES_MODULES.map((m) => {
-          const actif = choix.includes(m.id);
-          return (
-            <button key={m.id} type="button" className={`card choix-carte${actif ? " active" : ""}`} onClick={() => basculer(m.id)} aria-pressed={actif}>
-              <IconeBadge nom={m.id} taille={44} teinte={actif ? "violet" : "gris"} />
-              <b>{m.nom}</b>
-              <p>{m.description}</p>
-              <span className="choix-coche" aria-hidden="true">
-                {actif ? "✓" : "+"}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      <div className="actions">
-        {onAnnuler && (
-          <button className="btn" onClick={onAnnuler}>
-            Annuler
-          </button>
-        )}
-        <button
-          className="btn primary big"
-          disabled={choix.length === 0}
-          onClick={() => {
-            if (choix.length === 0) {
-              toast.info("Choisis au moins un oral.");
-              return;
-            }
-            onValider(choix);
-          }}
-        >
-          {premiereFois ? "C'est parti" : "Enregistrer"}
-        </button>
-      </div>
-      {premiereFois && sansSessions && (
-        <p className="onboarding-alt">
-          Tu veux d&apos;abord voir à quoi ça ressemble ? <a href="/demo-capture.html?vers=/app">Ouvrir avec un exemple</a>
-        </p>
-      )}
-    </div>
   );
 }

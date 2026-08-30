@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { creerOral, listeOraux, oralActif, renommerOral, supprimerOral, basculerSurOral, type Oral, type TypeOral } from "@/lib/oraux";
+import { lireProfilEtudiant } from "@/lib/etudiant";
+import FormulaireEtudiant from "../components/FormulaireEtudiant";
 
 /**
  * Mes oraux : la liste des dossiers de travail. Chaque oral a un nom, un
@@ -21,6 +24,14 @@ function dateCourte(iso: string): string {
 }
 
 export default function OrauxPage() {
+  return (
+    <Suspense fallback={null}>
+      <OrauxInner />
+    </Suspense>
+  );
+}
+
+function OrauxInner() {
   const [oraux, setOraux] = useState<Oral[]>([]);
   const [actifId, setActifId] = useState<string | null>(null);
   const [nom, setNom] = useState("");
@@ -28,6 +39,14 @@ export default function OrauxPage() {
   const [renomme, setRenomme] = useState<string | null>(null);
   const [nouveauNom, setNouveauNom] = useState("");
   const [confirme, setConfirme] = useState<string | null>(null);
+  /** Après le premier oral : le jury doit savoir d'où parle le candidat. */
+  const [etapeProfil, setEtapeProfil] = useState<string | null>(null);
+  const params = useSearchParams();
+
+  useEffect(() => {
+    const t = params.get("type");
+    if (t === "soutenance" || t === "entretien") setType(t);
+  }, [params]);
 
   const recharger = () => {
     setOraux(listeOraux(window.localStorage));
@@ -35,16 +54,37 @@ export default function OrauxPage() {
   };
   useEffect(recharger, []);
 
+  function destination(t: TypeOral): string {
+    return t === "soutenance" ? "/app/documents" : "/app/entretien";
+  }
+
   function commencer() {
     if (!nom.trim()) return;
+    const premier = listeOraux(window.localStorage).length === 0;
     const o = creerOral(window.localStorage, nom, type);
+    // Au premier oral, le jury fait connaissance : un jury de l'ENSIAS en IA
+    // ne pose pas les mêmes questions qu'un jury de médecine.
+    if (premier && !lireProfilEtudiant(window.localStorage)) {
+      setEtapeProfil(destination(o.type));
+      return;
+    }
     // Navigation entière : chaque page relit son espace de travail au chargement.
-    window.location.assign(o.type === "soutenance" ? "/app/documents" : "/app/entretien");
+    window.location.assign(destination(o.type));
   }
 
   function continuer(o: Oral) {
     if (o.id !== actifId) basculerSurOral(window.localStorage, o.id);
     window.location.assign("/app");
+  }
+
+  if (etapeProfil) {
+    return (
+      <div className="choix">
+        <h2 className="onboarding-title">Fais connaissance avec ton jury</h2>
+        <p className="onboarding-lead">Dis-lui d&apos;où tu parles : un jury de l&apos;ENSIAS en IA ne pose pas les mêmes questions qu&apos;un jury de médecine.</p>
+        <FormulaireEtudiant onFait={() => window.location.assign(etapeProfil)} libelleValider="C'est parti" />
+      </div>
+    );
   }
 
   return (
@@ -74,6 +114,11 @@ export default function OrauxPage() {
             Créer et commencer
           </button>
         </div>
+        {oraux.length === 0 && (
+          <p className="onboarding-alt">
+            Tu veux d&apos;abord voir à quoi ça ressemble ? <a href="/demo-capture.html?vers=/app">Ouvrir avec un exemple</a>
+          </p>
+        )}
       </section>
 
       {oraux.length > 0 && (

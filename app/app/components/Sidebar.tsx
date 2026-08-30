@@ -311,6 +311,19 @@ function CartePreparation() {
   const oral = etat ? oralPrioritaire(etat.resumes) : null;
   if (!oral) return null;
   const pct = oral.pourcent ?? 0;
+  // Sans date d'oral, le pourcentage n'existe pas : « 0 % » à côté d'étapes
+  // vertes mentirait. On invite à donner la date — c'est elle qui construit
+  // le parcours.
+  if (oral.pourcent === null || oral.jours === null) {
+    return (
+      <Link href={oral.hub} className="sidebar-prep" title={oral.prochaineAction.titre}>
+        <span className="sidebar-prep-ligne">
+          <span className="sidebar-prep-nom">Préparation</span>
+          <b>Donne ta date →</b>
+        </span>
+      </Link>
+    );
+  }
   return (
     <Link href={oral.hub} className="sidebar-prep" title={oral.prochaineAction.titre}>
       <span className="sidebar-prep-ligne">

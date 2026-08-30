@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { listSessions } from "@/lib/storage";
 import type { SessionRecord } from "@/lib/types";
 import { TOUS_LES_MODULES, lireModulesActifs, resumerModules, type ModuleActif, type ResumeModule } from "@/lib/preferences";
-import { oralActif } from "@/lib/oraux";
+import { oralActif, listeOraux } from "@/lib/oraux";
 import { surSynchronisation } from "@/lib/sync/client";
 import { lireCache } from "@/lib/ia-cache";
 import { lireCandidature } from "@/lib/entretien/persistance";
@@ -68,6 +68,7 @@ function AccueilInner() {
   const urgent = [...resumes].filter((r) => r.jours !== null && r.jours >= 0).sort((a, b) => (a.jours ?? 0) - (b.jours ?? 0))[0];
   const premierSansDate = resumes.find((r) => r.jours === null);
   const chiffres = chiffresSemaine(sessions, serie, maintenant);
+  const nbOraux = typeof window !== "undefined" ? listeOraux(window.localStorage).length : 0;
   const prenom = session?.user?.name?.split(" ")[0];
   const deltaSessions = chiffres.sessions - chiffres.sessionsSemainePrecedente;
   const ratioIa = usage && usage.limite > 0 ? Math.min(100, Math.round((usage.appels / usage.limite) * 100)) : 0;
@@ -181,11 +182,11 @@ function AccueilInner() {
           </div>
           <div className="accueil-usage-item">
             <span className="accueil-usage-ligne">
-              <span>Oraux préparés</span>
-              <b className="vert">{resumes.length} / {TOUS_LES_MODULES.length}</b>
+              <span>Mes oraux</span>
+              <b className="vert">{nbOraux} dossier{nbOraux > 1 ? "s" : ""}</b>
             </span>
             <span className="accueil-usage-barre">
-              <span style={{ width: `${(resumes.length / TOUS_LES_MODULES.length) * 100}%` }} />
+              <span style={{ width: `${Math.min(100, nbOraux * 25)}%` }} />
             </span>
           </div>
         </div>

@@ -180,6 +180,23 @@ export function supprimerOral(storage: StorageLike, id: string): void {
   }
 }
 
+/**
+ * Ferme le dossier actif : son espace part dans son archive, l'entrée
+ * redevient vide. C'est le geste du soir — à la prochaine visite, on entre
+ * dans une pièce rangée et l'on rouvre ce qu'on décide, depuis l'historique.
+ */
+export function fermerOralActif(storage: StorageLike): boolean {
+  const r = lireRegistre(storage);
+  if (!r.actif) return false;
+  try {
+    archiver(storage, r.actif);
+  } catch {
+    return false; // stockage plein : mieux vaut rester ouvert que perdre
+  }
+  ecrireRegistre(storage, { actif: null, liste: r.liste });
+  return true;
+}
+
 /** L'instantané de l'espace vif, SANS le vider (pour la synchronisation). */
 export function instantaneEspace(storage: StorageLike): Record<string, string> {
   const instantane: Record<string, string> = {};

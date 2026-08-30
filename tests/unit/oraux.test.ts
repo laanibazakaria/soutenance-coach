@@ -177,7 +177,7 @@ describe("réparation de l'héritage mélangé", () => {
 // travail du cloud (vu en vrai : « ffd » vide affichant 43 pages). Le monde
 // des oraux voyage désormais entier, et l'espace actif de CET appareil reste
 // la vérité.
-import { fusionnerMondeOraux, instantaneEspace, archiveBrute } from "../../lib/oraux";
+import { fusionnerMondeOraux, instantaneEspace, archiveBrute, fermerOralActif } from "../../lib/oraux";
 
 describe("fusion du monde des oraux (synchronisation)", () => {
   it("un oral inconnu arrive du compte avec son archive, sans toucher l'espace actif", () => {
@@ -220,5 +220,24 @@ describe("fusion du monde des oraux (synchronisation)", () => {
     const inst = instantaneEspace(st);
     expect(inst["sc.deck.v1"]).toBe("deck");
     expect(st.getItem("sc.deck.v1")).toBe("deck");
+  });
+});
+
+describe("fermer le dossier actif (le bureau du matin)", () => {
+  it("range l'espace vif dans l'archive et vide l'entrée", () => {
+    const st = fauxStorage();
+    const o = creerOral(st, "PFA", "soutenance");
+    st.setItem("sc.ia.v1:rapport:texte", "mémoire");
+    expect(fermerOralActif(st)).toBe(true);
+    expect(oralActif(st)).toBeNull();
+    expect(st.getItem("sc.ia.v1:rapport:texte")).toBeNull();
+    // et tout revient quand on rouvre
+    basculerSurOral(st, o.id);
+    expect(st.getItem("sc.ia.v1:rapport:texte")).toBe("mémoire");
+  });
+
+  it("sans dossier actif, ne fait rien", () => {
+    const st = fauxStorage();
+    expect(fermerOralActif(st)).toBe(false);
   });
 });

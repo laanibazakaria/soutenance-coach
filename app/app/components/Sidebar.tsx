@@ -43,7 +43,7 @@ import { useEtatApp, oralPrioritaire } from "../hooks/useEtatApp";
 import { useEtatSync, libelleSync } from "./SyncCompte";
 import { Avatar, libelleForfait } from "./BarreHaut";
 import { lireModulesActifs, type ModuleActif } from "@/lib/preferences";
-import { listeOraux, oralActif, basculerSurOral, adopterEspaceExistant, reparerHeritageMelange, type Oral } from "@/lib/oraux";
+import { listeOraux, oralActif, basculerSurOral, adopterEspaceExistant, reparerHeritageMelange, fermerOralActif, type Oral } from "@/lib/oraux";
 import { surSynchronisation } from "@/lib/sync/client";
 import { listeDeckSauvegarde } from "@/lib/slides/persistance";
 import { lireCandidature } from "@/lib/entretien/persistance";
@@ -198,6 +198,20 @@ function useOraux(): { oraux: Oral[]; actif: Oral | null } {
   useEffect(() => {
     reparerHeritageMelange(window.localStorage);
     adopterEspaceExistant(window.localStorage);
+    // Le bureau du matin : une NOUVELLE visite (site fermé puis rouvert)
+    // trouve le travail de la veille rangé dans l'historique. La marque de
+    // session protège les rechargements du même onglet ; les deux minutes
+    // d'inactivité protègent un second onglet ouvert en plein travail.
+    try {
+      const nouvelleVisite = window.sessionStorage.getItem("sc.visite") === null;
+      const inactifMs = Date.now() - Number(window.localStorage.getItem("sc.activite.v1") ?? 0);
+      if (nouvelleVisite && inactifMs > 2 * 60_000) {
+        if (fermerOralActif(window.localStorage) && window.location.pathname === "/app") window.location.replace("/app/oraux");
+      }
+      window.sessionStorage.setItem("sc.visite", "1");
+    } catch {
+      /* stockage de session indisponible : on n'auto-ferme pas */
+    }
     const lire = () => setEtat({ oraux: listeOraux(window.localStorage), actif: oralActif(window.localStorage) });
     lire();
     return surSynchronisation(lire);
@@ -238,6 +252,15 @@ export default function Sidebar() {
     return () => window.removeEventListener("menu-mobile", ouvrir);
   }, []);
   useEffect(() => setOuverte(false), [chemin]);
+  // Chaque navigation marque l'activité : c'est elle qui distingue « je
+  // travaille dans un autre onglet » de « je reviens après avoir fermé ».
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("sc.activite.v1", String(Date.now()));
+    } catch {
+      /* sans stockage, pas d'auto-fermeture non plus */
+    }
+  }, [chemin]);
   const actifs = useModulesActifs();
   const { oraux, actif } = useOraux();
   const usage = useUsage();

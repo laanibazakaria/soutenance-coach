@@ -172,3 +172,53 @@ describe("réparation de l'héritage mélangé", () => {
     expect(oralActif(st)?.nom).toBe("PFA — IA");
   });
 });
+
+// La synchronisation de compte re-remplissait un dossier vide avec le
+// travail du cloud (vu en vrai : « ffd » vide affichant 43 pages). Le monde
+// des oraux voyage désormais entier, et l'espace actif de CET appareil reste
+// la vérité.
+import { fusionnerMondeOraux, instantaneEspace, archiveBrute } from "../../lib/oraux";
+
+describe("fusion du monde des oraux (synchronisation)", () => {
+  it("un oral inconnu arrive du compte avec son archive, sans toucher l'espace actif", () => {
+    const st = fauxStorage();
+    const local = creerOral(st, "Local", "soutenance");
+    st.setItem("sc.deck.v1", "deck local");
+    const registreDistant = JSON.stringify({ actif: null, liste: [
+      { id: "zzz", nom: "Venu du cloud", type: "entretien", creeLe: "2026-08-28", vuLe: "2026-08-28" },
+    ] });
+    fusionnerMondeOraux(st, registreDistant, { zzz: JSON.stringify({ "sc.candidature.v1": "CV cloud" }) });
+    expect(listeOraux(st)).toHaveLength(2);
+    expect(oralActif(st)?.id).toBe(local.id);
+    // l'espace actif n'a PAS été pollué
+    expect(st.getItem("sc.candidature.v1")).toBeNull();
+    expect(st.getItem("sc.deck.v1")).toBe("deck local");
+    // l'oral du cloud dort avec son archive
+    expect(archiveBrute(st, "zzz")).toContain("CV cloud");
+  });
+
+  it("deux migrations du même travail (noms identiques, ids différents) ne font pas doublon", () => {
+    const st = fauxStorage();
+    st.setItem("sc.oraux.v1", JSON.stringify({ actif: null, liste: [
+      { id: "ici", nom: "Ma soutenance", type: "soutenance", creeLe: "2026-08-29", vuLe: "2026-08-29" },
+    ] }));
+    st.setItem("sc.oral.v1:ici", JSON.stringify({ "sc.deck.v1": "deck d'ici" }));
+    const registreDistant = JSON.stringify({ actif: null, liste: [
+      { id: "labas", nom: "Ma soutenance", type: "soutenance", creeLe: "2026-08-29", vuLe: "2026-08-30" },
+    ] });
+    fusionnerMondeOraux(st, registreDistant, { labas: JSON.stringify({ "sc.deck.v1": "deck de là-bas" }) });
+    const liste = listeOraux(st);
+    expect(liste).toHaveLength(1);
+    expect(liste[0]!.id).toBe("labas"); // le plus récemment vu gagne
+    expect(archiveBrute(st, "ici")).toBeNull();
+  });
+
+  it("l'instantané de l'espace vif ne le vide pas", () => {
+    const st = fauxStorage();
+    creerOral(st, "X", "soutenance");
+    st.setItem("sc.deck.v1", "deck");
+    const inst = instantaneEspace(st);
+    expect(inst["sc.deck.v1"]).toBe("deck");
+    expect(st.getItem("sc.deck.v1")).toBe("deck");
+  });
+});

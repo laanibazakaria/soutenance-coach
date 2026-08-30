@@ -180,6 +180,77 @@ export function supprimerOral(storage: StorageLike, id: string): void {
   }
 }
 
+/** L'instantané de l'espace vif, SANS le vider (pour la synchronisation). */
+export function instantaneEspace(storage: StorageLike): Record<string, string> {
+  const instantane: Record<string, string> = {};
+  for (const k of clesEspace(storage)) {
+    const v = storage.getItem(k);
+    if (v !== null) instantane[k] = v;
+  }
+  return instantane;
+}
+
+/** L'archive d'un oral endormi, brute (null si absente). */
+export function archiveBrute(storage: StorageLike, id: string): string | null {
+  return storage.getItem(PREFIXE_ARCHIVE + id);
+}
+
+/**
+ * Fusionne le monde des oraux venu du compte dans celui de l'appareil.
+ * Règles volontairement simples (v1) :
+ * - un oral inconnu ici arrive avec son archive ;
+ * - un oral connu des deux : le plus récemment VU gagne (nom, type) ; son
+ *   archive distante ne remplace la locale que s'il est plus récent ET
+ *   endormi ici — l'oral ACTIF de cet appareil reste toujours la vérité ;
+ * - deux orals de même nom et type mais d'identifiants différents (chaque
+ *   appareil a migré de son côté) : on garde le plus récemment vu, l'autre
+ *   est écarté — mieux qu'un historique en double.
+ */
+export function fusionnerMondeOraux(storage: StorageLike, distantRegistre: unknown, distantArchives: Record<string, string>): void {
+  let distant: Registre;
+  try {
+    const j = typeof distantRegistre === "string" ? (JSON.parse(distantRegistre) as Registre) : (distantRegistre as Registre);
+    if (!j || !Array.isArray(j.liste)) return;
+    distant = j;
+  } catch {
+    return;
+  }
+  const local = lireRegistre(storage);
+  const parId = new Map<string, Oral>(local.liste.map((o) => [o.id, o]));
+
+  for (const d of distant.liste) {
+    if (!d || typeof d.id !== "string") continue;
+    const connu = parId.get(d.id);
+    if (!connu) {
+      // Même nom et type sous un autre identifiant : doublon de migration.
+      const jumeau = [...parId.values()].find((o) => o.nom === d.nom && o.type === d.type);
+      if (jumeau) {
+        if (d.vuLe > jumeau.vuLe && jumeau.id !== local.actif) {
+          parId.delete(jumeau.id);
+          (storage as StorageEnumerable).removeItem(PREFIXE_ARCHIVE + jumeau.id);
+          parId.set(d.id, { ...d });
+          const arch = distantArchives[d.id];
+          if (arch) storage.setItem(PREFIXE_ARCHIVE + d.id, arch);
+        }
+        continue;
+      }
+      parId.set(d.id, { ...d });
+      const arch = distantArchives[d.id];
+      if (arch) storage.setItem(PREFIXE_ARCHIVE + d.id, arch);
+      continue;
+    }
+    if (d.vuLe > connu.vuLe) {
+      connu.nom = d.nom;
+      connu.vuLe = d.vuLe;
+      if (connu.id !== local.actif) {
+        const arch = distantArchives[d.id];
+        if (arch) storage.setItem(PREFIXE_ARCHIVE + d.id, arch);
+      }
+    }
+  }
+  ecrireRegistre(storage, { actif: local.actif, liste: [...parId.values()] });
+}
+
 /**
  * Réparation : les appareils passés par la PREMIÈRE adoption (avant le
  * découpage) ont un dossier unique, actif, au nom d'adoption, qui mélange
